@@ -555,6 +555,26 @@
         let myChart = null;
         let cachedCityData = {};
 
+        function mapWmoCodeToText(code) {
+            // Precise WMO Weather Code Translation
+            if (code === 0) {
+                return { th: "☀️ ท้องฟ้าโปร่ง แดดจัด", en: "☀️ Clear Sky & Sunny" };
+            } else if (code >= 1 && code <= 3) {
+                return { th: "⛅ มีเมฆบางส่วนถึงเมฆมาก", en: "⛅ Partly to Highly Cloudy" };
+            } else if (code >= 45 && code <= 48) {
+                return { th: "🌫️ มีหมอกควันหนาแน่น", en: "🌫️ Foggy & Hazy" };
+            } else if (code >= 51 && code <= 57) {
+                return { th: "🌧️ มีฝนตกปรอยๆ", en: "🌧️ Light Drizzle" };
+            } else if (code >= 61 && code <= 67) {
+                return { th: "🌧️ มีฝนตกเล็กน้อยถึงปานกลาง", en: "🌧️ Light to Moderate Rain" };
+            } else if (code >= 80 && code <= 82) {
+                return { th: "🌧️ มีฝนตกชุกค่อนข้างหนัก", en: "🌧️ Heavy Rain Showers" };
+            } else if (code >= 95 && code <= 99) {
+                return { th: "🌩️ มีพายุฝนฟ้าคะนอง", en: "🌩️ Thunderstorm Warning" };
+            }
+            return { th: "☀️ อากาศโปร่งใส", en: "☀️ Clear Weather" };
+        }
+
         function changeLanguage(lang) {
             currentLang = lang;
             const dict = i18n[lang];
@@ -620,18 +640,14 @@
                 const hourlyTemps = (weatherJson.hourly && weatherJson.hourly.temperature_2m) ? weatherJson.hourly.temperature_2m.slice(0, 7) : [28, 29, 31, 32, 30, 29, 28];
                 const hourlyAqis = (aqiJson.hourly && aqiJson.hourly.us_aqi) ? aqiJson.hourly.us_aqi.slice(0, 7) : [40, 42, 48, 50, 45, 43, 41];
 
-                let weatherTextTH = "☀️ อากาศโปร่งใส แดดจัด";
-                let weatherTextEN = "☀️ Clear & Sunny";
-                if (weatherCode >= 1 && weatherCode <= 3) { weatherTextTH = "⛅ มีเมฆเล็กน้อยถึงปานกลาง"; weatherTextEN = "⛅ Partly Cloudy"; }
-                else if (weatherCode >= 45 && weatherCode <= 48) { weatherTextTH = "🌫️ มีหมอกควันหนาแน่น"; weatherTextEN = "🌫️ Foggy & Hazy"; }
-                else if (weatherCode >= 51) { weatherTextTH = "🌧️ มีฝนตกเล็กน้อยถึงปานกลาง"; weatherTextEN = "🌧️ Rainy Showers"; }
+                const weatherText = mapWmoCodeToText(weatherCode);
 
                 const dataPayload = {
                     name: cityObj.name,
                     temp: temp.toFixed(1),
                     humidity: humidity,
                     wind: wind.toFixed(1),
-                    weatherText: { th: weatherTextTH, en: weatherTextEN },
+                    weatherText: weatherText,
                     aqi: aqi,
                     pm25: pm25,
                     history: { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis }
@@ -642,13 +658,12 @@
 
             } catch (err) {
                 console.warn("API Fetch failed, using fallback data:", err);
-                // Fallback safe payload
                 const fallbackPayload = {
                     name: cityObj.name,
                     temp: "30.5",
                     humidity: 62,
                     wind: "12.0",
-                    weatherText: { th: "☀️ อากาศโปร่งใส", en: "☀️ Clear Sky" },
+                    weatherText: { th: "☀️ ท้องฟ้าโปร่ง แดดจัด", en: "☀️ Clear Sky & Sunny" },
                     aqi: 42,
                     pm25: "10.2",
                     history: {
