@@ -66,6 +66,8 @@
             padding: 1.25rem 2rem;
             border-radius: 20px;
             box-shadow: var(--glass-shadow);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .brand-title {
@@ -82,7 +84,7 @@
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             background: linear-gradient(to right, #ffffff, #cbd5e1);
             -webkit-background-clip: text;
@@ -92,14 +94,15 @@
         .controls {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
 
         select, button {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.7);
             color: var(--text-primary);
             border: 1px solid var(--card-border);
-            padding: 0.65rem 1.25rem;
+            padding: 0.65rem 1.1rem;
             border-radius: 12px;
             font-size: 0.95rem;
             outline: none;
@@ -288,7 +291,22 @@
             color: var(--text-secondary);
         }
 
-        /* Team Roles Footer Modal/Panel */
+        /* Source Link Badges */
+        .source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: color 0.2s ease;
+        }
+        .source-link:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
         .footer-info {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -315,11 +333,18 @@
                 <span class="icon">🌍</span>
                 <div>
                     <h1>WeatherAQI Sense</h1>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary);">CP352301 Final Project — Real-time Health & Environmental Monitor</p>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);" id="hdrSub">CP352301 Final Project — Real-time Health & Environmental Monitor</p>
                 </div>
             </div>
             
             <div class="controls">
+                <!-- Language Selector -->
+                <select id="langSelect" onchange="changeLanguage(this.value)">
+                    <option value="th">🇹🇭 ภาษาไทย (TH)</option>
+                    <option value="en">🇬🇧 English (EN)</option>
+                </select>
+
+                <!-- City Selector -->
                 <select id="citySelect" onchange="updateDashboard(this.value)">
                     <option value="khon kaen">Khon Kaen (ขอนแก่น)</option>
                     <option value="bangkok">Bangkok (กรุงเทพฯ)</option>
@@ -340,12 +365,12 @@
             </div>
         </div>
 
-        <!-- Top Metrics Cards -->
+        <!-- Top Metrics Grid -->
         <div class="metrics-grid">
             <!-- Temp Card -->
             <div class="glass-card">
                 <div class="card-header">
-                    <span>TEMPERATURE & WEATHER</span>
+                    <span id="lblTempHdr">TEMPERATURE & WEATHER</span>
                     <span id="currentCityTag">KHON KAEN</span>
                 </div>
                 <div class="temp-display">
@@ -356,11 +381,11 @@
                 
                 <div class="details-list">
                     <div class="detail-item">
-                        <span>Humidity</span>
+                        <span id="lblHumidity">Humidity</span>
                         <span id="humidityVal">62 %</span>
                     </div>
                     <div class="detail-item">
-                        <span>Air Pressure</span>
+                        <span id="lblPressure">Air Pressure</span>
                         <span id="pressureVal">1011 hPa</span>
                     </div>
                 </div>
@@ -369,7 +394,7 @@
             <!-- AQI Card -->
             <div class="glass-card">
                 <div class="card-header">
-                    <span>AIR QUALITY INDEX (US EPA)</span>
+                    <span id="lblAqiHdr">AIR QUALITY INDEX (US EPA)</span>
                     <span id="aqiBadge" class="aqi-badge bg-good">GOOD</span>
                 </div>
                 <div class="temp-display">
@@ -380,34 +405,38 @@
                 
                 <div class="details-list">
                     <div class="detail-item">
-                        <span>Status</span>
+                        <span id="lblStatus">Status</span>
                         <span id="statusCat">Satisfactory</span>
                     </div>
                     <div class="detail-item">
-                        <span>Recommendation</span>
+                        <span id="lblRec">Recommendation</span>
                         <span id="maskRec">No Mask Needed</span>
                     </div>
                 </div>
             </div>
 
-            <!-- System Architecture Card -->
+            <!-- Data Sources & API Info Card (Replacing Agile Card) -->
             <div class="glass-card">
                 <div class="card-header">
-                    <span>AGILE & ARCHITECTURE</span>
-                    <span style="color: var(--accent-emerald);">● LIVE WIP = 2</span>
+                    <span id="lblSourcesHdr">DATA SOURCES & API INFO</span>
+                    <span style="color: var(--accent-emerald);">● VERIFIED APIS</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
                     <div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);">Framework Style</span>
-                        <p style="font-weight: 600;">Object-Oriented Programming (OOP)</p>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);" id="lblWeatherSource">Weather Data API Source</span>
+                        <p style="font-weight: 600; margin-top: 0.1rem;">
+                            <a href="https://openweathermap.org/" target="_blank" rel="noopener" class="source-link">🌐 OpenWeatherMap API ↗</a>
+                        </p>
                     </div>
                     <div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);">Persistence Layer</span>
-                        <p style="font-weight: 600;">SQLite Database (weather_data.db)</p>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);" id="lblAqiSource">Air Quality & PM2.5 API Source</span>
+                        <p style="font-weight: 600; margin-top: 0.1rem;">
+                            <a href="https://www.iqair.com/air-pollution-data-api" target="_blank" rel="noopener" class="source-link">🌬️ IQAir AirVisual API ↗</a>
+                        </p>
                     </div>
                     <div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);">APIs Integrated</span>
-                        <p style="font-weight: 600;">OpenWeatherMap + IQAir AirVisual</p>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);" id="lblDataMode">Processing & Storage</span>
+                        <p style="font-weight: 600; font-size: 0.9rem;" id="lblDataDesc">Live Ingestion + SQLite Local Persistence</p>
                     </div>
                 </div>
             </div>
@@ -417,8 +446,8 @@
         <div class="analytics-grid">
             <div class="glass-card">
                 <div class="card-header">
-                    <span>HISTORICAL TREND ANALYSIS (DUAL-AXIS)</span>
-                    <span style="color: var(--text-secondary);">Last 7 Records</span>
+                    <span id="lblChartHdr">HISTORICAL TREND ANALYSIS (DUAL-AXIS)</span>
+                    <span style="color: var(--text-secondary);" id="lblRecentRecords">Last 7 Records</span>
                 </div>
                 <div class="chart-container">
                     <canvas id="trendChart"></canvas>
@@ -427,8 +456,8 @@
 
             <div class="glass-card">
                 <div class="card-header">
-                    <span>KEY CITIES MONITOR</span>
-                    <span>LIVE STATUS</span>
+                    <span id="lblCitiesHdr">KEY CITIES MONITOR</span>
+                    <span id="lblLiveStatus">LIVE STATUS</span>
                 </div>
                 <div class="city-list" id="cityList">
                     <!-- Dynamic city items -->
@@ -439,8 +468,8 @@
         <!-- Team Roles Footer -->
         <div class="glass-card">
             <div class="card-header">
-                <span>TEAM ROLE ROTATION MATRIX (CP352301 SPRINT 1 - 4)</span>
-                <span style="color: var(--accent-purple);">100% COVERAGE GUARANTEE</span>
+                <span id="lblTeamHdr">TEAM ROLE ROTATION MATRIX (CP352301 SPRINT 1 - 4)</span>
+                <span style="color: var(--accent-purple);" id="lblCoverage">100% COVERAGE GUARANTEE</span>
             </div>
             <div class="footer-info">
                 <div style="background: rgba(15,23,42,0.4); padding: 1rem; border-radius: 14px; border: 1px solid var(--card-border);">
@@ -464,22 +493,85 @@
     </div>
 
     <script>
+        let currentLang = 'th';
+
+        const i18n = {
+            th: {
+                hdrSub: "CP352301 Final Project — ระบบติดตามสภาพอากาศและคำแนะนำสุขภาพเรียลไทม์",
+                refreshBtn: "⚡ อัปเดตข้อมูลสด",
+                lblTempHdr: "อุณหภูมิและสภาพอากาศ",
+                lblHumidity: "ความชื้นสัมพัทธ์",
+                lblPressure: "ความกดอากาศ",
+                lblAqiHdr: "ดัชนีคุณภาพอากาศ (US AQI)",
+                lblStatus: "สถานะอากาศ",
+                lblRec: "ข้อแนะนำสุขภาพ",
+                lblSourcesHdr: "แหล่งข้อมูลอ้างอิง (DATA SOURCES)",
+                lblWeatherSource: "ที่มาข้อมูลสภาพอากาศ",
+                lblAqiSource: "ที่มาข้อมูลคุณภาพอากาศ & PM2.5",
+                lblDataMode: "การประมวลผลและจัดเก็บ",
+                lblDataDesc: "ดึงข้อมูลสด API + บันทึก SQLite",
+                lblChartHdr: "กราฟวิเคราะห์แนวโน้มย้อนหลัง (DUAL-AXIS)",
+                lblRecentRecords: "7 รายการล่าสุด",
+                lblCitiesHdr: "เปรียบเทียบสถานะเมืองสำคัญ",
+                lblLiveStatus: "สถานะเรียลไทม์",
+                lblTeamHdr: "ตารางหมุนเวียนบทบาททีม (SPRINT 1 - 4)",
+                lblCoverage: "การันตีทำครบทุกตำแหน่ง 100%",
+                chartTempLabel: "อุณหภูมิ (°C)",
+                chartAqiLabel: "ดัชนีคุณภาพอากาศ (AQI)",
+                cities: {
+                    "khon kaen": "Khon Kaen (ขอนแก่น)",
+                    "bangkok": "Bangkok (กรุงเทพฯ)",
+                    "chiang mai": "Chiang Mai (เชียงใหม่)",
+                    "phuket": "Phuket (ภูเก็ต)"
+                }
+            },
+            en: {
+                hdrSub: "CP352301 Final Project — Real-time Health & Environmental Monitor",
+                refreshBtn: "⚡ Refresh Live",
+                lblTempHdr: "TEMPERATURE & WEATHER",
+                lblHumidity: "Humidity",
+                lblPressure: "Air Pressure",
+                lblAqiHdr: "AIR QUALITY INDEX (US EPA)",
+                lblStatus: "Air Status",
+                lblRec: "Recommendation",
+                lblSourcesHdr: "DATA SOURCES & API INFO",
+                lblWeatherSource: "Weather Data API Source",
+                lblAqiSource: "Air Quality & PM2.5 API Source",
+                lblDataMode: "Processing & Storage",
+                lblDataDesc: "Live API Ingestion + SQLite Local Persistence",
+                lblChartHdr: "HISTORICAL TREND ANALYSIS (DUAL-AXIS)",
+                lblRecentRecords: "Last 7 Records",
+                lblCitiesHdr: "KEY CITIES MONITOR",
+                lblLiveStatus: "LIVE STATUS",
+                lblTeamHdr: "TEAM ROLE ROTATION MATRIX (SPRINT 1 - 4)",
+                lblCoverage: "100% COVERAGE GUARANTEE",
+                chartTempLabel: "Temperature (°C)",
+                chartAqiLabel: "AQI (US EPA)",
+                cities: {
+                    "khon kaen": "Khon Kaen",
+                    "bangkok": "Bangkok",
+                    "chiang mai": "Chiang Mai",
+                    "phuket": "Phuket"
+                }
+            }
+        };
+
         const cityData = {
             "khon kaen": {
-                name: "Khon Kaen",
+                name: { th: "ขอนแก่น (Khon Kaen)", en: "Khon Kaen" },
                 temp: 30.2,
                 humidity: 62.0,
                 pressure: 1011.0,
-                weather: "☀️ Sunny with clear skies",
+                weather: { th: "☀️ แดดจัด อากาศโปร่งใส", en: "☀️ Sunny with clear skies" },
                 aqi: 42,
-                category: "Good",
+                category: { th: "คุณภาพดี", en: "Good" },
                 badgeClass: "bg-good",
                 pollutant: "PM2.5 (p2)",
-                status: "Satisfactory",
-                mask: "No Mask Needed",
+                status: { th: "น่าพึงพอใจ", en: "Satisfactory" },
+                mask: { th: "ไม่ต้องสวมหน้ากาก", en: "No Mask Needed" },
                 advIcon: "🟢",
-                advTitle: "AI Health Advisory: Good Air Quality",
-                advDesc: "Air quality is satisfactory. Ideal for outdoor workouts and outdoor activities.",
+                advTitle: { th: "คำแนะนำสุขภาพ AI: คุณภาพอากาศดี", en: "AI Health Advisory: Good Air Quality" },
+                advDesc: { th: "คุณภาพอากาศอยู่ในเกณฑ์ดี เหมาะสมกับการทำกิจกรรมและออกกำลังกายกลางแจ้ง", en: "Air quality is satisfactory. Ideal for outdoor workouts and outdoor activities." },
                 history: {
                     labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
                     temp: [27.5, 29.0, 31.5, 32.0, 30.8, 29.5, 30.2],
@@ -487,20 +579,20 @@
                 }
             },
             "bangkok": {
-                name: "Bangkok",
+                name: { th: "กรุงเทพฯ (Bangkok)", en: "Bangkok" },
                 temp: 32.5,
                 humidity: 68.0,
                 pressure: 1009.0,
-                weather: "⛅ Partly cloudy",
+                weather: { th: "⛅ มีเมฆบางส่วน", en: "⛅ Partly cloudy" },
                 aqi: 85,
-                category: "Moderate",
+                category: { th: "ปานกลาง", en: "Moderate" },
                 badgeClass: "bg-moderate",
                 pollutant: "PM2.5 (p2)",
-                status: "Acceptable",
-                mask: "Optional for sensitive",
+                status: { th: "ยอมรับได้", en: "Acceptable" },
+                mask: { th: "ผู้ป่วยภูมิแพ้ควรระวัง", en: "Optional for sensitive" },
                 advIcon: "🟡",
-                advTitle: "AI Health Advisory: Moderate Air Quality",
-                advDesc: "Air quality is acceptable. Sensitive individuals should consider reducing heavy outdoor exertion.",
+                advTitle: { th: "คำแนะนำสุขภาพ AI: คุณภาพอากาศปานกลาง", en: "AI Health Advisory: Moderate Air Quality" },
+                advDesc: { th: "คุณภาพอากาศอยู่ในเกณฑ์ยอมรับได้ ผู้ป่วยโรคทางเดินหายใจควรลดการออกแรงหนักกลางแจ้ง", en: "Air quality is acceptable. Sensitive individuals should consider reducing heavy outdoor exertion." },
                 history: {
                     labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
                     temp: [29.0, 31.2, 33.5, 34.0, 33.0, 31.8, 32.5],
@@ -508,20 +600,20 @@
                 }
             },
             "chiang mai": {
-                name: "Chiang Mai",
+                name: { th: "เชียงใหม่ (Chiang Mai)", en: "Chiang Mai" },
                 temp: 28.0,
                 humidity: 75.0,
                 pressure: 1012.0,
-                weather: "🌫️ Haze & Smog",
+                weather: { th: "🌫️ มีหมอกควันหนาแน่น", en: "🌫️ Haze & Smog" },
                 aqi: 125,
-                category: "Unhealthy for Sensitive",
+                category: { th: "เริ่มมีผลต่อสุขภาพ", en: "Unhealthy for Sensitive" },
                 badgeClass: "bg-unhealthy",
                 pollutant: "PM2.5 (p2)",
-                status: "Unhealthy (Groups)",
-                mask: "N95 Mask Recommended",
+                status: { th: "ส่งผลต่อกลุ่มเสี่ยง", en: "Unhealthy (Groups)" },
+                mask: { th: "ควรใส่หน้ากาก N95", en: "N95 Mask Recommended" },
                 advIcon: "🟠",
-                advTitle: "AI Health Advisory: Unhealthy for Sensitive Groups",
-                advDesc: "Sensitive groups (asthma, children, elderly) may experience health effects. Wear N95 mask outdoors.",
+                advTitle: { th: "คำแนะนำสุขภาพ AI: เริ่มมีผลต่อกลุ่มเสี่ยง", en: "AI Health Advisory: Unhealthy for Sensitive Groups" },
+                advDesc: { th: "กลุ่มเสี่ยง (เด็ก ผู้สูงอายุ ผู้ป่วยภูมิแพ้) ควรลดเวลาทำกิจกรรมกลางแจ้งและสวมหน้ากาก N95", en: "Sensitive groups (asthma, children, elderly) may experience health effects. Wear N95 mask outdoors." },
                 history: {
                     labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
                     temp: [24.0, 26.5, 29.0, 29.5, 28.5, 27.8, 28.0],
@@ -529,20 +621,20 @@
                 }
             },
             "phuket": {
-                name: "Phuket",
+                name: { th: "ภูเก็ต (Phuket)", en: "Phuket" },
                 temp: 31.0,
                 humidity: 80.0,
                 pressure: 1008.0,
-                weather: "🌧️ Light rain shower",
+                weather: { th: "🌧️ มีฝนตกบางแห่ง", en: "🌧️ Light rain shower" },
                 aqi: 25,
-                category: "Good",
+                category: { th: "ดีมาก", en: "Good" },
                 badgeClass: "bg-good",
                 pollutant: "PM10 (p1)",
-                status: "Very Good",
-                mask: "No Mask Needed",
+                status: { th: "อากาศบริสุทธิ์", en: "Very Good" },
+                mask: { th: "ไม่ต้องสวมหน้ากาก", en: "No Mask Needed" },
                 advIcon: "🟢",
-                advTitle: "AI Health Advisory: Clean Ocean Breeze",
-                advDesc: "Excellent air quality! Perfect conditions for beach walking and outdoor activities.",
+                advTitle: { th: "คำแนะนำสุขภาพ AI: อากาศทะเลบริสุทธิ์", en: "AI Health Advisory: Clean Ocean Breeze" },
+                advDesc: { th: "คุณภาพอากาศบริสุทธิ์ดีเยี่ยม เหมาะสมกับการท่องเที่ยวและการทำกิจกรรมริมทะเล", en: "Excellent air quality! Perfect conditions for beach walking and outdoor activities." },
                 history: {
                     labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
                     temp: [28.0, 30.0, 31.5, 31.0, 30.2, 29.8, 31.0],
@@ -553,11 +645,42 @@
 
         let myChart = null;
 
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const dict = i18n[lang];
+            
+            document.getElementById('hdrSub').innerText = dict.hdrSub;
+            document.getElementById('refreshBtn').innerText = dict.refreshBtn;
+            document.getElementById('lblTempHdr').innerText = dict.lblTempHdr;
+            document.getElementById('lblHumidity').innerText = dict.lblHumidity;
+            document.getElementById('lblPressure').innerText = dict.lblPressure;
+            document.getElementById('lblAqiHdr').innerText = dict.lblAqiHdr;
+            document.getElementById('lblStatus').innerText = dict.lblStatus;
+            document.getElementById('lblRec').innerText = dict.lblRec;
+            document.getElementById('lblSourcesHdr').innerText = dict.lblSourcesHdr;
+            document.getElementById('lblWeatherSource').innerText = dict.lblWeatherSource;
+            document.getElementById('lblAqiSource').innerText = dict.lblAqiSource;
+            document.getElementById('lblDataMode').innerText = dict.lblDataMode;
+            document.getElementById('lblDataDesc').innerText = dict.lblDataDesc;
+            document.getElementById('lblChartHdr').innerText = dict.lblChartHdr;
+            document.getElementById('lblRecentRecords').innerText = dict.lblRecentRecords;
+            document.getElementById('lblCitiesHdr').innerText = dict.lblCitiesHdr;
+            document.getElementById('lblLiveStatus').innerText = dict.lblLiveStatus;
+            document.getElementById('lblTeamHdr').innerText = dict.lblTeamHdr;
+            document.getElementById('lblCoverage').innerText = dict.lblCoverage;
+
+            const currentCityKey = document.getElementById('citySelect').value;
+            renderCityList();
+            updateDashboard(currentCityKey);
+        }
+
         function initChart(labels, tempSeries, aqiSeries) {
             const ctx = document.getElementById('trendChart').getContext('2d');
             if (myChart) {
                 myChart.destroy();
             }
+
+            const dict = i18n[currentLang];
 
             myChart = new Chart(ctx, {
                 type: 'line',
@@ -565,7 +688,7 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Temperature (°C)',
+                            label: dict.chartTempLabel,
                             data: tempSeries,
                             borderColor: '#f43f5e',
                             backgroundColor: 'rgba(244, 63, 94, 0.1)',
@@ -574,7 +697,7 @@
                             fill: true
                         },
                         {
-                            label: 'AQI (US EPA)',
+                            label: dict.chartAqiLabel,
                             data: aqiSeries,
                             borderColor: '#38bdf8',
                             backgroundColor: 'rgba(56, 189, 248, 0.1)',
@@ -596,14 +719,14 @@
                         yTemp: {
                             type: 'linear',
                             position: 'left',
-                            title: { display: true, text: 'Temperature (°C)', color: '#f43f5e' },
+                            title: { display: true, text: dict.chartTempLabel, color: '#f43f5e' },
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: '#f43f5e' }
                         },
                         yAQI: {
                             type: 'linear',
                             position: 'right',
-                            title: { display: true, text: 'AQI (US EPA)', color: '#38bdf8' },
+                            title: { display: true, text: dict.chartAqiLabel, color: '#38bdf8' },
                             grid: { drawOnChartArea: false },
                             ticks: { color: '#38bdf8' }
                         }
@@ -620,15 +743,19 @@
             container.innerHTML = '';
             for (const key in cityData) {
                 const c = cityData[key];
+                const cityName = c.name[currentLang] || c.name.en;
+                const weatherStr = c.weather[currentLang] || c.weather.en;
+                const catStr = c.category[currentLang] || c.category.en;
+
                 container.innerHTML += `
                     <div class="city-item" onclick="updateDashboard('${key}')" style="cursor: pointer;">
                         <div class="city-info">
-                            <h4>${c.name}</h4>
-                            <p>${c.weather}</p>
+                            <h4>${cityName}</h4>
+                            <p>${weatherStr}</p>
                         </div>
                         <div style="text-align: right;">
                             <span style="font-weight: 700; font-size: 1.1rem;">${c.temp} °C</span>
-                            <div><span class="aqi-badge ${c.badgeClass}" style="font-size: 0.75rem; padding: 0.1rem 0.5rem;">AQI ${c.aqi}</span></div>
+                            <div><span class="aqi-badge ${c.badgeClass}" style="font-size: 0.75rem; padding: 0.1rem 0.5rem;">AQI ${c.aqi} (${catStr})</span></div>
                         </div>
                     </div>
                 `;
@@ -639,42 +766,49 @@
             const data = cityData[cityKey.toLowerCase()] || cityData["khon kaen"];
             document.getElementById('citySelect').value = cityKey.toLowerCase();
             
-            document.getElementById('currentCityTag').innerText = data.name.toUpperCase();
+            const cityName = data.name[currentLang] || data.name.en;
+            const weatherStr = data.weather[currentLang] || data.weather.en;
+            const catStr = data.category[currentLang] || data.category.en;
+            const statusStr = data.status[currentLang] || data.status.en;
+            const maskStr = data.mask[currentLang] || data.mask.en;
+            const advTitleStr = data.advTitle[currentLang] || data.advTitle.en;
+            const advDescStr = data.advDesc[currentLang] || data.advDesc.en;
+
+            document.getElementById('currentCityTag').innerText = cityName.toUpperCase();
             document.getElementById('tempVal').innerText = data.temp;
             document.getElementById('humidityVal').innerText = data.humidity + ' %';
             document.getElementById('pressureVal').innerText = data.pressure + ' hPa';
-            document.getElementById('weatherDesc').innerText = data.weather;
+            document.getElementById('weatherDesc').innerText = weatherStr;
             
             document.getElementById('aqiVal').innerText = data.aqi;
-            document.getElementById('pollutantText').innerText = 'Main Pollutant: ' + data.pollutant;
-            document.getElementById('statusCat').innerText = data.status;
-            document.getElementById('maskRec').innerText = data.mask;
+            document.getElementById('pollutantText').innerText = (currentLang === 'th' ? 'สารมลพิษหลัก: ' : 'Main Pollutant: ') + data.pollutant;
+            document.getElementById('statusCat').innerText = statusStr;
+            document.getElementById('maskRec').innerText = maskStr;
 
             const badge = document.getElementById('aqiBadge');
-            badge.innerText = data.category;
+            badge.innerText = catStr;
             badge.className = 'aqi-badge ' + data.badgeClass;
 
             document.getElementById('advIcon').innerText = data.advIcon;
-            document.getElementById('advTitle').innerText = data.advTitle;
-            document.getElementById('advDesc').innerText = data.advDesc;
+            document.getElementById('advTitle').innerText = advTitleStr;
+            document.getElementById('advDesc').innerText = advDescStr;
 
             initChart(data.history.labels, data.history.temp, data.history.aqi);
         }
 
         function refreshData() {
             const btn = document.getElementById('refreshBtn');
-            btn.innerText = '🔄 Refreshing...';
+            btn.innerText = currentLang === 'th' ? '🔄 กำลังโหลด...' : '🔄 Refreshing...';
             setTimeout(() => {
                 const currentCity = document.getElementById('citySelect').value;
                 updateDashboard(currentCity);
-                btn.innerText = '⚡ Refresh Live';
-            }, 600);
+                btn.innerText = i18n[currentLang].refreshBtn;
+            }, 500);
         }
 
         // Initialize Page
         window.addEventListener('DOMContentLoaded', () => {
-            renderCityList();
-            updateDashboard("khon kaen");
+            changeLanguage('th');
         });
     </script>
 </body>
