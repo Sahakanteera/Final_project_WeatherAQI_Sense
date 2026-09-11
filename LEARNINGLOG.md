@@ -1,7 +1,7 @@
 # 📓 Learning Log & Responsible AI Prompt Record (WeatherAQI Sense)
 
 **Project Title:** WeatherAQI Sense — Weather & Air Quality Health Dashboard  
-**Sprint:** 1 (Front-End App Dev & Core Skeleton)  
+**Sprint 1 Scope:** Core System Foundation, OOP Architecture & SQLite Store  
 **Team Members & Roles:**
 - 👩‍💻 **ผักกาด (Phakkad):** Planner / Architect
 - 👨‍💻 **พัตเตอร์ (Putter):** Coder / Dev
@@ -11,11 +11,11 @@
 
 ## 1. Context & Educational Rationale
 
-เพื่อปฏิบัติตามหลักการ **Responsible AI & Explainable Systems** เอกสารฉบับนี้จัดเก็บคำถาม (Prompt), สรุปคำตอบเชิงทฤษฎีจาก AI และชุดทดสอบ Live Python Code สำหรับสร้างโปรเจกต์ WeatherAQI Sense
+เพื่อปฏิบัติตามหลักการ **Responsible AI & Explainable Systems** เอกสารฉบับนี้จัดเก็บคำถาม (Prompt), สรุปคำตอบเชิงทฤษฎีจาก AI และชุดทดสอบ Live Python Code สำหรับสร้างโปรเจกต์ WeatherAQI Sense ใน Sprint 1
 
 ---
 
-## 2. Records of AI Prompts & Responses
+## 2. Records of AI Prompts & Responses (Sprint 1)
 
 ### 🔹 Prompt 1: Designing OOP WeatherClient with Defensive Fallbacks
 - **Student Prompt:**
@@ -58,17 +58,24 @@
 
 ---
 
-### 🔹 Prompt 3: Dual-Axis Matplotlib Trend Plotting
+### 🔹 Prompt 3: CLI Interface & Main Controller with Input Normalization
 - **Student Prompt:**
   ```text
-  เขียนคลาส ReportGenerator สำหรับพล็อตกราฟเส้นเปรียบเทียบอุณหภูมิ (แกน Y ซ้าย) และดัชนีคุณภาพอากาศ AQI (แกน Y ขวา) แบบ Dual-Axis ด้วย matplotlib แล้วบันทึกไฟล์เป็น PNG
+  เขียนคลาส CLIApp และ main.py สำหรับจัดการเมนูโต้ตอบ CLI รองรับการทำความสะอาดอินพุตด้วย .strip().lower(), แสดงผลกรอบการ์ดสภาพอากาศและ AQI ด้วยอักขระ ASCII ตารางที่รองรับคอนโซล Windows และโหมดสาธิตแบบอัตโนมัติ (--demo)
   ```
 - **AI Response Summary:**  
-  แนะนำการใช้ `fig, ax1 = plt.subplots()` และ `ax2 = ax1.twinx()` เพื่อสร้างแกน Y 2 แกนแยกจากกัน
+  แนะนำการออกแบบ CLI Controller, การใช้ `argparse` สำหรับโหมด `--demo`, การสร้าง ASCII Box Framing สำหรับแสดงอุณหภูมิ/AQI/คำแนะนำสุขภาพ และคำสั่ง `fetch_all_records` สำหรับดูประวัติย้อนหลังใน SQLite
 - **Live Verification Code:**
   ```python
-  from src.report_generator import ReportGenerator
+  from src.weather_client import WeatherClient
+  from src.data_store import DataStore
+  from src.cli_app import CLIApp, get_simple_advisory
 
-  reporter = ReportGenerator(store)
-  reporter.plot_city_trends("Khon Kaen")
+  client = WeatherClient()
+  store = DataStore()
+  app = CLIApp(client, store)
+
+  snapshot = client.get_combined_snapshot("Khon Kaen")
+  advisory = get_simple_advisory(snapshot["aqi"], snapshot["temp"])
+  app.print_snapshot_box(snapshot, advisory)
   ```
