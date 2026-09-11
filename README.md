@@ -1,4 +1,4 @@
-# WeatherAQI Sense — ระบบแดชบอร์ดติดตามสภาพอากาศและคุณภาพอากาศ
+# WeatherAQI Sense — ระบบแดชบอร์ดติดตามสภาพอากาศและคุณภาพอากาศ (Sprint 1 Foundation)
 
 **รายวิชา:** CP352301 การเขียนโปรแกรมสคริปต์ (1/2569)  
 **หัวข้อ:** Weather & Air Quality Dashboard (ระบบแดชบอร์ดสภาพอากาศและคุณภาพอากาศ)  
@@ -18,10 +18,10 @@
 
 ---
 
-## 📅 แผนการทำงานแยกตาม Sprint (3 Sprints Roadmap)
+## 📅 แผนการทำงานภาพรวม (3 Sprints Roadmap)
 
-### **Sprint 1: Core System Foundation & OOP CLI Architecture**
-* **เป้าหมาย:** สร้างรากฐานสถาปัตยกรรมเชิงวัตถุ (OOP) และระบบจัดเก็บข้อมูล SQLite
+### **Sprint 1: Core System Foundation & OOP CLI Architecture (งานปัจจุบัน)**
+* **เป้าหมาย:** สร้างรากฐานสถาปัตยกรรมเชิงวัตถุ (OOP) ระบบจัดเก็บข้อมูล SQLite และ CLI Interface
 * **รายละเอียดงาน:**
   - `src/weather_client.py`: ดึงข้อมูล Weather & AQI พร้อมระบบ Defensive Fallback Mock Data
   - `src/data_store.py`: จัดเก็บข้อมูลยั่งยืนลง SQLite Database (`data/weather_data.db`)
@@ -45,7 +45,51 @@
 
 ---
 
-## 🛠️ วิธีการติดตั้งและรันโปรแกรม
+## 🛠️ รายละเอียดการทำงานและผลลัพธ์ของ Sprint 1 (Sprint 1 Implementation & Results)
+
+### 1. **สถาปัตยกรรมและหลักการออกแบบ (OOP Architecture & Agile Principles)**
+- **โครงสร้างสถาปัตยกรรมเชิงวัตถุ (OOP):** แบ่งภาระหน้าที่ของแต่ละโมดูลอย่างชัดเจน (Separation of Concerns) ตามหลัก Single Responsibility Principle (SRP)
+- **การใช้ Agile Kanban:** กำหนดข้อจำกัดงานในหมวด *In Progress* (**WIP Limit = 2**) เพื่อควบคุมขั้นตอนการพัฒนาและทำ Unit Test ก่อนส่งมอบทุกครั้ง
+
+### 2. **โมดูลหลักใน Sprint 1 (Core Components)**
+1. **`src/weather_client.py` (`WeatherClient`):**
+   - ทำหน้าที่เป็น Client Gateway สำหรับรับชื่อเมือง (เช่น `Khon Kaen`, `Bangkok`, `Chiang Mai`) 
+   - รวบรวมข้อมูลอุณหภูมิ สภาพอากาศ ฝุ่น PM2.5 และดัชนีคุณภาพอากาศ (AQI)
+   - มีระบบ **Defensive Fallback Mock Data** ป้องกันแอปพลิเคชันล่มกรณีไม่สามารถเชื่อมต่อเครือข่ายได้
+2. **`src/data_store.py` (`DataStore`):**
+   - จัดเก็บข้อมูลยั่งยืน (Persistence Storage) ลงฐานข้อมูล **SQLite3** (`data/weather_data.db`)
+   - สร้างตาราง `weather_records` อัตโนมัติ จัดเก็บ Timestamp, เมือง, อุณหภูมิ, AQI, สารมลพิษหลัก และคำอธิบาย
+   - ให้บริการคำสั่งดึงประวัติย้อนหลัง `fetch_all_records(limit=20)`
+3. **`src/cli_app.py` (`CLIApp`):**
+   - หน้าต่างปฏิสัมพันธ์ Command Line Interface (CLI) รับอินพุต ปรับข้อความด้วย `.strip().lower()`
+   - วาดการ์ดแสดงผลด้วยกรอบตาราง ASCII ที่รองรับการแสดงผลบนคอนโซล Windows (CP874/UTF-8) ได้อย่างไร้ข้อผิดพลาด
+   - ประมวลผลคำแนะนำสุขภาพและอุณหภูมิเบื้องต้น
+4. **`main.py` (Main Controller):**
+   - จุดเริ่มต้นหลักของแอปพลิเคชัน รองรับทั้ง **Interactive Mode** (`python main.py`) และ **Automated Demo Mode** (`python main.py --demo`)
+
+### 3. **ผลลัพธ์การทดสอบและการวัดผล (Verification & Test Results)**
+* **ผลการรันชุดทดสอบอัตโนมัติ (`pytest`):**
+  - สอบทานความถูกต้องของ `tests/test_api.py` (3 test cases) และ `tests/test_db.py` (1 test case)
+  - **ผลลัพธ์:** **Passed 4/4 (100% Pass Rate)** ในเวลา 0.38 วินาที
+* **ตัวอย่างการแสดงผลกรอบรายงานใน CLI (Output Result):**
+  ```text
+  +---------------------------------------------------------------+
+  |  WEATHER & AIR QUALITY REPORT - KHON KAEN                     |
+  +---------------------------------------------------------------+
+  | Timestamp       : 2026-09-11 22:44:06                         |
+  | Temperature     : 30.2 C (Sunny                       )       |
+  | Humidity        : 62.0 %                                      |
+  | Air Quality AQI : 42  (Good                            )       |
+  | Main Pollutant  : PM2.5                                       |
+  +---------------------------------------------------------------+
+  | HEALTH ADVISORY : Air quality is satisfactory.                |
+  | TEMP ADVISORY   : Temperature is comfortable.                 |
+  +---------------------------------------------------------------+
+  ```
+
+---
+
+## 💻 วิธีการติดตั้งและรันโปรแกรม (Sprint 1)
 
 ```bash
 # 1. ติดตั้ง Dependencies
