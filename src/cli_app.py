@@ -1,29 +1,48 @@
 """
-CLIApp Controller Module
+CLIApp Controller Module (Sprint 1 Version)
 Provides interactive Command Line Interface for Weather & AQI Dashboard.
-Supports input normalization (.strip().lower()), formatted status cards, and menu navigation.
+Supports input normalization (.strip().lower()), formatted status cards, and SQLite history view.
 """
 
 from typing import Dict, Any
 from src.weather_client import WeatherClient
 from src.data_store import DataStore
-from src.report_generator import ReportGenerator
-from src.ai_advisory import AIAdvisory
+
+def get_simple_advisory(aqi: int, temp: float) -> Dict[str, str]:
+    if aqi <= 50:
+        aqi_cat = "Good"
+        health = "Air quality is satisfactory. Enjoy outdoor activities."
+    elif aqi <= 100:
+        aqi_cat = "Moderate"
+        health = "Air quality is acceptable. Sensitive individuals be cautious."
+    else:
+        aqi_cat = "Unhealthy"
+        health = "Elevated pollution. Reduce outdoor activity and wear a mask."
+
+    if temp >= 35.0:
+        temp_notice = "High temperature warning. Stay hydrated."
+    else:
+        temp_notice = "Temperature is comfortable."
+
+    return {
+        "aqi_category": aqi_cat,
+        "health_notice": health,
+        "temp_notice": temp_notice
+    }
 
 class CLIApp:
     """
-    Main CLI Interface application controller.
+    Main CLI Interface application controller for Sprint 1.
     """
     
-    def __init__(self, weather_client: WeatherClient, data_store: DataStore, report_generator: ReportGenerator):
+    def __init__(self, weather_client: WeatherClient, data_store: DataStore):
         self.weather_client = weather_client
         self.data_store = data_store
-        self.report_generator = report_generator
 
     def display_banner(self):
         print("\n" + "=" * 65)
         print("   🌍 WEATHERAQI SENSE - LIVE WEATHER & AIR QUALITY MONITOR")
-        print("   RESPONSIBLE AI | EXPLAINABLE SYSTEM | AGILE WIP LIMIT = 2")
+        print("   SPRINT 1: CORE OOP FOUNDATION & SQLITE PERSISTENCE STORE")
         print("=" * 65)
 
     def print_snapshot_box(self, snapshot: Dict[str, Any], advisory: Dict[str, str]):
@@ -45,13 +64,12 @@ class CLIApp:
         self.display_banner()
         
         while True:
-            print("\n--- MAIN MENU ---")
+            print("\n--- MAIN MENU (SPRINT 1) ---")
             print("1. Fetch & Record Live Weather & AQI (e.g. Bangkok, Khon Kaen, Chiang Mai)")
             print("2. View Saved History Records in SQLite")
-            print("3. Generate & Save Trend Plot (Matplotlib PNG)")
-            print("4. Exit Application")
+            print("3. Exit Application")
             
-            user_choice = input("\nEnter choice (1-4): ").strip()
+            user_choice = input("\nEnter choice (1-3): ").strip()
             
             if user_choice == "1":
                 city_input = input("Enter City Name (default: Khon Kaen): ").strip()
@@ -60,7 +78,7 @@ class CLIApp:
                 
                 print(f"\n[Info] Fetching live metrics for '{city_input}'...")
                 snapshot = self.weather_client.get_combined_snapshot(city_input)
-                advisory = AIAdvisory.get_advisory(snapshot["aqi"], snapshot["temp"])
+                advisory = get_simple_advisory(snapshot["aqi"], snapshot["temp"])
                 
                 self.print_snapshot_box(snapshot, advisory)
                 saved = self.data_store.save_record(snapshot)
@@ -78,15 +96,8 @@ class CLIApp:
                     for idx, r in enumerate(records, 1):
                         print(f" {idx:2d}. [{r['timestamp']}] {r['city']:<12} | Temp: {r['temp']:5.1f}°C | AQI: {r['aqi']:3d} ({r['description']})")
 
-            elif user_choice == "3":
-                city_input = input("Enter City Name to plot (default: Khon Kaen): ").strip()
-                if not city_input:
-                    city_input = "Khon Kaen"
-                
-                self.report_generator.plot_city_trends(city_input)
-
-            elif user_choice == "4" or user_choice.lower() == "exit" or user_choice.lower() == "quit":
-                print("\nThank you for using Weather & Air Quality Dashboard! Goodbye.\n")
+            elif user_choice == "3" or user_choice.lower() == "exit" or user_choice.lower() == "quit":
+                print("\nThank you for using Weather & Air Quality Dashboard (Sprint 1)! Goodbye.\n")
                 break
             else:
-                print("\n⚠️ Invalid choice. Please enter 1, 2, 3, or 4.")
+                print("\n⚠️ Invalid choice. Please enter 1, 2, or 3.")
