@@ -20,6 +20,9 @@ wheels/
 .installed.cfg
 *.egg
 
+# Excluded sample docs folder
+เอกสารตัวอย่าง/
+
 # Database & generated artifacts
 *.db
 *.sqlite3
