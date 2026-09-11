@@ -10,7 +10,7 @@
 
 เพื่อให้สมาชิกทุกคนในทีมได้ฝึกฝนทั้ง 3 บทบาทหลัก (**Planner / Architect**, **Coder / Dev**, **Debugger / QA & DevOps**) ครบทุกคน 100%:
 
-| สมาชิก | ชื่อเล่น | Sprint 1 (W12-W13): OOP & Database | Sprint 2 (W14): AI & Report | Sprint 3 (W15): Web & Deployment |
+| สมาชิก | ชื่อเล่น | Sprint 1 : OOP & Database | Sprint 2 : AI & Report | Sprint 3 : Web & Deployment |
 | :--- | :---: | :---: | :---: | :---: |
 | **นางสาวสหกานต์ธีรา สังข์ขาว** | ผักกาด | **Planner / Architect** | **Coder / Dev** | **Debugger / QA** |
 | **นายปิยภัทร รัตนรักษ์** | พัตเตอร์ | **Coder / Dev** | **Debugger / QA** | **Planner / Architect** |
