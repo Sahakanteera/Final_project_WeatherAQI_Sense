@@ -8,39 +8,40 @@
 
 ## 👥 สมาชิกในทีมและการหมุนเวียนบทบาท (Role Rotation Matrix)
 
-เพื่อให้สมาชิกทุกคนในทีมได้ฝึกฝนทั้ง 3 บทบาทหลัก (**Planner / Coder / Debugger & DevOps**) ครบทุกคน 100%:
+เพื่อให้สมาชิกทุกคนในทีมได้ฝึกฝนทั้ง 3 บทบาทหลัก (**Planner / Architect**, **Coder / Dev**, **Debugger / QA & DevOps**) ครบทุกคน 100%:
 
-| สมาชิก | ชื่อเล่น | Sprint 1 (W12) | Sprint 2 (W13) | Sprint 3 (W14) | Final Sprint (W15) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **นางสาวสหกานต์ธีรา สังข์ขาว** | ผักกาด | **Planner** | **Coder** | **Debugger** | **Planner & Integration** |
-| **นายปิยภัทร รัตนรักษ์** | พัตเตอร์ | **Coder** | **Debugger** | **Planner** | **Coder & AI Feature** |
-| **นายอัษฎาวุธ เรือนแก้ว** | กล้า | **Debugger** | **Planner** | **Coder** | **Debugger & DevOps** |
-
----
-
-## 🚀 กระบวนการพัฒนาซอฟต์แวร์ระดับมืออาชีพ (Agile & Responsible AI)
-
-1. **Agile Kanban Board (WIP Limits = 2):**  
-   กำหนดข้อจำกัดงานในหมวด *In Progress* ไม่เกิน 2 งาน เพื่อป้องกันการเจนโค้ดจาก Gen AI แบบบานปลาย บังคับให้พัฒนาทีละฟังก์ชันและทำ Unit Test ก่อนส่งมอบ
-2. **Gen AI Prompt Logging (`learning_log.ipynb`):**  
-   บันทึก Prompt คำถาม, คำอธิบายเชิงทฤษฎีจาก AI และ Live Executable Code เพื่อสร้างระบบที่ตรวจสอบและอธิบายได้ (Explainable System)
-3. **Documentation & Audit Artifacts:**  
-   - `README.md`: ข้อมูลโครงการ สมาชิก ตารางหมุนเวียนบทบาท และคู่มือการรัน
-   - `CHANGELOG.md`: บันทึกวิวัฒนาการเวอร์ชัน v0.1.0 -> v0.2.0 -> v0.3.0 -> v1.0.0
-   - `FLOWCHART.md`: ผังงานแสดงโครงสร้างสถาปัตยกรรมและกระบวนการทำงานของระบบ
-   - `PRESENTATION_SLIDE_PROMPTS.md`: ชุด Prompt สำหรับสร้างสไลด์นำเสนอ Live Demo 5 ส่วน
+| สมาชิก | ชื่อเล่น | Sprint 1 (W12-W13): OOP & Database | Sprint 2 (W14): AI & Report | Sprint 3 (W15): Web & Deployment |
+| :--- | :---: | :---: | :---: | :---: |
+| **นางสาวสหกานต์ธีรา สังข์ขาว** | ผักกาด | **Planner / Architect** | **Coder / Dev** | **Debugger / QA** |
+| **นายปิยภัทร รัตนรักษ์** | พัตเตอร์ | **Coder / Dev** | **Debugger / QA** | **Planner / Architect** |
+| **นายอัษฎาวุธ เรือนแก้ว** | กล้า | **Debugger / QA** | **Planner / Architect** | **Coder & DevOps** |
 
 ---
 
-## 💻 สถาปัตยกรรมระบบ (System Architecture)
+## 📅 แผนการทำงานแยกตาม Sprint (3 Sprints Roadmap)
 
-ระบบถูกออกแบบในสไตล์ **Object-Oriented Programming (OOP)** แบ่งเป็นโมดูลาร์:
-- **`src/weather_client.py` (`WeatherClient`):** ดึงข้อมูลสภาพอากาศ (OpenWeatherMap) และ AQI (IQAir) พร้อมระบบ Defensive Fallback
-- **`src/data_store.py` (`DataStore`):** จัดเก็บข้อมูลยั่งยืนลง SQLite Database (`data/weather_data.db`)
-- **`src/report_generator.py` (`ReportGenerator`):** พล็อตกราฟเปรียบเทียบ Temp vs AQI แบบ Dual-Axis ด้วย `matplotlib`
-- **`src/ai_advisory.py` (`AIAdvisory`):** วิเคราะห์ระดับ AQI และสภาพอากาศเพื่อออกคำแนะนำด้านสุขภาพและกิจกรรมกลางแจ้ง
-- **`src/cli_app.py` (`CLIApp`):** หน้าต่างปฏิสัมพันธ์ Command Line Interface รับอินพุตด้วย `.strip().lower()`
-- **`main.py`:** ตัวควบคุมหลัก (มีโหมด `--demo` สำหรับสาธิตสด)
+### **Sprint 1: Core System Foundation & OOP CLI Architecture**
+* **เป้าหมาย:** สร้างรากฐานสถาปัตยกรรมเชิงวัตถุ (OOP) และระบบจัดเก็บข้อมูล SQLite
+* **รายละเอียดงาน:**
+  - `src/weather_client.py`: ดึงข้อมูล Weather & AQI พร้อมระบบ Defensive Fallback Mock Data
+  - `src/data_store.py`: จัดเก็บข้อมูลยั่งยืนลง SQLite Database (`data/weather_data.db`)
+  - `src/cli_app.py` & `main.py`: หน้าต่างปฏิสัมพันธ์ Command Line Interface และโหมด `--demo`
+  - `tests/test_api.py` & `tests/test_db.py`: ชุดทดสอบระบบอัตโนมัติ (Automated pytest)
+
+### **Sprint 2: Report Generator & AI Health Advisory**
+* **เป้าหมาย:** เพิ่มโมดูลวิเคราะห์ข้อมูล กราฟ และระบบคำแนะนำสุขภาพ AI
+* **รายละเอียดงาน:**
+  - `src/report_generator.py`: พล็อตกราฟ Dual-Axis เปรียบเทียบ Temp vs AQI ด้วย Matplotlib
+  - `src/ai_advisory.py`: ระบบประมวลผลคำแนะนำสุขภาพและกิจกรรมกลางแจ้งตามระดับ AQI
+  - `learning_log.ipynb` & `LEARNINGLOG.md`: บันทึก Gen AI Prompt Logs
+
+### **Sprint 3: Web Dashboard, Bilingual UI & GitHub Pages Deployment**
+* **เป้าหมาย:** พัฒนาหน้าแดชบอร์ดบนเว็บ สองภาษา และระบบส่งมอบงานผ่าน GitHub Pages
+* **รายละเอียดงาน:**
+  - `index.html` & `web/index.html`: หน้าเว็บแดชบอร์ดสไตล์ Glassmorphism รองรับสองภาษา (TH/EN Toggle)
+  - Live Open-Meteo API Fetching แบบ Real-time บนเบราว์เซอร์
+  - `test_cases/TEST_CASES.md` & `TEST.md`: บันทึกกรณีทดสอบระบบครบถ้วน
+  - `.github/workflows/static.yml`: Deployment อัตโนมัติไปยัง GitHub Pages
 
 ---
 
