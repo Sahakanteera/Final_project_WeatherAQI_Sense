@@ -10,7 +10,7 @@
 
 เพื่อให้สมาชิกทุกคนในทีมได้ฝึกฝนทั้ง 3 บทบาทหลัก (**Planner / Architect**, **Coder / Dev**, **Debugger / QA & DevOps**) ครบทุกคน 100%:
 
-| สมาชิก | ชื่อเล่น | Sprint 1 : OOP & Database | Sprint 2 : AI & Report | Sprint 3 : Web & Deployment |
+| สมาชิก | ชื่อเล่น | Sprint 1 : OOP & SQLite | Sprint 2 : AI, Report & Supabase | Sprint 3 : Web & Deployment |
 | :--- | :---: | :---: | :---: | :---: |
 | **นางสาวสหกานต์ธีรา สังข์ขาว** | ผักกาด | **Planner / Architect** | **Coder / Dev** | **Debugger / QA** |
 | **นายปิยภัทร รัตนรักษ์** | พัตเตอร์ | **Coder / Dev** | **Debugger / QA** | **Planner / Architect** |
@@ -21,16 +21,17 @@
 ## 📅 แผนการทำงานภาพรวม (3 Sprints Roadmap)
 
 ### **Sprint 1: Core System Foundation & OOP CLI Architecture (งานปัจจุบัน)**
-* **เป้าหมาย:** สร้างรากฐานสถาปัตยกรรมเชิงวัตถุ (OOP) ระบบจัดเก็บข้อมูล SQLite และ CLI Interface
+* **เป้าหมาย:** สร้างรากฐานสถาปัตยกรรมเชิงวัตถุ (OOP) ระบบจัดเก็บข้อมูล Local SQLite และ CLI Interface
 * **รายละเอียดงาน:**
   - `src/weather_client.py`: ดึงข้อมูล Weather & AQI พร้อมระบบ Defensive Fallback Mock Data
-  - `src/data_store.py`: จัดเก็บข้อมูลยั่งยืนลง SQLite Database (`data/weather_data.db`)
+  - `src/data_store.py`: จัดเก็บข้อมูลยั่งยืนลง Local SQLite Database (`data/weather_data.db`)
   - `src/cli_app.py` & `main.py`: หน้าต่างปฏิสัมพันธ์ Command Line Interface และโหมด `--demo`
   - `tests/test_api.py` & `tests/test_db.py`: ชุดทดสอบระบบอัตโนมัติ (Automated pytest)
 
-### **Sprint 2: Report Generator & AI Health Advisory**
-* **เป้าหมาย:** เพิ่มโมดูลวิเคราะห์ข้อมูล กราฟ และระบบคำแนะนำสุขภาพ AI
+### **Sprint 2: Report Generator, AI Health Advisory & Cloud Database Migration (Supabase)**
+* **เป้าหมาย:** ย้ายการจัดเก็บข้อมูลสู่ Cloud Database (Supabase PostgreSQL), เพิ่มโมดูลวิเคราะห์ข้อมูล กราฟ และระบบคำแนะนำสุขภาพ AI
 * **รายละเอียดงาน:**
+  - **Cloud Database (Supabase):** ไมเกรตฐานข้อมูลจาก Local SQLite ไปใช้ **Cloud Database (Supabase PostgreSQL)** รองรับการจัดเก็บข้อมูลออนไลน์และเชื่อมต่อหลายอุปกรณ์
   - `src/report_generator.py`: พล็อตกราฟ Dual-Axis เปรียบเทียบ Temp vs AQI ด้วย Matplotlib
   - `src/ai_advisory.py`: ระบบประมวลผลคำแนะนำสุขภาพและกิจกรรมกลางแจ้งตามระดับ AQI
   - `learning_log.ipynb` & `LEARNINGLOG.md`: บันทึก Gen AI Prompt Logs
