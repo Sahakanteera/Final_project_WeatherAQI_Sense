@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherAQI Sense — Live Monitor</title>
+    <meta name="description" content="WeatherAQI Sense — ระบบแดชบอร์ดติดตามสภาพอากาศและดัชนีคุณภาพอากาศ (PM2.5/AQI) พร้อมคำแนะนำสุขภาพ AI อัตโนมัติ">
+    
+    <!-- Google Fonts & Chart.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent-cyan: #38bdf8;
+            --accent-purple: #c084fc;
+            --accent-emerald: #34d399;
+            --accent-amber: #fbbf24;
+            --accent-rose: #f43f5e;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', 'Prompt', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(192, 132, 252, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(52, 211, 153, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Top Navigation Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            padding: 1.25rem 2rem;
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-title .icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        select, button {
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+            padding: 0.65rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:hover, button:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #0284c7, #7e22ce);
+            border: none;
+            font-weight: 600;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 1.75rem;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .temp-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .temp-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #38bdf8, #f43f5e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .temp-unit {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .aqi-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-good { background: rgba(52, 211, 153, 0.2); color: var(--accent-emerald); border: 1px solid var(--accent-emerald); }
+        .bg-moderate { background: rgba(251, 191, 36, 0.2); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+        .bg-unhealthy { background: rgba(244, 63, 94, 0.2); color: var(--accent-rose); border: 1px solid var(--accent-rose); }
+
+        .details-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .detail-item span:first-child {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .detail-item span:last-child {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Advisory Banner */
+        .advisory-box {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border-left: 4px solid var(--accent-cyan);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .advisory-icon {
+            font-size: 2.2rem;
+        }
+
+        .advisory-text h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--accent-cyan);
+        }
+
+        .advisory-text p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Analytics Section */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 340px;
+            width: 100%;
+        }
+
+        /* City Comparison Cards */
+        .city-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .city-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .city-item:hover {
+            background: rgba(30, 41, 59, 0.6);
+        }
+
+        .city-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .city-info p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Team Roles Footer Modal/Panel */
+        .footer-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="brand-title">
+                <span class="icon">🌍</span>
+                <div>
+                    <h1>WeatherAQI Sense</h1>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">CP352301 Final Project — Real-time Health & Environmental Monitor</p>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <select id="citySelect" onchange="updateDashboard(this.value)">
+                    <option value="khon kaen">Khon Kaen (ขอนแก่น)</option>
+                    <option value="bangkok">Bangkok (กรุงเทพฯ)</option>
+                    <option value="chiang mai">Chiang Mai (เชียงใหม่)</option>
+                    <option value="phuket">Phuket (ภูเก็ต)</option>
+                </select>
+
+                <button id="refreshBtn" onclick="refreshData()">⚡ Refresh Live</button>
+            </div>
+        </header>
+
+        <!-- Advisory Banner -->
+        <div class="advisory-box" id="advisoryBox">
+            <div class="advisory-icon" id="advIcon">🟢</div>
+            <div class="advisory-text">
+                <h3 id="advTitle">AI Health Advisory: Good Air Quality</h3>
+                <p id="advDesc">Air quality is satisfactory. Ideal for outdoor workouts and outdoor activities.</p>
+            </div>
+        </div>
+
+        <!-- Top Metrics Cards -->
+        <div class="metrics-grid">
+            <!-- Temp Card -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <span>TEMPERATURE & WEATHER</span>
+                    <span id="currentCityTag">KHON KAEN</span>
+                </div>
+                <div class="temp-display">
+                    <span class="temp-value" id="tempVal">30.2</span>
+                    <span class="temp-unit">°C</span>
+                </div>
+                <p id="weatherDesc" style="color: var(--text-secondary); font-weight: 500; margin-bottom: 1rem;">☀️ Sunny with clear skies</p>
+                
+                <div class="details-list">
+                    <div class="detail-item">
+                        <span>Humidity</span>
+                        <span id="humidityVal">62 %</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Air Pressure</span>
+                        <span id="pressureVal">1011 hPa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AQI Card -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <span>AIR QUALITY INDEX (US EPA)</span>
+                    <span id="aqiBadge" class="aqi-badge bg-good">GOOD</span>
+                </div>
+                <div class="temp-display">
+                    <span class="temp-value" id="aqiVal" style="background: linear-gradient(135deg, #34d399, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">42</span>
+                    <span class="temp-unit">AQI</span>
+                </div>
+                <p id="pollutantText" style="color: var(--text-secondary); font-weight: 500; margin-bottom: 1rem;">Main Pollutant: PM2.5 (p2)</p>
+                
+                <div class="details-list">
+                    <div class="detail-item">
+                        <span>Status</span>
+                        <span id="statusCat">Satisfactory</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Recommendation</span>
+                        <span id="maskRec">No Mask Needed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Architecture Card -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <span>AGILE & ARCHITECTURE</span>
+                    <span style="color: var(--accent-emerald);">● LIVE WIP = 2</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+                    <div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);">Framework Style</span>
+                        <p style="font-weight: 600;">Object-Oriented Programming (OOP)</p>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);">Persistence Layer</span>
+                        <p style="font-weight: 600;">SQLite Database (weather_data.db)</p>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);">APIs Integrated</span>
+                        <p style="font-weight: 600;">OpenWeatherMap + IQAir AirVisual</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics & City Comparison -->
+        <div class="analytics-grid">
+            <div class="glass-card">
+                <div class="card-header">
+                    <span>HISTORICAL TREND ANALYSIS (DUAL-AXIS)</span>
+                    <span style="color: var(--text-secondary);">Last 7 Records</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-header">
+                    <span>KEY CITIES MONITOR</span>
+                    <span>LIVE STATUS</span>
+                </div>
+                <div class="city-list" id="cityList">
+                    <!-- Dynamic city items -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Roles Footer -->
+        <div class="glass-card">
+            <div class="card-header">
+                <span>TEAM ROLE ROTATION MATRIX (CP352301 SPRINT 1 - 4)</span>
+                <span style="color: var(--accent-purple);">100% COVERAGE GUARANTEE</span>
+            </div>
+            <div class="footer-info">
+                <div style="background: rgba(15,23,42,0.4); padding: 1rem; border-radius: 14px; border: 1px solid var(--card-border);">
+                    <h4 style="margin-bottom: 0.5rem;">👩‍💻 ผักกาด (Phakkad)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Sprint 1: <span class="role-badge">Planner</span> | Sprint 2: <span class="role-badge">Coder</span></p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Sprint 3: <span class="role-badge">Debugger</span> | Final: <span class="role-badge">Integration Lead</span></p>
+                </div>
+                <div style="background: rgba(15,23,42,0.4); padding: 1rem; border-radius: 14px; border: 1px solid var(--card-border);">
+                    <h4 style="margin-bottom: 0.5rem;">👨‍💻 พัตเตอร์ (Putter)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Sprint 1: <span class="role-badge">Coder</span> | Sprint 2: <span class="role-badge">Debugger</span></p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Sprint 3: <span class="role-badge">Planner</span> | Final: <span class="role-badge">AI Feature Lead</span></p>
+                </div>
+                <div style="background: rgba(15,23,42,0.4); padding: 1rem; border-radius: 14px; border: 1px solid var(--card-border);">
+                    <h4 style="margin-bottom: 0.5rem;">👨‍💻 กล้า (Kla)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Sprint 1: <span class="role-badge">Debugger</span> | Sprint 2: <span class="role-badge">Planner</span></p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Sprint 3: <span class="role-badge">Coder</span> | Final: <span class="role-badge">DevOps Lead</span></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const cityData = {
+            "khon kaen": {
+                name: "Khon Kaen",
+                temp: 30.2,
+                humidity: 62.0,
+                pressure: 1011.0,
+                weather: "☀️ Sunny with clear skies",
+                aqi: 42,
+                category: "Good",
+                badgeClass: "bg-good",
+                pollutant: "PM2.5 (p2)",
+                status: "Satisfactory",
+                mask: "No Mask Needed",
+                advIcon: "🟢",
+                advTitle: "AI Health Advisory: Good Air Quality",
+                advDesc: "Air quality is satisfactory. Ideal for outdoor workouts and outdoor activities.",
+                history: {
+                    labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
+                    temp: [27.5, 29.0, 31.5, 32.0, 30.8, 29.5, 30.2],
+                    aqi: [38, 40, 45, 50, 48, 44, 42]
+                }
+            },
+            "bangkok": {
+                name: "Bangkok",
+                temp: 32.5,
+                humidity: 68.0,
+                pressure: 1009.0,
+                weather: "⛅ Partly cloudy",
+                aqi: 85,
+                category: "Moderate",
+                badgeClass: "bg-moderate",
+                pollutant: "PM2.5 (p2)",
+                status: "Acceptable",
+                mask: "Optional for sensitive",
+                advIcon: "🟡",
+                advTitle: "AI Health Advisory: Moderate Air Quality",
+                advDesc: "Air quality is acceptable. Sensitive individuals should consider reducing heavy outdoor exertion.",
+                history: {
+                    labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
+                    temp: [29.0, 31.2, 33.5, 34.0, 33.0, 31.8, 32.5],
+                    aqi: [75, 80, 92, 95, 90, 88, 85]
+                }
+            },
+            "chiang mai": {
+                name: "Chiang Mai",
+                temp: 28.0,
+                humidity: 75.0,
+                pressure: 1012.0,
+                weather: "🌫️ Haze & Smog",
+                aqi: 125,
+                category: "Unhealthy for Sensitive",
+                badgeClass: "bg-unhealthy",
+                pollutant: "PM2.5 (p2)",
+                status: "Unhealthy (Groups)",
+                mask: "N95 Mask Recommended",
+                advIcon: "🟠",
+                advTitle: "AI Health Advisory: Unhealthy for Sensitive Groups",
+                advDesc: "Sensitive groups (asthma, children, elderly) may experience health effects. Wear N95 mask outdoors.",
+                history: {
+                    labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
+                    temp: [24.0, 26.5, 29.0, 29.5, 28.5, 27.8, 28.0],
+                    aqi: [110, 118, 135, 140, 130, 128, 125]
+                }
+            },
+            "phuket": {
+                name: "Phuket",
+                temp: 31.0,
+                humidity: 80.0,
+                pressure: 1008.0,
+                weather: "🌧️ Light rain shower",
+                aqi: 25,
+                category: "Good",
+                badgeClass: "bg-good",
+                pollutant: "PM10 (p1)",
+                status: "Very Good",
+                mask: "No Mask Needed",
+                advIcon: "🟢",
+                advTitle: "AI Health Advisory: Clean Ocean Breeze",
+                advDesc: "Excellent air quality! Perfect conditions for beach walking and outdoor activities.",
+                history: {
+                    labels: ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "21:45"],
+                    temp: [28.0, 30.0, 31.5, 31.0, 30.2, 29.8, 31.0],
+                    aqi: [20, 22, 28, 30, 26, 24, 25]
+                }
+            }
+        };
+
+        let myChart = null;
+
+        function initChart(labels, tempSeries, aqiSeries) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Temperature (°C)',
+                            data: tempSeries,
+                            borderColor: '#f43f5e',
+                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                            yAxisID: 'yTemp',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'AQI (US EPA)',
+                            data: aqiSeries,
+                            borderColor: '#38bdf8',
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                            yAxisID: 'yAQI',
+                            tension: 0.3,
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        yTemp: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Temperature (°C)', color: '#f43f5e' },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#f43f5e' }
+                        },
+                        yAQI: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'AQI (US EPA)', color: '#38bdf8' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#38bdf8' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#f8fafc' } }
+                    }
+                }
+            });
+        }
+
+        function renderCityList() {
+            const container = document.getElementById('cityList');
+            container.innerHTML = '';
+            for (const key in cityData) {
+                const c = cityData[key];
+                container.innerHTML += `
+                    <div class="city-item" onclick="updateDashboard('${key}')" style="cursor: pointer;">
+                        <div class="city-info">
+                            <h4>${c.name}</h4>
+                            <p>${c.weather}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 1.1rem;">${c.temp} °C</span>
+                            <div><span class="aqi-badge ${c.badgeClass}" style="font-size: 0.75rem; padding: 0.1rem 0.5rem;">AQI ${c.aqi}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateDashboard(cityKey) {
+            const data = cityData[cityKey.toLowerCase()] || cityData["khon kaen"];
+            document.getElementById('citySelect').value = cityKey.toLowerCase();
+            
+            document.getElementById('currentCityTag').innerText = data.name.toUpperCase();
+            document.getElementById('tempVal').innerText = data.temp;
+            document.getElementById('humidityVal').innerText = data.humidity + ' %';
+            document.getElementById('pressureVal').innerText = data.pressure + ' hPa';
+            document.getElementById('weatherDesc').innerText = data.weather;
+            
+            document.getElementById('aqiVal').innerText = data.aqi;
+            document.getElementById('pollutantText').innerText = 'Main Pollutant: ' + data.pollutant;
+            document.getElementById('statusCat').innerText = data.status;
+            document.getElementById('maskRec').innerText = data.mask;
+
+            const badge = document.getElementById('aqiBadge');
+            badge.innerText = data.category;
+            badge.className = 'aqi-badge ' + data.badgeClass;
+
+            document.getElementById('advIcon').innerText = data.advIcon;
+            document.getElementById('advTitle').innerText = data.advTitle;
+            document.getElementById('advDesc').innerText = data.advDesc;
+
+            initChart(data.history.labels, data.history.temp, data.history.aqi);
+        }
+
+        function refreshData() {
+            const btn = document.getElementById('refreshBtn');
+            btn.innerText = '🔄 Refreshing...';
+            setTimeout(() => {
+                const currentCity = document.getElementById('citySelect').value;
+                updateDashboard(currentCity);
+                btn.innerText = '⚡ Refresh Live';
+            }, 600);
+        }
+
+        // Initialize Page
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCityList();
+            updateDashboard("khon kaen");
+        });
+    </script>
+</body>
+</html>
