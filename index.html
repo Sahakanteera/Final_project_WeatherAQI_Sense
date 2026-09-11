@@ -377,9 +377,8 @@
                     <span class="temp-value" id="tempVal">--</span>
                     <span class="temp-unit">°C</span>
                 </div>
-                <p id="weatherDesc" style="color: var(--text-secondary); font-weight: 500; margin-bottom: 1rem;">Loading...</p>
                 
-                <div class="details-list">
+                <div class="details-list" style="margin-top: 1rem;">
                     <div class="detail-item">
                         <span id="lblHumidity">Humidity</span>
                         <span id="humidityVal">-- %</span>
@@ -686,7 +685,6 @@
             document.getElementById('tempVal').innerText = data.temp;
             document.getElementById('humidityVal').innerText = data.humidity + ' %';
             document.getElementById('pressureVal').innerText = data.wind + ' km/h';
-            document.getElementById('weatherDesc').innerText = weatherStr;
             
             document.getElementById('aqiVal').innerText = aqi;
             document.getElementById('pollutantText').innerText = (currentLang === 'th' ? 'สารมลพิษหลัก: PM2.5 (' : 'Main Pollutant: PM2.5 (') + data.pm25 + ' µg/m³)';
