@@ -18,6 +18,28 @@
 
 ---
 
+## ✨ สรุปฟีเจอร์ทั้งหมดของระบบ (Features Overview)
+
+### 🟢 ฟีเจอร์ที่พัฒนาเสร็จแล้ว (Current Implemented Features - Sprint 1)
+- 🌡️ **Weather & Air Quality Gateway (`src/weather_client.py`)**: ดึงข้อมูลอุณหภูมิ, ความชื้น, ความกดอากาศ, ดัชนี AQI และสารมลพิษหลัก (PM2.5) จาก OpenWeatherMap และ IQAir API
+- 🛡️ **Defensive Programming & Fallback**: มีระบบ Mock Data สำรองอัตโนมัติเมื่อ API มีปัญหาหรือไม่มี API Key ป้องกันแอปพลิเคชันล่ม 100%
+- 💾 **Local Database Persistence (`src/data_store.py`)**: จัดเก็บ snapshot ข้อมูลยั่งยืนลงในฐานข้อมูล SQLite3 (`data/weather_data.db`) พร้อมฟังก์ชันค้นหาประวัติย้อนหลัง
+- 💻 **Interactive CLI Menu (`src/cli_app.py`)**: หน้าต่างโต้ตอบผ่าน Command Line ให้ผู้ใช้ป้อนชื่อเมือง ดูรายงานผล และเรียกดูประวัติข้อมูลบันทึกย้อนหลัง
+- 🤖 **Automated Demo Mode (`main.py --demo`)**: โหมดรันสาธิตระบบอัตโนมัติสำหรับทดสอบการดึงข้อมูลและบันทึกข้อมูลหลายเมืองพร้อมกัน
+- 📊 **ASCII Formatted Status Box**: วาดกรอบรายงานสภาพอากาศและคุณภาพอากาศด้วยตาราง ASCII บนคอนโซลได้อย่างสวยงามและจัดระเบียบอ่านง่าย
+- 🏥 **Health & Temp Advisory**: คำนวณระดับความเสี่ยง AQI ให้คำแนะนำสุขภาพ การออกกำลังกายกลางแจ้ง และแจ้งเตือนเมื่ออุณหภูมิสูงเกินเกณฑ์
+- 🧪 **Automated Test Coverage (`tests/`)**: มีชุดทดสอบระบบด้วย `pytest` ครอบคลุมทั้ง API Gateway และ SQLite Database (Pass 100%)
+
+### 🟡 ฟีเจอร์ตามแผนงานที่จะพัฒนาใน Sprint ถัดไป (Planned Features Roadmap)
+- ☁️ **Cloud Database Migration (Sprint 2)**: ย้ายการจัดเก็บข้อมูลจาก Local SQLite ไปยัง Cloud Database (Supabase PostgreSQL)
+- 📈 **Dual-Axis Chart Generator (Sprint 2)**: ระบบส่งออกภาพกราฟวิเคราะห์เปรียบเทียบ Temp vs AQI ย้อนหลังด้วย Matplotlib (`src/report_generator.py`)
+- 🧠 **AI Health Advisory Module (Sprint 2)**: ระบบประมวลผลคำแนะนำสุขภาพและกิจกรรมกลางแจ้งเชิงลึกด้วย LLM/GenAI (`src/ai_advisory.py`)
+- 🌐 **Web Dashboard Interface (Sprint 3)**: หน้าเว็บแดชบอร์ดสไตล์ Glassmorphism UI ดึงข้อมูล Live API บนเบราว์เซอร์ (`index.html`)
+- 🌐 **Bilingual UI Support (Sprint 3)**: สลับภาษาในการแสดงผลหน้าเว็บได้ 2 ภาษา (ไทย/อังกฤษ - TH/EN Toggle)
+- 🚀 **GitHub Pages Deployment (Sprint 3)**: ระบบ CI/CD จัดส่งหน้าเว็บอัตโนมัติไปยัง GitHub Pages (`.github/workflows/static.yml`)
+
+---
+
 ## 📅 แผนการทำงานภาพรวม (3 Sprints Roadmap)
 
 ### **Sprint 1: Core System Foundation & OOP CLI Architecture (งานปัจจุบัน)**
