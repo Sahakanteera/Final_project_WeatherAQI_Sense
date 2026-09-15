@@ -1,4 +1,4 @@
-# WeatherAQI Sense — ระบบแดชบอร์ดติดตามสภาพอากาศและคุณภาพอากาศ (Sprint 1 Foundation)
+# WeatherAQI Sense — ระบบแดชบอร์ดติดตามสภาพอากาศและคุณภาพอากาศ
 
 **รายวิชา:** CP352301 การเขียนโปรแกรมสคริปต์ (1/2569)  
 **หัวข้อ:** Weather & Air Quality Dashboard (ระบบแดชบอร์ดสภาพอากาศและคุณภาพอากาศ)  
@@ -42,7 +42,7 @@
 
 ## 📅 แผนการทำงานภาพรวม (3 Sprints Roadmap)
 
-### **Sprint 1: Core System Foundation & OOP CLI Architecture (งานปัจจุบัน)**
+### **Sprint 1: Core System Foundation & OOP CLI Architecture**
 * **เป้าหมาย:** สร้างรากฐานสถาปัตยกรรมเชิงวัตถุ (OOP) ระบบจัดเก็บข้อมูล Local SQLite และ CLI Interface
 * **รายละเอียดงาน:**
   - `src/weather_client.py`: ดึงข้อมูล Weather & AQI พร้อมระบบ Defensive Fallback Mock Data
@@ -64,7 +64,7 @@
   - `index.html` & `web/index.html`: หน้าเว็บแดชบอร์ดสไตล์ Glassmorphism รองรับสองภาษา (TH/EN Toggle)
   - Live Open-Meteo API Fetching แบบ Real-time บนเบราว์เซอร์
   - `test_cases/TEST_CASES.md` & `TEST.md`: บันทึกกรณีทดสอบระบบครบถ้วน
-
+  - `.github/workflows/static.yml`: Deployment อัตโนมัติไปยัง GitHub Pages
 
 ---
 
@@ -112,7 +112,7 @@
 
 ---
 
-## 💻 วิธีการติดตั้งและรันโปรแกรม (Sprint 1)
+## 💻 วิธีการติดตั้งและรันโปรแกรม
 
 ```bash
 # 1. ติดตั้ง Dependencies

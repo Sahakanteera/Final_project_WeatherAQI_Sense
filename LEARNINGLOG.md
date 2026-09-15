@@ -1,7 +1,6 @@
 # 📓 Learning Log & Responsible AI Prompt Record (WeatherAQI Sense)
 
 **Project Title:** WeatherAQI Sense — Weather & Air Quality Health Dashboard  
-**Sprint 1 Scope:** Core System Foundation, OOP Architecture & SQLite Store  
 **Team Members & Roles:**
 - 👩‍💻 **ผักกาด (Phakkad):** Planner / Architect
 - 👨‍💻 **พัตเตอร์ (Putter):** Coder / Dev
@@ -11,11 +10,11 @@
 
 ## 1. Context & Educational Rationale
 
-เพื่อปฏิบัติตามหลักการ **Responsible AI & Explainable Systems** เอกสารฉบับนี้จัดเก็บคำถาม (Prompt), สรุปคำตอบเชิงทฤษฎีจาก AI และชุดทดสอบ Live Python Code สำหรับสร้างโปรเจกต์ WeatherAQI Sense ใน Sprint 1
+เพื่อปฏิบัติตามหลักการ **Responsible AI & Explainable Systems** เอกสารฉบับนี้จัดเก็บคำถาม (Prompt), สรุปคำตอบเชิงทฤษฎีจาก AI และชุดทดสอบ Live Python Code สำหรับสร้างโปรเจกต์ WeatherAQI Sense
 
 ---
 
-## 2. Records of AI Prompts & Responses (Sprint 1)
+## 2. Records of AI Prompts & Responses
 
 ### 🔹 Prompt 1: Designing OOP WeatherClient with Defensive Fallbacks
 - **Student Prompt:**
@@ -78,4 +77,21 @@
   snapshot = client.get_combined_snapshot("Khon Kaen")
   advisory = get_simple_advisory(snapshot["aqi"], snapshot["temp"])
   app.print_snapshot_box(snapshot, advisory)
+  ```
+
+---
+
+### 🔹 Prompt 4: Dual-Axis Matplotlib Trend Plotting
+- **Student Prompt:**
+  ```text
+  เขียนคลาส ReportGenerator สำหรับพล็อตกราฟเส้นเปรียบเทียบอุณหภูมิ (แกน Y ซ้าย) และดัชนีคุณภาพอากาศ AQI (แกน Y ขวา) แบบ Dual-Axis ด้วย matplotlib แล้วบันทึกไฟล์เป็น PNG
+  ```
+- **AI Response Summary:**  
+  แนะนำการใช้ `fig, ax1 = plt.subplots()` และ `ax2 = ax1.twinx()` เพื่อสร้างแกน Y 2 แกนแยกจากกัน
+- **Live Verification Code:**
+  ```python
+  from src.report_generator import ReportGenerator
+
+  reporter = ReportGenerator(store)
+  reporter.plot_city_trends("Khon Kaen")
   ```
