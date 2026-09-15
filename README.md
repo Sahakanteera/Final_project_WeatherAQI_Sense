@@ -42,7 +42,7 @@
   - `index.html` & `web/index.html`: หน้าเว็บแดชบอร์ดสไตล์ Glassmorphism รองรับสองภาษา (TH/EN Toggle)
   - Live Open-Meteo API Fetching แบบ Real-time บนเบราว์เซอร์
   - `test_cases/TEST_CASES.md` & `TEST.md`: บันทึกกรณีทดสอบระบบครบถ้วน
-  - `.github/workflows/static.yml`: Deployment อัตโนมัติไปยัง GitHub Pages
+
 
 ---
 
