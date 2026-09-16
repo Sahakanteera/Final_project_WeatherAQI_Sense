@@ -1,4 +1,4 @@
-﻿"""
+"""
 refresh_provinces.py
 ====================
 Script สำหรับดึงข้อมูลสภาพอากาศและ AQI ของทุก 78 จังหวัดในประเทศไทย
@@ -147,6 +147,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         f"&current_weather=true"
         f"&hourly=temperature_2m,relativehumidity_2m"
         f"&forecast_days=1"
+        f"&timezone=Asia%2FBangkok"
     )
     aqi_url = (
         f"https://air-quality-api.open-meteo.com/v1/air-quality"
@@ -154,6 +155,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         f"&current=us_aqi,pm2_5"
         f"&hourly=us_aqi,pm2_5"
         f"&forecast_days=1"
+        f"&timezone=Asia%2FBangkok"
     )
     try:
         async with session.get(weather_url, timeout=aiohttp.ClientTimeout(total=10)) as wr:

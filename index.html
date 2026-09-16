@@ -985,9 +985,9 @@
                 if (error || !data) return null;
 
                 const fetchedAt = new Date(data.fetched_at);
-                // ตัดเศษนาที อัปเดตรอบทุกต้นชั่วโมง (:00)
+                // ตัดรอบที่ต้นชั่วโมงถัดไปพอดี (:00 น.)
                 const nextHourTime = new Date(fetchedAt);
-                nextHourTime.setMinutes(0, 0, 0);
+                nextHourTime.setMinutes(0, 0, 0, 0);
                 nextHourTime.setHours(nextHourTime.getHours() + 1);
                 const isExpired = Date.now() >= nextHourTime.getTime();
 
@@ -1063,58 +1063,50 @@
             const d = new Date(date);
             const now = new Date();
 
-            if (isNaN(d.getTime())) {
-                const curH = String(now.getHours()).padStart(2, '0') + ':00';
-                const nxtH = String((now.getHours() + 1) % 24).padStart(2, '0') + ':00';
-                return {
-                    full: lang === 'th' ? `ข้อมูลสดเรียลไทม์ รอบ ${curH} น.` : `Real-time Live Data (${curH})`,
-                    short: lang === 'th' ? `รอบ ${curH} น.` : curH,
-                    next: lang === 'th' ? `${nxtH} น.` : nxtH,
-                    cycle: curH
-                };
-            }
+            const pad = (n) => String(n).padStart(2, '0');
+            // แสดงรอบเวลาแบบชั่วโมงเต็มพอดีๆ ไม่มีเศษนาที เช่น 04:00 น.
+            const currentHourStr = `${pad(d.getHours())}:00 น.`;
 
-            // เวลาของรอบข้อมูล ตัดเศษนาทีให้เป็นชั่วโมงเต็ม :00 (เช่น 04:00 น.)
-            const currentHourStr = String(d.getHours()).padStart(2, '0') + ':00';
-
-            // คำนวณรอบถัดไปแบบต้นชั่วโมงถัดไปพอดีเป๊ะ (:00) เช่น ตี 5.00 น. (05:00 น.)
+            // รอบถัดไปคือต้นชั่วโมงถัดไปพอดีเป๊ะ (:00)
             const nextDate = new Date(d);
-            nextDate.setMinutes(0, 0, 0);
+            nextDate.setMinutes(0, 0, 0, 0);
             nextDate.setHours(nextDate.getHours() + 1);
-            const nextHourStr = String(nextDate.getHours()).padStart(2, '0') + ':00';
+            const nextHourStr = `${pad(nextDate.getHours())}:00 น.`;
 
-            const nextDiffSec = Math.floor((nextDate.getTime() - Date.now()) / 1000);
-            let nextStr = '';
+            // คำนวณเวลาที่เหลือจนถึงรอบต้นชั่วโมงถัดไป
+            const nextDiffMs = nextDate.getTime() - Date.now();
+            const nextDiffSec = Math.floor(nextDiffMs / 1000);
+            let nextStatus = '';
             if (nextDiffSec <= 0) {
-                nextStr = lang === 'th' ? 'ถึงรอบอัปเดตแล้ว' : 'Due now';
+                nextStatus = lang === 'th' ? 'ถึงรอบอัปเดตแล้ว' : 'Due now';
             } else if (nextDiffSec < 60) {
-                nextStr = lang === 'th' ? 'ใน <1 นาที' : 'in <1m';
+                nextStatus = lang === 'th' ? 'ใน <1 นาที' : 'in <1m';
             } else {
                 const remMin = Math.ceil(nextDiffSec / 60);
-                nextStr = lang === 'th' ? `อีก ~${remMin} นาที` : `in ~${remMin}m`;
+                nextStatus = lang === 'th' ? `อีก ~${remMin} นาที` : `in ~${remMin}m`;
             }
 
-            const nextDisplay = lang === 'th' 
-                ? `${nextHourStr} น. (${nextStr})`
-                : `${nextHourStr} (${nextStr})`;
+            const nextDisplay = `${nextHourStr} (${nextStatus})`;
 
             if (lang === 'th') {
                 const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
                 const dateStr = `${d.getDate()} ${thMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
                 return {
-                    full: `${dateStr} รอบ ${currentHourStr} น.`,
-                    short: `รอบ ${currentHourStr} น.`,
+                    full: `${dateStr} รอบ ${currentHourStr}`,
+                    short: `รอบ ${currentHourStr}`,
                     next: nextDisplay,
-                    cycle: `${currentHourStr} น.`
+                    cycle: currentHourStr
                 };
             } else {
                 const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const dateStr = `${d.getDate()} ${enMonths[d.getMonth()]} ${d.getFullYear()}`;
+                const cycleStr = `${pad(d.getHours())}:00`;
+                const nextStr = `${pad(nextDate.getHours())}:00`;
                 return {
-                    full: `${dateStr}, Cycle ${currentHourStr}`,
-                    short: `Cycle ${currentHourStr}`,
-                    next: nextDisplay,
-                    cycle: currentHourStr
+                    full: `${dateStr}, Cycle ${cycleStr}`,
+                    short: `Cycle ${cycleStr}`,
+                    next: `${nextStr} (${nextStatus})`,
+                    cycle: cycleStr
                 };
             }
         }
@@ -1165,11 +1157,12 @@
 
             document.getElementById('currentCityTag').innerText = (cityObj.name[currentLang] || cityObj.name.en).toUpperCase();
 
-            // 1) ถ้ามี cache อยู่ใน memory และยังไม่ข้ามชั่วโมง และไม่ได้กด forceRefresh → แสดงผลทันที
+            // 1) ถ้ามี cache อยู่ใน memory และยังไม่ข้ามชั่วโมง (:00 น.) และไม่ได้กด forceRefresh → แสดงผลทันที
             if (!forceRefresh && cachedCityData[currentCityKey]) {
                 const mem = cachedCityData[currentCityKey];
-                const nextHourTime = new Date(mem.cachedAt || Date.now());
-                nextHourTime.setMinutes(0, 0, 0);
+                const memDate = new Date(mem.cachedAt || Date.now());
+                const nextHourTime = new Date(memDate);
+                nextHourTime.setMinutes(0, 0, 0, 0);
                 nextHourTime.setHours(nextHourTime.getHours() + 1);
                 if (Date.now() < nextHourTime.getTime()) {
                     updateUIWithData(mem);
@@ -1196,15 +1189,15 @@
                 document.getElementById('aqiVal').innerText  = '...';
             }
 
-            // 3) ดึง Live API จาก Open-Meteo พร้อม Timeout 6 วินาที
+            // 3) ดึง Live API จาก Open-Meteo (ระบุ timezone=Asia/Bangkok ตรงเวลาไทยจริง) พร้อม Timeout 6 วินาที
             let weatherCode = 0;
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 6000);
 
             try {
                 const [weatherRes, aqiRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1`, { signal: controller.signal }),
-                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1`, { signal: controller.signal })
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal }),
+                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
                 ]);
                 clearTimeout(timeoutId);
 
@@ -1222,9 +1215,19 @@
                 const humidity     = (weatherJson.hourly && weatherJson.hourly.relativehumidity_2m) ? weatherJson.hourly.relativehumidity_2m[12] : 65;
                 const aqi          = (aqiJson.current && aqiJson.current.us_aqi  !== undefined) ? Math.round(aqiJson.current.us_aqi)      : 45;
                 const pm25         = (aqiJson.current && aqiJson.current.pm2_5   !== undefined) ? aqiJson.current.pm2_5.toFixed(1)        : '12.5';
-                const hourlyTimes  = (weatherJson.hourly && weatherJson.hourly.time)              ? weatherJson.hourly.time.slice(0, 7).map(t => t.split('T')[1]) : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'];
-                const hourlyTemps  = (weatherJson.hourly && weatherJson.hourly.temperature_2m)    ? weatherJson.hourly.temperature_2m.slice(0, 7) : [28,29,31,32,30,29,28];
-                const hourlyAqis   = (aqiJson.hourly    && aqiJson.hourly.us_aqi)                 ? aqiJson.hourly.us_aqi.slice(0, 7)            : [40,42,48,50,45,43,41];
+                
+                let hourlyTimes = ['00:00','04:00','08:00','12:00','16:00','20:00','23:00'];
+                let hourlyTemps = [26, 25, 29, 33, 31, 28, 27];
+                let hourlyAqis  = [42, 40, 48, 55, 52, 45, 43];
+
+                if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.time.length >= 24) {
+                    const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
+                    hourlyTimes = sampleIndices.map(i => weatherJson.hourly.time[i].split('T')[1]);
+                    hourlyTemps = sampleIndices.map(i => weatherJson.hourly.temperature_2m[i]);
+                    if (aqiJson.hourly && aqiJson.hourly.us_aqi) {
+                        hourlyAqis = sampleIndices.map(i => aqiJson.hourly.us_aqi[i]);
+                    }
+                }
                 const weatherText  = mapWmoCodeToText(weatherCode);
 
                 const dataPayload = {
@@ -1346,7 +1349,7 @@
             const timeInfo = formatLastUpdated(data.cachedAt, currentLang);
             const elAdvLastUpdated = document.getElementById('advLastUpdated');
             if (elAdvLastUpdated) {
-                const prefix = currentLang === 'th' ? 'ข้อมูลรอบ: ' : 'Data Cycle: ';
+                const prefix = currentLang === 'th' ? 'อัปเดตล่าสุด: ' : 'Last updated: ';
                 elAdvLastUpdated.innerHTML = `${prefix}<strong>${timeInfo.full}</strong>`;
             }
             const elAdvNextUpdate = document.getElementById('advNextUpdate');
@@ -1705,18 +1708,61 @@
                 }
             }
 
-            // แสดงผล default city (Bangkok) ทันที
+            // แสดงผล default city (Bangkok) ทันที (Stale-While-Revalidate)
             const defaultKey = 'bangkok';
             currentCityKey = defaultKey;
 
-            if (cachedCityData[defaultKey]) {
-                updateUIWithData(cachedCityData[defaultKey]);
-                updateDataBadge(true, cachedCityData[defaultKey].cachedAt);
-            } else {
+            const mem = cachedCityData[defaultKey];
+            let isExpired = true;
+            if (mem && mem.cachedAt) {
+                const nextHourTime = new Date(mem.cachedAt);
+                nextHourTime.setMinutes(0, 0, 0, 0);
+                nextHourTime.setHours(nextHourTime.getHours() + 1);
+                isExpired = Date.now() >= nextHourTime.getTime();
+            }
+
+            if (mem) {
+                updateUIWithData(mem);
+                updateDataBadge(true, mem.cachedAt);
+            }
+
+            // ถ้าไม่มี cache หรือข้ามรอบต้นชั่วโมงใหม่ไปแล้ว (:00 น.) → ยิงดึง Live API อัตโนมัติทันที
+            if (!mem || isExpired) {
                 fetchLiveCityData(defaultKey);
             }
 
             renderCityList();
+        }
+
+        // ============================================================
+        //  Hourly Auto-Fetcher: ดึงข้อมูลอัตโนมัติต้นชั่วโมงเป๊ะๆ (:00 น.) วนลูปทุก 1 ชั่วโมง
+        // ============================================================
+        let hourlyTimerId = null;
+        function scheduleHourlyFetch() {
+            if (hourlyTimerId) clearTimeout(hourlyTimerId);
+
+            const now = new Date();
+            // คำนวณหาเวลาต้นชั่วโมงถัดไปพอดีเป๊ะ (:00:00.000)
+            const nextHour = new Date(now);
+            nextHour.setMinutes(0, 0, 0, 0);
+            nextHour.setHours(nextHour.getHours() + 1);
+
+            const msUntilNext = Math.max(1000, nextHour.getTime() - now.getTime());
+            const minsUntilNext = Math.round(msUntilNext / 60000);
+            const pad = (n) => String(n).padStart(2, '0');
+            console.log(`[Hourly Scheduler] ⏰ รอบถัดไปคือ ${pad(nextHour.getHours())}:00 น. (อีก ~${minsUntilNext} นาที)`);
+
+            hourlyTimerId = setTimeout(async () => {
+                const triggerTime = new Date();
+                console.log(`[Hourly Scheduler] 🔔 ถึงรอบ ${pad(triggerTime.getHours())}:00 น. พอดีเป๊ะ! เริ่มดึง Live API อัตโนมัติ...`);
+                try {
+                    await fetchLiveCityData(currentCityKey, true);
+                } catch(e) {
+                    console.warn('[Hourly Scheduler] Auto-fetch error:', e);
+                }
+                // ตั้งเวลารอบถัดไปวนลูปไปเรื่อยๆ ทุก 1 ชม.
+                scheduleHourlyFetch();
+            }, msUntilNext);
         }
 
         // Initialize Page
@@ -1730,6 +1776,7 @@
             if (clearBtn) clearBtn.style.display = 'none';
             renderCityList();
             initAllProvinces();
+            scheduleHourlyFetch();
 
             // Keyboard navigation สำหรับ Search input
             if (searchInput) {
@@ -1764,7 +1811,7 @@
                 });
             }
 
-            // อัปเดต relative time (เช่น "เมื่อสักครู่", "1 นาทีที่แล้ว") อัตโนมัติทุก 30 วินาที
+            // อัปเดตนับถอยหลังรอบถัดไปอัตโนมัติทุก 10 วินาที
             setInterval(() => {
                 if (cachedCityData[currentCityKey]) {
                     const mem = cachedCityData[currentCityKey];
@@ -1785,7 +1832,7 @@
                         elCardLastUpdated.innerHTML = `${timeInfo.full} <br><span style="color:#34d399;font-size:0.8rem;">${currentLang === 'th' ? 'รอบอัปเดตถัดไป: ' : 'Next update: '}${timeInfo.next}</span>`;
                     }
                 }
-            }, 30000);
+            }, 10000);
         });
     </script>
 </body>
