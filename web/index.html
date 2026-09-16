@@ -557,8 +557,8 @@
                 <div class="advisory-header-row">
                     <div class="advisory-city-tag" id="advCityTag">
                         <span class="adv-pin">📍</span>
-                        <span id="advCityName" class="adv-city-name">จังหวัดขอนแก่น</span>
-                        <span id="advCitySub" class="adv-city-sub">(Khon Kaen)</span>
+                        <span id="advCityName" class="adv-city-name">จังหวัดกรุงเทพมหานคร</span>
+                        <span id="advCitySub" class="adv-city-sub">(Bangkok)</span>
                     </div>
                     <div class="advisory-time-tag" id="advTimeTag">
                         <span class="adv-clock-icon">🕒</span>
@@ -578,7 +578,7 @@
             <div class="glass-card">
                 <div class="card-header">
                     <span id="lblTempHdr">TEMPERATURE & WEATHER</span>
-                    <span id="currentCityTag">KHON KAEN</span>
+                    <span id="currentCityTag">BANGKOK</span>
                 </div>
                 <div class="temp-display">
                     <span class="temp-value" id="tempVal">--</span>
@@ -726,9 +726,9 @@
             console.warn('Supabase init failed, running in API-only mode:', e);
         }
 
-        const currentCityKey_ref = { val: 'khon kaen' };
+        const currentCityKey_ref = { val: 'bangkok' };
         let currentLang = 'th';
-        let currentCityKey = 'khon kaen';
+        let currentCityKey = 'bangkok';
 
         // ─── 78 จังหวัดของประเทศไทยพร้อม lat/lon และภาค ─────────────────────
         const PROVINCES = [
@@ -956,7 +956,7 @@
 
             const p = PROVINCES.find(x => x.key === currentCityKey);
             if (p) {
-                if (searchInput) searchInput.value = currentLang === 'th' ? p.nameTh : p.nameEn;
+                if (searchInput && searchInput.value) searchInput.value = currentLang === 'th' ? p.nameTh : p.nameEn;
                 const elCityName = document.getElementById('advCityName');
                 const elCitySub = document.getElementById('advCitySub');
                 if (elCityName) elCityName.innerText = currentLang === 'th' ? `จังหวัด${p.nameTh}` : p.nameEn;
@@ -1156,13 +1156,6 @@
             if (selectEl && selectEl.value !== currentCityKey) {
                 selectEl.value = currentCityKey;
             }
-            const pObj = PROVINCES.find(x => x.key === currentCityKey);
-            if (pObj) {
-                const searchInput = document.getElementById('provinceSearchInput');
-                if (searchInput) {
-                    searchInput.value = (currentLang === 'th' ? pObj.nameTh : pObj.nameEn);
-                }
-            }
 
             const cityObj = cityCoords[currentCityKey];
             if (!cityObj) return;
@@ -1331,8 +1324,8 @@
 
             // ค้นหาข้อมูลจังหวัดปัจจุบัน
             const foundProv = PROVINCES.find(p => p.key === currentCityKey) || {
-                nameTh: (data.name && data.name.th) || 'ขอนแก่น',
-                nameEn: (data.name && data.name.en) || 'Khon Kaen'
+                nameTh: (data.name && data.name.th) || 'กรุงเทพมหานคร',
+                nameEn: (data.name && data.name.en) || 'Bangkok'
             };
             const thName = foundProv.nameTh;
             const enName = foundProv.nameEn;
@@ -1554,6 +1547,8 @@
         }
 
         function filterProvinceList(val) {
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.style.display = (val && val.trim()) ? 'flex' : 'none';
             buildProvinceDropdown(val);
             document.getElementById('provinceDropdown').classList.add('open');
         }
@@ -1562,6 +1557,8 @@
             if (e) e.stopPropagation();
             const input = document.getElementById('provinceSearchInput');
             input.value = '';
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
             input.focus();
             buildProvinceDropdown('');
             document.getElementById('provinceDropdown').classList.add('open');
@@ -1708,11 +1705,9 @@
                 }
             }
 
-            // แสดงผล default city ทันที (0ms wait)
-            const defaultKey = 'khon kaen';
+            // แสดงผล default city (Bangkok) ทันที
+            const defaultKey = 'bangkok';
             currentCityKey = defaultKey;
-            const p = PROVINCES.find(x => x.key === defaultKey);
-            if (p) document.getElementById('provinceSearchInput').value = currentLang === 'th' ? p.nameTh : p.nameEn;
 
             if (cachedCityData[defaultKey]) {
                 updateUIWithData(cachedCityData[defaultKey]);
@@ -1728,13 +1723,11 @@
         window.addEventListener('DOMContentLoaded', () => {
             // สร้าง dropdown ทันที
             buildProvinceDropdown();
-            const defaultProvince = PROVINCES.find(x => x.key === 'khon kaen');
-            if (defaultProvince) {
-                document.getElementById('provinceSearchInput').value =
-                    currentLang === 'th' ? defaultProvince.nameTh : defaultProvince.nameEn;
-                const clearBtn = document.getElementById('clearSearchBtn');
-                if (clearBtn) clearBtn.style.display = 'flex';
-            }
+            // เว้นว่างช่องค้นหาไว้ เพื่อแสดง placeholder ให้ผู้ใช้พิมพ์ค้นหาได้ทันที
+            const searchInput = document.getElementById('provinceSearchInput');
+            if (searchInput) searchInput.value = '';
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'none';
             renderCityList();
             initAllProvinces();
 
