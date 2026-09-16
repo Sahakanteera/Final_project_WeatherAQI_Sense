@@ -508,13 +508,53 @@
             margin-top: 1rem;
         }
 
-        .role-badge {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-            background: rgba(56, 189, 248, 0.15);
-            color: var(--accent-cyan);
-            font-weight: 600;
+        /* Refresh Toast & Data Pulse Animations */
+        .refresh-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 99999;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.25);
+            color: #f8fafc;
+            padding: 0.85rem 1.4rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transform: translateY(120px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .refresh-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .refresh-toast.success {
+            border-color: rgba(52, 211, 153, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(52, 211, 153, 0.3);
+        }
+
+        @keyframes dataPulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.6); transform: scale(1); }
+            50% { box-shadow: 0 0 25px 6px rgba(56, 189, 248, 0.4); transform: scale(1.008); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); transform: scale(1); }
+        }
+
+        .data-refreshed {
+            animation: dataPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -1574,6 +1614,7 @@
 
         function selectProvince(key, displayName) {
             currentCityKey = key;
+            try { localStorage.setItem('weatheraqi_selected_city', key); } catch(e){}
             const input = document.getElementById('provinceSearchInput');
             input.value = displayName;
             const clearBtn = document.getElementById('clearSearchBtn');
@@ -1668,13 +1709,109 @@
             });
         }
 
+        // ─── Visual Toast & Fresh Data Highlight ─────────────────────────────
+        let isAutoRefreshing = false;
+        let lastAutoRefreshedCycle = null;
+        let toastTimeoutId = null;
+
+        function showRefreshNotification(isStarting, isSuccess = true) {
+            const toast = document.getElementById('refreshToast');
+            if (!toast) return;
+
+            if (toastTimeoutId) clearTimeout(toastTimeoutId);
+
+            if (isStarting) {
+                toast.className = 'refresh-toast show';
+                toast.innerHTML = `
+                    <span style="display:inline-block;animation:spin 1s linear infinite;font-size:1.15rem;">🔄</span>
+                    <span>${currentLang === 'th' ? 'ถึงรอบอัปเดตแล้ว: กำลังรีเฟรชข้อมูลสภาพอากาศและ AQI รอบใหม่...' : 'Update cycle reached: Refreshing new live data...'}</span>
+                `;
+            } else if (isSuccess) {
+                toast.className = 'refresh-toast show success';
+                toast.innerHTML = `
+                    <span style="font-size:1.15rem;">✨</span>
+                    <span>${currentLang === 'th' ? 'รีเฟรชข้อมูลสภาพอากาศรอบใหม่เรียบร้อยแล้ว!' : 'Live data refreshed successfully!'}</span>
+                `;
+                toastTimeoutId = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3500);
+            } else {
+                toast.className = 'refresh-toast show';
+                toast.innerHTML = `
+                    <span style="font-size:1.15rem;">⚠️</span>
+                    <span>${currentLang === 'th' ? 'เชื่อมต่อ API ไม่สำเร็จ ใช้ข้อมูลล่าสุดที่มี' : 'Live fetch failed, using cached data'}</span>
+                `;
+                toastTimeoutId = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3500);
+            }
+        }
+
+        function highlightFreshData() {
+            const elMetrics = document.querySelector('.metrics-grid');
+            const elAdvisory = document.getElementById('advisoryBox');
+            if (elMetrics) {
+                elMetrics.classList.remove('data-refreshed');
+                void elMetrics.offsetWidth; // trigger reflow
+                elMetrics.classList.add('data-refreshed');
+            }
+            if (elAdvisory) {
+                elAdvisory.classList.remove('data-refreshed');
+                void elAdvisory.offsetWidth;
+                elAdvisory.classList.add('data-refreshed');
+            }
+        }
+
+        function isCurrentDataExpired() {
+            const mem = cachedCityData[currentCityKey];
+            if (!mem || !mem.cachedAt) return true;
+            const memDate = new Date(mem.cachedAt);
+            if (isNaN(memDate.getTime())) return true;
+            const nextHourTime = new Date(memDate);
+            nextHourTime.setMinutes(0, 0, 0, 0);
+            nextHourTime.setHours(nextHourTime.getHours() + 1);
+            return Date.now() >= nextHourTime.getTime();
+        }
+
+        async function triggerCycleAutoRefresh(reason = 'cycle_due') {
+            if (isAutoRefreshing) return;
+            const now = new Date();
+            const cycleKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}_${now.getHours()}`;
+            if (lastAutoRefreshedCycle === cycleKey && reason !== 'manual') return;
+
+            isAutoRefreshing = true;
+            lastAutoRefreshedCycle = cycleKey;
+            console.log(`[Auto-Refresh] 🔔 ถึงรอบอัปเดต (${reason}) — กำลังรีเฟรชหน้าเว็บเป็นข้อมูลรอบใหม่...`);
+            showRefreshNotification(true);
+
+            try {
+                await fetchLiveCityData(currentCityKey, true);
+                showRefreshNotification(false, true);
+                highlightFreshData();
+            } catch (err) {
+                console.warn('[Auto-Refresh] Fetch error:', err);
+                showRefreshNotification(false, false);
+            } finally {
+                isAutoRefreshing = false;
+            }
+        }
+
         function refreshData() {
             const btn = document.getElementById('refreshBtn');
             btn.innerText = currentLang === 'th' ? '🔄 กำลังดึงข้อมูลสดจาก API...' : '🔄 Fetching Live API...';
+            btn.disabled = true;
+            showRefreshNotification(true);
             // บังคับดึง API ใหม่โดยล้าง in-memory cache ของ city ปัจจุบัน
             delete cachedCityData[currentCityKey];
-            fetchLiveCityData(currentCityKey).then(() => {
+            fetchLiveCityData(currentCityKey, true).then(() => {
                 btn.innerText = i18n[currentLang].refreshBtn;
+                btn.disabled = false;
+                showRefreshNotification(false, true);
+                highlightFreshData();
+            }).catch(() => {
+                btn.innerText = i18n[currentLang].refreshBtn;
+                btn.disabled = false;
+                showRefreshNotification(false, false);
             });
         }
 
@@ -1713,8 +1850,10 @@
                 }
             }
 
-            // แสดงผล default city (Bangkok) ทันที (Stale-While-Revalidate)
-            const defaultKey = 'bangkok';
+            // แสดงผล city ที่เลือกไว้ (ถ้าเคยบันทึกไว้ใน localStorage ให้ใช้ค่านั้น ไม่อย่างนั้นใช้ Bangkok)
+            let savedKey = null;
+            try { savedKey = localStorage.getItem('weatheraqi_selected_city'); } catch(e){}
+            const defaultKey = (savedKey && cityCoords[savedKey]) ? savedKey : 'bangkok';
             currentCityKey = defaultKey;
 
             const mem = cachedCityData[defaultKey];
@@ -1734,10 +1873,11 @@
 
             // ถ้าไม่มี cache หรือข้ามรอบต้นชั่วโมงใหม่ไปแล้ว (:00 น.) → ยิงดึง Live API อัตโนมัติทันที
             if (!mem || isExpired) {
-                fetchLiveCityData(defaultKey);
+                fetchLiveCityData(defaultKey, true);
             }
 
             renderCityList();
+            highlightCityItem(defaultKey);
         }
 
         // ============================================================
@@ -1760,12 +1900,8 @@
 
             hourlyTimerId = setTimeout(async () => {
                 const triggerTime = new Date();
-                console.log(`[Hourly Scheduler] 🔔 ถึงรอบ ${pad(triggerTime.getHours())}:00 น. พอดีเป๊ะ! เริ่มดึง Live API อัตโนมัติ...`);
-                try {
-                    await fetchLiveCityData(currentCityKey, true);
-                } catch(e) {
-                    console.warn('[Hourly Scheduler] Auto-fetch error:', e);
-                }
+                console.log(`[Hourly Scheduler] 🔔 ถึงรอบ ${pad(triggerTime.getHours())}:00 น. พอดีเป๊ะ! เริ่มรีเฟรชหน้าเว็บเป็นข้อมูลใหม่อัตโนมัติ...`);
+                await triggerCycleAutoRefresh('hourly_scheduler');
                 // ตั้งเวลารอบถัดไปวนลูปไปเรื่อยๆ ทุก 1 ชม.
                 scheduleHourlyFetch();
             }, msUntilNext);
@@ -1817,7 +1953,20 @@
                 });
             }
 
-            // อัปเดตนับถอยหลังรอบถัดไปอัตโนมัติทุก 10 วินาที
+            // ตรวจจับเมื่อผู้ใช้กลับมาที่แท็บหรือหน้าจอ หากถึงรอบแล้วให้รีเฟรชข้อมูลใหม่ทันที
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && isCurrentDataExpired()) {
+                    console.log('[Visibility] กลับมาที่แท็บและพบว่าข้อมูลหมดรอบแล้ว — กำลังรีเฟรชข้อมูลใหม่...');
+                    triggerCycleAutoRefresh('tab_activated');
+                }
+            });
+            window.addEventListener('focus', () => {
+                if (isCurrentDataExpired()) {
+                    triggerCycleAutoRefresh('window_focus');
+                }
+            });
+
+            // อัปเดตนับถอยหลังรอบถัดไป และตรวจเช็ครอบอัปเดตอัตโนมัติทุก 5 วินาที
             setInterval(() => {
                 if (cachedCityData[currentCityKey]) {
                     const mem = cachedCityData[currentCityKey];
@@ -1837,9 +1986,16 @@
                     if (elCardLastUpdated) {
                         elCardLastUpdated.innerHTML = `${timeInfo.full} <br><span style="color:#34d399;font-size:0.8rem;">${currentLang === 'th' ? 'รอบอัปเดตถัดไป: ' : 'Next update: '}${timeInfo.next}</span>`;
                     }
+
+                    // ถ้าถึงรอบอัปเดตแล้ว (:00 น. หรือหมดอายุ) → ทำการรีเฟรชหน้าเว็บเป็นข้อมูลใหม่อัตโนมัติทันที
+                    if (isCurrentDataExpired() && !isAutoRefreshing) {
+                        triggerCycleAutoRefresh('interval_check');
+                    }
                 }
-            }, 10000);
+            }, 5000);
         });
     </script>
+    <!-- Toast Notification for Auto-Refresh / Manual Refresh -->
+    <div id="refreshToast" class="refresh-toast"></div>
 </body>
 </html>
