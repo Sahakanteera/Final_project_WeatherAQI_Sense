@@ -1,0 +1,49 @@
+﻿# ============================================================
+#  refresh_data.yml
+#  GitHub Actions — Auto-refresh ข้อมูลสภาพอากาศ 78 จังหวัด
+#
+#  Schedule (ICT = UTC+7):
+#    - 00:00 ICT  →  17:00 UTC  (เที่ยงคืน)
+#    - 12:00 ICT  →  05:00 UTC  (เที่ยงวัน)
+#
+#  Secrets ที่ต้องตั้งใน GitHub:
+#    GitHub → Settings → Secrets and variables → Actions → New secret
+#    - SUPABASE_URL
+#    - SUPABASE_ANON_KEY
+# ============================================================
+
+name: 🌤️ Refresh Province Weather Data
+
+on:
+  schedule:
+    - cron: '0 17 * * *'   # เที่ยงคืน ICT (00:00 +07:00)
+    - cron: '0 5 * * *'    # เที่ยงวัน  ICT (12:00 +07:00)
+  workflow_dispatch:         # กด Run manually ได้ใน GitHub UI
+
+jobs:
+  refresh:
+    name: Fetch & Cache All 78 Provinces
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: pip install aiohttp python-dotenv
+
+      - name: 🌤️ Run province refresh script
+        env:
+          SUPABASE_URL:      ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python src/refresh_provinces.py
+
+      - name: ✅ Log completion
+        run: echo "Province data refresh completed at $(date -u '+%Y-%m-%d %H:%M UTC')"

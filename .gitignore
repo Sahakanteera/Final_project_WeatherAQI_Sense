@@ -28,6 +28,9 @@ wheels/
 *.sqlite3
 *.png
 .env
+
+# Supabase credentials (ใช้ config.example.js เป็น template แทน)
+config.js
 .pytest_cache/
 .vscode/
 .idea/
