@@ -6,6 +6,8 @@
     <title>WeatherAQI Sense — Live Monitor</title>
     <meta name="description" content="WeatherAQI Sense — ระบบแดชบอร์ดติดตามสภาพอากาศและดัชนีคุณภาพอากาศ (PM2.5/AQI) พร้อมคำแนะนำสุขภาพ AI อัตโนมัติ">
     
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+    
     <!-- Google Fonts & Chart.js -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +60,8 @@
 
         /* Top Navigation Header */
         header {
+            position: relative;
+            z-index: 1000;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -217,29 +221,62 @@
 
         /* Advisory Banner */
         .advisory-box {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
-            border-left: 4px solid var(--accent-cyan);
-            border-radius: 16px;
-            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.95));
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 18px;
+            padding: 1.35rem 1.75rem;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1.25rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         .advisory-icon {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
+            line-height: 1;
+            padding-top: 0.15rem;
+        }
+
+        .advisory-city-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(192, 132, 252, 0.2));
+            border: 1.5px solid rgba(56, 189, 248, 0.55);
+            padding: 0.35rem 1rem;
+            border-radius: 9999px;
+            margin-bottom: 0.55rem;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+        }
+        .adv-pin {
+            font-size: 1.2rem;
+            filter: drop-shadow(0 0 4px rgba(255,255,255,0.4));
+        }
+        .adv-city-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        }
+        .adv-city-sub {
+            font-size: 0.92rem;
+            color: #7dd3fc;
+            font-weight: 600;
         }
 
         .advisory-text h3 {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.35rem;
             color: var(--accent-cyan);
         }
 
         .advisory-text p {
             font-size: 0.95rem;
-            color: var(--text-secondary);
+            color: #cbd5e1;
+            line-height: 1.5;
         }
 
         /* Analytics Section */
@@ -310,24 +347,49 @@
         }
 
         /* Searchable Province Dropdown */
+        /* Searchable Province Dropdown */
         .province-search-wrap {
             position: relative;
+            display: flex;
+            align-items: center;
         }
         #provinceSearchInput {
             background: rgba(15, 23, 42, 0.7);
             color: var(--text-primary);
             border: 1px solid var(--card-border);
-            padding: 0.65rem 1.1rem;
+            padding: 0.65rem 2.2rem 0.65rem 1.1rem;
             border-radius: 12px;
             font-size: 0.9rem;
             outline: none;
             cursor: text;
             transition: all 0.3s ease;
-            width: 220px;
+            width: 250px;
         }
         #provinceSearchInput:focus {
             border-color: var(--accent-cyan);
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+            background: rgba(15, 23, 42, 0.95);
+        }
+        .clear-search-btn {
+            position: absolute;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        .clear-search-btn:hover {
+            color: #fff;
+            background: rgba(244, 63, 94, 0.8);
         }
         .province-dropdown {
             display: none;
@@ -335,35 +397,43 @@
             top: calc(100% + 6px);
             left: 0;
             right: 0;
-            background: rgba(15, 23, 42, 0.97);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
+            width: 100%;
+            min-width: 250px;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(56, 189, 248, 0.35);
             border-radius: 14px;
             max-height: 300px;
             overflow-y: auto;
             z-index: 9999;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.8);
             scrollbar-width: thin;
             scrollbar-color: rgba(56,189,248,0.3) transparent;
         }
         .province-dropdown.open { display: block; }
         .province-opt {
-            padding: 0.6rem 1rem;
+            padding: 0.65rem 1.1rem;
             cursor: pointer;
-            font-size: 0.88rem;
+            font-size: 0.92rem;
             border-radius: 8px;
-            margin: 2px 4px;
-            transition: background 0.2s;
+            margin: 3px 5px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
         }
-        .province-opt:hover, .province-opt.active {
-            background: rgba(56,189,248,0.15);
+        .province-opt:hover, .province-opt.active, .province-opt.selected {
+            background: rgba(56,189,248,0.22);
             color: var(--accent-cyan);
+            font-weight: 600;
+            padding-left: 1.35rem;
         }
-        .province-opt .region-tag {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            float: right;
-            margin-top: 2px;
+        .province-opt mark {
+            background: transparent;
+            color: #38bdf8;
+            font-weight: 700;
+            text-decoration: underline;
         }
         /* City list region headers */
         .region-header {
@@ -423,7 +493,8 @@
 
                 <!-- Province Searchable Dropdown -->
                 <div class="province-search-wrap" id="provinceSearchWrap">
-                    <input type="text" id="provinceSearchInput" placeholder="🔍 ค้นหาจังหวัด..." autocomplete="off" oninput="filterProvinceList(this.value)" onfocus="openProvinceDropdown()" />
+                    <input type="text" id="provinceSearchInput" placeholder="🔍 ค้นหาจังหวัด... (เช่น นคร, เชียง)" autocomplete="off" oninput="filterProvinceList(this.value)" onfocus="openProvinceDropdown()" />
+                    <button type="button" class="clear-search-btn" id="clearSearchBtn" onclick="clearProvinceSearch(event)" title="ล้างคำค้นหา">✕</button>
                     <div class="province-dropdown" id="provinceDropdown"></div>
                 </div>
 
@@ -436,7 +507,12 @@
         <div class="advisory-box" id="advisoryBox">
             <div class="advisory-icon" id="advIcon">🟢</div>
             <div class="advisory-text">
-                <h3 id="advTitle">AI Health Advisory: Loading Live Data...</h3>
+                <div class="advisory-city-tag" id="advCityTag">
+                    <span class="adv-pin">📍</span>
+                    <span id="advCityName" class="adv-city-name">จังหวัดขอนแก่น</span>
+                    <span id="advCitySub" class="adv-city-sub">(Khon Kaen)</span>
+                </div>
+                <h3 id="advTitle">คำแนะนำสุขภาพ AI: กำลังโหลดข้อมูล...</h3>
                 <p id="advDesc">Fetching real-time weather and air quality metrics from API servers...</p>
             </div>
         </div>
@@ -574,8 +650,8 @@
         //  ถ้าไม่มี config.js → ทำงานใน API-only mode โดยอัตโนมัติ
         // ============================================================
         const _cfg = (typeof APP_CONFIG !== 'undefined') ? APP_CONFIG : {};
-        const SUPABASE_URL      = _cfg.SUPABASE_URL      || '';
-        const SUPABASE_ANON_KEY = _cfg.SUPABASE_ANON_KEY || '';
+        const SUPABASE_URL      = _cfg.SUPABASE_URL      || 'https://gufpmcpwqdgrtgincffa.supabase.co';
+        const SUPABASE_ANON_KEY = _cfg.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0.XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU';
         const CACHE_TTL_MINUTES = _cfg.CACHE_TTL_MINUTES || 30;
 
         // Initialize Supabase client
@@ -592,6 +668,7 @@
         }
 
         const currentCityKey_ref = { val: 'khon kaen' };
+        let currentLang = 'th';
         let currentCityKey = 'khon kaen';
 
         // ─── 78 จังหวัดของประเทศไทยพร้อม lat/lon และภาค ─────────────────────
@@ -792,6 +869,16 @@
             document.getElementById('lblTeamHdr').innerText = dict.lblTeamHdr;
             document.getElementById('lblCoverage').innerText = dict.lblCoverage;
 
+            const p = PROVINCES.find(x => x.key === currentCityKey);
+            if (p) {
+                const searchInput = document.getElementById('provinceSearchInput');
+                if (searchInput) searchInput.value = currentLang === 'th' ? p.nameTh : p.nameEn;
+                const elCityName = document.getElementById('advCityName');
+                const elCitySub = document.getElementById('advCitySub');
+                if (elCityName) elCityName.innerText = currentLang === 'th' ? `จังหวัด${p.nameTh}` : p.nameEn;
+                if (elCitySub)  elCitySub.innerText  = currentLang === 'th' ? `(${p.nameEn})` : `(${p.nameTh})`;
+            }
+
             renderCityList();
             if (cachedCityData[currentCityKey]) {
                 updateUIWithData(cachedCityData[currentCityKey]);
@@ -800,7 +887,7 @@
 
         // ============================================================
         //  Supabase: โหลดข้อมูล cache จาก database
-        //  คืนค่า data payload หรือ null ถ้าไม่มี / หมดอายุ
+        //  คืนค่า data payload ทันที (Stale-While-Revalidate)
         // ============================================================
         async function loadFromSupabase(cityKey) {
             if (!supabaseClient) return null;
@@ -813,33 +900,27 @@
 
                 if (error || !data) return null;
 
-                // ตรวจสอบอายุ cache
                 const fetchedAt = new Date(data.fetched_at);
                 const ageMinutes = (Date.now() - fetchedAt.getTime()) / 60000;
-                if (ageMinutes > CACHE_TTL_MINUTES) {
-                    console.log(`[Supabase] Cache for '${cityKey}' expired (${ageMinutes.toFixed(0)} min old). Refreshing from API.`);
-                    return null;
-                }
+                const isExpired = ageMinutes > CACHE_TTL_MINUTES;
 
-                console.log(`[Supabase] Cache HIT for '${cityKey}' (${ageMinutes.toFixed(0)} min old).`);
-
-                // แปลงข้อมูลจาก Supabase กลับเป็น dataPayload format
-                const weatherText = mapWmoCodeToText(data.weather_code);
+                const weatherText = mapWmoCodeToText(data.weather_code || 0);
                 return {
                     name: { th: data.city_name_th, en: data.city_name_en },
                     temp: String(data.temperature),
-                    humidity: data.humidity,
-                    wind: String(data.wind_speed),
+                    humidity: data.humidity || 65,
+                    wind: String(data.wind_speed || 10),
                     weatherText: weatherText,
-                    aqi: data.aqi,
-                    pm25: String(data.pm25),
+                    aqi: data.aqi || 45,
+                    pm25: String(data.pm25 || 12),
                     history: {
-                        labels: data.hourly_labels || [],
-                        temp:   data.hourly_temps  || [],
-                        aqi:    data.hourly_aqis   || []
+                        labels: (data.hourly_labels && data.hourly_labels.length) ? data.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
+                        temp:   (data.hourly_temps && data.hourly_temps.length) ? data.hourly_temps : [28,29,31,32,30,29,28],
+                        aqi:    (data.hourly_aqis && data.hourly_aqis.length) ? data.hourly_aqis : [40,42,48,50,45,43,41]
                     },
                     fromCache: true,
-                    cachedAt: fetchedAt
+                    cachedAt: fetchedAt,
+                    isExpired: isExpired
                 };
             } catch (e) {
                 console.warn('[Supabase] loadFromSupabase error:', e);
@@ -908,9 +989,9 @@
         }
 
         // ============================================================
-        //  fetchLiveCityData: โหลดข้อมูล city โดยเช็ค Supabase cache ก่อน
+        //  fetchLiveCityData: โหลดข้อมูล city พร้อม Stale-While-Revalidate และ Timeout
         // ============================================================
-        async function fetchLiveCityData(cityKey) {
+        async function fetchLiveCityData(cityKey, forceRefresh = false) {
             currentCityKey = cityKey.toLowerCase();
 
             // Sync select / search input ให้ตรงกับ city ที่เลือก
@@ -933,34 +1014,49 @@
             const lon = cityObj.lon;
 
             document.getElementById('currentCityTag').innerText = (cityObj.name[currentLang] || cityObj.name.en).toUpperCase();
-            document.getElementById('tempVal').innerText = '...';
-            document.getElementById('aqiVal').innerText  = '...';
 
-            // 1) ตรวจสอบ in-memory cache ก่อน (เร็วที่สุด)
-            if (cachedCityData[currentCityKey]) {
+            // 1) ถ้ามี cache อยู่ใน memory และไม่ได้กด forceRefresh → แสดงผลทันที
+            if (!forceRefresh && cachedCityData[currentCityKey]) {
                 const mem = cachedCityData[currentCityKey];
                 updateUIWithData(mem);
                 updateDataBadge(mem.fromCache, mem.cachedAt);
                 return;
             }
 
-            // 2) ตรวจสอบ Supabase cache
-            const supabaseData = await loadFromSupabase(currentCityKey);
-            if (supabaseData) {
-                cachedCityData[currentCityKey] = supabaseData;
-                updateUIWithData(supabaseData);
-                updateDataBadge(true, supabaseData.cachedAt);
-                renderCityList();
-                return;
+            // 2) ถ้ายังไม่มีใน memory ตรวจสอบ Supabase cache
+            if (!forceRefresh) {
+                const supabaseData = await loadFromSupabase(currentCityKey);
+                if (supabaseData) {
+                    cachedCityData[currentCityKey] = supabaseData;
+                    updateUIWithData(supabaseData);
+                    updateDataBadge(true, supabaseData.cachedAt);
+                    renderCityList();
+                    if (!supabaseData.isExpired) return;
+                }
             }
 
-            // 3) ดึง API จริง
+            // ถ้าไม่มี cache ใดๆ ให้ขึ้น indicator เบาๆ
+            if (!cachedCityData[currentCityKey]) {
+                document.getElementById('tempVal').innerText = '...';
+                document.getElementById('aqiVal').innerText  = '...';
+            }
+
+            // 3) ดึง Live API จาก Open-Meteo พร้อม Timeout 6 วินาที
             let weatherCode = 0;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+
             try {
                 const [weatherRes, aqiRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1`),
-                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1`)
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1`, { signal: controller.signal }),
+                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1`, { signal: controller.signal })
                 ]);
+                clearTimeout(timeoutId);
+
+                if (!weatherRes.ok || !aqiRes.ok) {
+                    throw new Error(`API HTTP Error: weather=${weatherRes.status}, aqi=${aqiRes.status}`);
+                }
+
                 const weatherJson = await weatherRes.json();
                 const aqiJson     = await aqiRes.json();
 
@@ -978,15 +1074,15 @@
 
                 const dataPayload = {
                     name:        cityObj.name,
-                    temp:        temp.toFixed(1),
+                    temp:        Number(temp).toFixed(1),
                     humidity:    humidity,
-                    wind:        wind.toFixed(1),
+                    wind:        Number(wind).toFixed(1),
                     weatherText: weatherText,
                     aqi:         aqi,
                     pm25:        pm25,
                     history:     { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis },
                     fromCache:   false,
-                    cachedAt:    null
+                    cachedAt:    new Date()
                 };
 
                 cachedCityData[currentCityKey] = dataPayload;
@@ -994,27 +1090,34 @@
                 updateDataBadge(false, null);
                 renderCityList();
 
-                // บันทึกลง Supabase (async ไม่ต้อง await)
+                // บันทึกลง Supabase (async)
                 saveToSupabase(currentCityKey, cityObj, dataPayload, weatherCode);
 
             } catch (err) {
-                console.warn('API Fetch failed, using fallback data:', err);
-                const fallbackPayload = {
-                    name:        cityObj.name,
-                    temp:        '30.5',
-                    humidity:    62,
-                    wind:        '12.0',
-                    weatherText: { th: '☀️ ท้องฟ้าโปร่ง แดดจัด', en: '☀️ Clear Sky & Sunny' },
-                    aqi:         42,
-                    pm25:        '10.2',
-                    history:     { labels: ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'], temp: [28,29,31,32,30,29,28], aqi: [38,40,45,50,48,44,42] },
-                    fromCache:   false,
-                    cachedAt:    null
-                };
-                cachedCityData[currentCityKey] = fallbackPayload;
-                updateUIWithData(fallbackPayload);
-                updateDataBadge(false, null);
-                renderCityList();
+                clearTimeout(timeoutId);
+                console.warn('API Fetch failed or timed out, using cached/fallback:', err);
+                // ถ้ามีข้อมูลเดิมใน cache ให้ใช้ข้อมูลเดิม
+                if (cachedCityData[currentCityKey]) {
+                    updateUIWithData(cachedCityData[currentCityKey]);
+                    updateDataBadge(true, cachedCityData[currentCityKey].cachedAt);
+                } else {
+                    const fallbackPayload = {
+                        name:        cityObj.name,
+                        temp:        '30.5',
+                        humidity:    62,
+                        wind:        '12.0',
+                        weatherText: { th: '☀️ ท้องฟ้าโปร่ง แดดจัด', en: '☀️ Clear Sky & Sunny' },
+                        aqi:         42,
+                        pm25:        '10.2',
+                        history:     { labels: ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'], temp: [28,29,31,32,30,29,28], aqi: [38,40,45,50,48,44,42] },
+                        fromCache:   false,
+                        cachedAt:    null
+                    };
+                    cachedCityData[currentCityKey] = fallbackPayload;
+                    updateUIWithData(fallbackPayload);
+                    updateDataBadge(false, null);
+                    renderCityList();
+                }
             }
         }
 
@@ -1064,8 +1167,24 @@
             document.getElementById('statusCat').innerText = statusStr[currentLang] || statusStr.en;
             document.getElementById('maskRec').innerText = maskStr[currentLang] || maskStr.en;
 
+            // ค้นหาข้อมูลจังหวัดปัจจุบัน
+            const foundProv = PROVINCES.find(p => p.key === currentCityKey) || {
+                nameTh: (data.name && data.name.th) || 'ขอนแก่น',
+                nameEn: (data.name && data.name.en) || 'Khon Kaen'
+            };
+            const thName = foundProv.nameTh;
+            const enName = foundProv.nameEn;
+
+            // อัปเดตป้ายชื่อจังหวัดเหนือคำแนะนำสุขภาพ (แสดงเด่นชัด)
+            const elCityName = document.getElementById('advCityName');
+            const elCitySub  = document.getElementById('advCitySub');
+            if (elCityName) elCityName.innerText = currentLang === 'th' ? `จังหวัด${thName}` : enName;
+            if (elCitySub)  elCitySub.innerText  = currentLang === 'th' ? `(${enName})` : `(${thName})`;
+
+            // อัปเดตหัวข้อคำแนะนำให้รวมชื่อจังหวัดอย่างชัดเจน
+            const cityPrefix = currentLang === 'th' ? `จังหวัด${thName} — ` : `${enName} — `;
             document.getElementById('advIcon').innerText = advIcon;
-            document.getElementById('advTitle').innerText = advTitleStr[currentLang] || advTitleStr.en;
+            document.getElementById('advTitle').innerText = cityPrefix + (advTitleStr[currentLang] || advTitleStr.en);
             document.getElementById('advDesc').innerText = advDescStr[currentLang] || advDescStr.en;
 
             initChart(data.history.labels, data.history.temp, data.history.aqi);
@@ -1135,39 +1254,154 @@
             });
         }
 
-        // ─── Searchable Dropdown ────────────────────────────────────────────
+        // ─── Searchable Dropdown with Live Autocomplete ─────────────────────
+        let dropdownSelectedIndex = -1;
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function highlightMatch(text, query) {
+            if (!query) return escapeHtml(text);
+            const lowerText = text.toLowerCase();
+            const lowerQuery = query.toLowerCase();
+            const index = lowerText.indexOf(lowerQuery);
+            if (index === -1) return escapeHtml(text);
+            const before = escapeHtml(text.substring(0, index));
+            const match = escapeHtml(text.substring(index, index + query.length));
+            const after = escapeHtml(text.substring(index + query.length));
+            return `${before}<mark>${match}</mark>${after}`;
+        }
+
         function buildProvinceDropdown(filter = '') {
             const dd = document.getElementById('provinceDropdown');
             dd.innerHTML = '';
+            dropdownSelectedIndex = -1;
+
             const q = filter.trim().toLowerCase();
-            const matches = PROVINCES.filter(p =>
-                p.nameTh.includes(filter.trim()) ||
-                p.nameEn.toLowerCase().includes(q)
-            );
-            matches.forEach(p => {
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.style.display = filter ? 'flex' : 'none';
+
+            let matches = PROVINCES;
+            if (q) {
+                // Filter matches by Thai name, English name, or key
+                matches = PROVINCES.filter(p =>
+                    p.nameTh.toLowerCase().includes(q) ||
+                    p.nameEn.toLowerCase().includes(q) ||
+                    p.key.toLowerCase().includes(q)
+                ).sort((a, b) => {
+                    // Priority: Provinces whose name STARTS with the search query (e.g. นคร... over ...นคร)
+                    const aThStarts = a.nameTh.toLowerCase().startsWith(q);
+                    const bThStarts = b.nameTh.toLowerCase().startsWith(q);
+                    const aEnStarts = a.nameEn.toLowerCase().startsWith(q);
+                    const bEnStarts = b.nameEn.toLowerCase().startsWith(q);
+
+                    if (aThStarts && !bThStarts) return -1;
+                    if (!aThStarts && bThStarts) return 1;
+                    if (aEnStarts && !bEnStarts) return -1;
+                    if (!aEnStarts && bEnStarts) return 1;
+
+                    return a.nameTh.localeCompare(b.nameTh, 'th');
+                });
+            }
+
+            if (matches.length === 0) {
+                dd.innerHTML = `
+                    <div style="padding: 1.2rem; text-align: center; color: var(--text-secondary); font-size: 0.88rem;">
+                        🔍 ไม่พบจังหวัดที่ตรงกับ "<strong>${escapeHtml(filter.trim())}</strong>"
+                    </div>`;
+                return;
+            }
+
+            matches.forEach((p, idx) => {
                 const div = document.createElement('div');
-                div.className = 'province-opt' + (p.key === currentCityKey ? ' active' : '');
-                const regionLabel = REGION_LABELS[currentLang][p.region] || p.region;
-                div.innerHTML = `<span>${currentLang==='th'?p.nameTh:p.nameEn}</span><span class="region-tag">${regionLabel}</span>`;
+                const isCurrent = p.key === currentCityKey;
+                div.className = 'province-opt' + (isCurrent ? ' selected' : '');
+                div.dataset.index = idx;
+                div.dataset.key = p.key;
+
+                const displayName = currentLang === 'th' ? p.nameTh : p.nameEn;
+                const highlightedName = q ? highlightMatch(displayName, q) : escapeHtml(displayName);
+
+                div.innerHTML = `<span>${highlightedName}</span>`;
+
                 div.onclick = () => {
-                    selectProvince(p.key, currentLang==='th'?p.nameTh:p.nameEn);
+                    selectProvince(p.key, displayName);
                 };
+
                 dd.appendChild(div);
             });
         }
+
         function openProvinceDropdown() {
-            buildProvinceDropdown(document.getElementById('provinceSearchInput').value);
+            const input = document.getElementById('provinceSearchInput');
+            input.select();
+            buildProvinceDropdown(input.value.trim());
             document.getElementById('provinceDropdown').classList.add('open');
         }
+
         function filterProvinceList(val) {
             buildProvinceDropdown(val);
             document.getElementById('provinceDropdown').classList.add('open');
         }
-        function selectProvince(key, displayName) {
-            document.getElementById('provinceSearchInput').value = displayName;
-            document.getElementById('provinceDropdown').classList.remove('open');
-            fetchLiveCityData(key);
+
+        function clearProvinceSearch(e) {
+            if (e) e.stopPropagation();
+            const input = document.getElementById('provinceSearchInput');
+            input.value = '';
+            input.focus();
+            buildProvinceDropdown('');
+            document.getElementById('provinceDropdown').classList.add('open');
         }
+
+        function selectProvince(key, displayName) {
+            currentCityKey = key;
+            const input = document.getElementById('provinceSearchInput');
+            input.value = displayName;
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) clearBtn.style.display = 'flex';
+            document.getElementById('provinceDropdown').classList.remove('open');
+
+            const p = PROVINCES.find(x => x.key === key);
+            if (p) {
+                const elCityName = document.getElementById('advCityName');
+                const elCitySub  = document.getElementById('advCitySub');
+                if (elCityName) elCityName.innerText = currentLang === 'th' ? `จังหวัด${p.nameTh}` : p.nameEn;
+                if (elCitySub)  elCitySub.innerText  = currentLang === 'th' ? `(${p.nameEn})` : `(${p.nameTh})`;
+            }
+
+            fetchLiveCityData(key);
+            highlightCityItem(key);
+        }
+
+        function highlightCityItem(key) {
+            const container = document.getElementById('cityList');
+            if (!container) return;
+            const items = container.querySelectorAll('.city-item');
+            items.forEach(it => {
+                if (it.dataset.key === key) {
+                    it.style.borderColor = 'var(--accent-cyan)';
+                    it.style.boxShadow = '0 0 10px rgba(56,189,248,0.3)';
+                } else {
+                    it.style.borderColor = 'var(--card-border)';
+                    it.style.boxShadow = 'none';
+                }
+            });
+        }
+
+        function updateDropdownSelection(items) {
+            items.forEach((item, idx) => {
+                if (idx === dropdownSelectedIndex) {
+                    item.classList.add('selected');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
         document.addEventListener('click', (e) => {
             if (!document.getElementById('provinceSearchWrap').contains(e.target)) {
                 document.getElementById('provinceDropdown').classList.remove('open');
@@ -1195,8 +1429,12 @@
                     const isActive = p.key === currentCityKey;
                     const item = document.createElement('div');
                     item.className = 'city-item';
+                    item.dataset.key = p.key;
                     item.style.cursor = 'pointer';
-                    if (isActive) item.style.borderColor = 'rgba(56,189,248,0.5)';
+                    if (isActive) {
+                        item.style.borderColor = 'var(--accent-cyan)';
+                        item.style.boxShadow = '0 0 10px rgba(56,189,248,0.3)';
+                    }
                     item.innerHTML = `
                         <div class="city-info">
                             <h4>${currentLang==='th'?p.nameTh:p.nameEn}</h4>
@@ -1224,51 +1462,48 @@
             });
         }
 
-        // ─── Batch-load all provinces from Supabase on page load ───────────
+        // ─── Instant Load all provinces from Supabase on page load ───────────
         async function initAllProvinces() {
-            if (!supabaseClient) {
-                // ถ้าไม่มี Supabase → ดึง API เฉพาะ default city
-                fetchLiveCityData('khon kaen');
-                return;
-            }
-            // โหลด cache ทุกจังหวัดจาก Supabase ครั้งเดียว
-            console.log('[Init] Loading all province cache from Supabase...');
-            try {
-                const { data, error } = await supabaseClient
-                    .from('weather_aqi_cache')
-                    .select('*');
-                if (!error && data && data.length > 0) {
-                    const now = Date.now();
-                    data.forEach(row => {
-                        const age = (now - new Date(row.fetched_at).getTime()) / 60000;
-                        if (age <= CACHE_TTL_MINUTES) {
+            if (supabaseClient) {
+                console.log('[Init] Loading province cache from Supabase...');
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('weather_aqi_cache')
+                        .select('*');
+                    if (!error && data && data.length > 0) {
+                        data.forEach(row => {
                             const wt = mapWmoCodeToText(row.weather_code || 0);
                             cachedCityData[row.city_key] = {
                                 name:        { th: row.city_name_th, en: row.city_name_en },
                                 temp:        String(row.temperature),
-                                humidity:    row.humidity,
-                                wind:        String(row.wind_speed),
+                                humidity:    row.humidity || 65,
+                                wind:        String(row.wind_speed || 10),
                                 weatherText: wt,
-                                aqi:         row.aqi,
-                                pm25:        String(row.pm25),
-                                history:     { labels: row.hourly_labels||[], temp: row.hourly_temps||[], aqi: row.hourly_aqis||[] },
+                                aqi:         row.aqi || 45,
+                                pm25:        String(row.pm25 || 12),
+                                history:     {
+                                    labels: (row.hourly_labels && row.hourly_labels.length) ? row.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
+                                    temp:   (row.hourly_temps && row.hourly_temps.length) ? row.hourly_temps : [28,29,31,32,30,29,28],
+                                    aqi:    (row.hourly_aqis && row.hourly_aqis.length) ? row.hourly_aqis : [40,42,48,50,45,43,41]
+                                },
                                 fromCache:   true,
                                 cachedAt:    new Date(row.fetched_at)
                             };
-                        }
-                    });
-                    console.log(`[Init] Loaded ${Object.keys(cachedCityData).length} provinces from Supabase cache.`);
+                        });
+                        console.log(`[Init] Successfully loaded ${Object.keys(cachedCityData).length} provinces from Supabase cache.`);
+                    }
+                } catch(e) {
+                    console.warn('[Init] Supabase bulk load failed:', e);
                 }
-            } catch(e) {
-                console.warn('[Init] Supabase bulk load failed:', e);
             }
 
-            // แสดงผล default city ทันที (ไม่ต้องรอ batch fetch ทั้งหมด)
+            // แสดงผล default city ทันที (0ms wait)
             const defaultKey = 'khon kaen';
+            currentCityKey = defaultKey;
+            const p = PROVINCES.find(x => x.key === defaultKey);
+            if (p) document.getElementById('provinceSearchInput').value = currentLang === 'th' ? p.nameTh : p.nameEn;
+
             if (cachedCityData[defaultKey]) {
-                currentCityKey = defaultKey;
-                const p = PROVINCES.find(x => x.key === defaultKey);
-                if (p) document.getElementById('provinceSearchInput').value = currentLang==='th'?p.nameTh:p.nameEn;
                 updateUIWithData(cachedCityData[defaultKey]);
                 updateDataBadge(true, cachedCityData[defaultKey].cachedAt);
             } else {
@@ -1276,64 +1511,6 @@
             }
 
             renderCityList();
-
-            // ตรวจว่ามี province ไหนที่ยังไม่มี cache → ดึง API แบบ batch ใน background
-            const missing = PROVINCES.filter(p => !cachedCityData[p.key]);
-            if (missing.length > 0) {
-                console.log(`[Init] ${missing.length} provinces need API fetch. Batching in background...`);
-                batchFetchProvinces(missing);
-            } else {
-                console.log('[Init] All provinces loaded from cache ✅');
-            }
-        }
-
-        // Batch fetch provinces จาก API ทีละ 10
-        async function batchFetchProvinces(provinces) {
-            const BATCH = 10;
-            const DELAY = 1200; // ms
-            for (let i = 0; i < provinces.length; i += BATCH) {
-                const batch = provinces.slice(i, i + BATCH);
-                await Promise.all(batch.map(p => fetchSingleProvince(p)));
-                renderCityList(); // อัปเดต UI ระหว่างดึง
-                if (i + BATCH < provinces.length) {
-                    await new Promise(r => setTimeout(r, DELAY));
-                }
-            }
-        }
-
-        // ดึง API สำหรับ 1 จังหวัด แล้ว cache + upsert
-        async function fetchSingleProvince(p) {
-            const lat = p.lat, lon = p.lon;
-            try {
-                const [wr, ar] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1`),
-                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1`)
-                ]);
-                const wj = await wr.json();
-                const aj = await ar.json();
-                const cw = wj.current_weather || {};
-                const temp    = parseFloat(cw.temperature || 30).toFixed(1);
-                const wind    = parseFloat(cw.windspeed   || 10).toFixed(1);
-                const wcode   = parseInt(cw.weathercode   || 0);
-                const humidity = (wj.hourly?.relativehumidity_2m || [65])[12];
-                const aqi  = Math.round(aj.current?.us_aqi  || 45);
-                const pm25 = parseFloat(aj.current?.pm2_5   || 12.5).toFixed(1);
-                const labels = (wj.hourly?.time || []).slice(0,7).map(t=>t.split('T')[1]);
-                const temps  = (wj.hourly?.temperature_2m || [28,29,31,32,30,29,28]).slice(0,7);
-                const aqis   = (aj.hourly?.us_aqi || [40,42,48,50,45,43,41]).slice(0,7);
-                const wt     = mapWmoCodeToText(wcode);
-                const payload = {
-                    name:        { th: `${p.nameTh} (${p.nameEn})`, en: p.nameEn },
-                    temp, humidity, wind, weatherText: wt, aqi, pm25,
-                    history:     { labels, temp: temps, aqi: aqis },
-                    fromCache:   false, cachedAt: null
-                };
-                cachedCityData[p.key] = payload;
-                // Upsert to Supabase async
-                saveToSupabase(p.key, { lat:p.lat, lon:p.lon, name:{th:`${p.nameTh} (${p.nameEn})`,en:p.nameEn} }, payload, wcode);
-            } catch(e) {
-                console.warn(`[Fetch] ${p.nameEn} failed:`, e);
-            }
         }
 
         // Initialize Page
@@ -1343,10 +1520,46 @@
             const defaultProvince = PROVINCES.find(x => x.key === 'khon kaen');
             if (defaultProvince) {
                 document.getElementById('provinceSearchInput').value =
-                    currentLang==='th' ? defaultProvince.nameTh : defaultProvince.nameEn;
+                    currentLang === 'th' ? defaultProvince.nameTh : defaultProvince.nameEn;
+                const clearBtn = document.getElementById('clearSearchBtn');
+                if (clearBtn) clearBtn.style.display = 'flex';
             }
             renderCityList();
             initAllProvinces();
+
+            // Keyboard navigation สำหรับ Search input
+            const searchInput = document.getElementById('provinceSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keydown', (e) => {
+                    const dd = document.getElementById('provinceDropdown');
+                    const items = dd.querySelectorAll('.province-opt');
+                    if (!items.length) return;
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (!dd.classList.contains('open')) dd.classList.add('open');
+                        dropdownSelectedIndex = (dropdownSelectedIndex + 1) % items.length;
+                        updateDropdownSelection(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (!dd.classList.contains('open')) dd.classList.add('open');
+                        dropdownSelectedIndex = (dropdownSelectedIndex - 1 + items.length) % items.length;
+                        updateDropdownSelection(items);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const target = dropdownSelectedIndex >= 0 ? items[dropdownSelectedIndex] : items[0];
+                        if (target) {
+                            const key = target.dataset.key;
+                            const p = PROVINCES.find(x => x.key === key);
+                            if (p) {
+                                selectProvince(p.key, currentLang === 'th' ? p.nameTh : p.nameEn);
+                            }
+                        }
+                    } else if (e.key === 'Escape') {
+                        dd.classList.remove('open');
+                    }
+                });
+            }
         });
     </script>
 </body>

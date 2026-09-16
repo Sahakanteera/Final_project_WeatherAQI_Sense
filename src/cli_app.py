@@ -70,9 +70,10 @@ class CLIApp:
             print("1. Fetch & Record Live Weather & AQI (e.g. Bangkok, Khon Kaen, Chiang Mai)")
             print("2. View Saved History Records in SQLite")
             print("3. Generate & View Matplotlib Trend Chart (PNG)")
-            print("4. Exit Application")
+            print("4. Launch Web Dashboard (เปิดหน้าเว็บแดชบอร์ดบนเบราว์เซอร์)")
+            print("5. Exit Application (ออกจากโปรแกรม)")
             
-            user_choice = input("\nEnter choice (1-4): ").strip()
+            user_choice = input("\nEnter choice (1-5): ").strip()
             
             if user_choice == "1":
                 city_input = input("Enter City Name (default: Khon Kaen): ").strip()
@@ -105,8 +106,23 @@ class CLIApp:
                     city_input = "Khon Kaen"
                 self.report_generator.plot_city_trends(city_input)
 
-            elif user_choice == "4" or user_choice.lower() == "exit" or user_choice.lower() == "quit":
+            elif user_choice == "4":
+                import webbrowser
+                import urllib.request
+                import os
+                target_url = "http://localhost:8000"
+                try:
+                    urllib.request.urlopen(target_url, timeout=1)
+                except Exception:
+                    # If local server not yet started on 8000, open local file
+                    index_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "index.html"))
+                    target_url = f"file:///{index_path.replace(os.sep, '/')}"
+                print(f"\n🌐 กำลังเปิดเว็บแดชบอร์ดบนเบราว์เซอร์: {target_url}")
+                print(f"💡 คุณยังสามารถรัน 'python run_web.py' หรือ 'python main.py --web' ได้ด้วยเช่นกัน")
+                webbrowser.open(target_url)
+
+            elif user_choice == "5" or user_choice.lower() == "exit" or user_choice.lower() == "quit":
                 print("\nThank you for using Weather & Air Quality Dashboard! Goodbye.\n")
                 break
             else:
-                print("\n⚠️ Invalid choice. Please enter 1, 2, 3, or 4.")
+                print("\n⚠️ Invalid choice. Please enter 1, 2, 3, 4, or 5.")

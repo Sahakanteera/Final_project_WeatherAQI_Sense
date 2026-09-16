@@ -118,12 +118,24 @@
 # 1. ติดตั้ง Dependencies
 pip install -r requirements.txt
 
-# 2. รันโปรแกรมในโหมดโต้ตอบ (Interactive CLI)
-python main.py
+# 2. รันหน้าเว็บแดชบอร์ด (Web Dashboard) — แนะนำ ⭐
+python run_web.py
+# หรือ
+python main.py --web
 
-# 3. รันโปรแกรมในโหมดการสาธิตสดอัตโนมัติ (Automated Demo Mode)
+# 3. รันโปรแกรมในโหมดโต้ตอบ (Interactive CLI)
+python main.py
+# (สามารถเลือกเมนู 4 เพื่อเปิดหน้าเว็บแดชบอร์ดได้เช่นกัน)
+
+# 4. รันโปรแกรมในโหมดการสาธิตสดอัตโนมัติ (Automated Demo Mode)
 python main.py --demo
 
-# 4. รันชุดทดสอบระบบอัตโนมัติ (Automated Testing)
+# 5. รันชุดทดสอบระบบอัตโนมัติ (Automated Testing)
 pytest
 ```
+
+### 🌐 ช่องทางการเข้าชมหน้าเว็บแดชบอร์ด (Web Access Channels)
+1. **รันผ่าน Python Local Server:** รัน `python run_web.py` ระบบจะเปิดเบราว์เซอร์ให้อัตโนมัติที่ `http://localhost:8000`
+2. **เปิดไฟล์โดยตรง:** ดับเบิ้ลคลิกไฟล์ `index.html` ในโฟลเดอร์ของโปรเจกต์ด้วยเบราว์เซอร์ (Chrome / Edge / Firefox)
+3. **เข้าชมออนไลน์บน GitHub Pages:** [https://sahakanteera.github.io/Final_project_WeatherAQI_Sense/](https://sahakanteera.github.io/Final_project_WeatherAQI_Sense/)
+

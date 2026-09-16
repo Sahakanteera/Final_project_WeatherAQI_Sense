@@ -43,9 +43,18 @@ def run_automated_demo():
     print("\n[Success] Automated Demo executed successfully with 0 errors.\n")
 
 def main():
-    parser = argparse.ArgumentParser(description="Weather & Air Quality Dashboard CLI")
+    parser = argparse.ArgumentParser(description="Weather & Air Quality Dashboard CLI & Web")
     parser.add_argument("--demo", action="store_true", help="Run automated demonstration mode")
+    parser.add_argument("--web", action="store_true", help="Launch Web Dashboard in browser")
     args = parser.parse_args()
+
+    if args.web:
+        from run_web import start_server
+        try:
+            start_server()
+        except KeyboardInterrupt:
+            print("\n🛑 Web server stopped. Goodbye!\n")
+        return
 
     client = WeatherClient()
     store = DataStore()
