@@ -985,11 +985,11 @@
                 if (error || !data) return null;
 
                 const fetchedAt = new Date(data.fetched_at);
-                // ตัดรอบที่ต้นชั่วโมงถัดไปพอดี (:00 น.)
+                // ตัดรอบที่ต้นชั่วโมงถัดไปพอดี (:00 น.) และป้องกันเวลาล้ำอนาคต
                 const nextHourTime = new Date(fetchedAt);
                 nextHourTime.setMinutes(0, 0, 0, 0);
                 nextHourTime.setHours(nextHourTime.getHours() + 1);
-                const isExpired = Date.now() >= nextHourTime.getTime();
+                const isExpired = Date.now() >= nextHourTime.getTime() || fetchedAt.getTime() > Date.now() + 60000;
 
                 const weatherText = mapWmoCodeToText(data.weather_code || 0);
                 return {
@@ -1060,8 +1060,13 @@
         // ============================================================
         function formatLastUpdated(date, lang) {
             if (!date) date = new Date();
-            const d = new Date(date);
+            let d = new Date(date);
             const now = new Date();
+
+            // ป้องกันกรณี timestamp ใน cache ล้ำไปในอนาคต
+            if (isNaN(d.getTime()) || d.getTime() > now.getTime() + 60000) {
+                d = now;
+            }
 
             const pad = (n) => String(n).padStart(2, '0');
             // แสดงรอบเวลาแบบชั่วโมงเต็มพอดีๆ ไม่มีเศษนาที เช่น 04:00 น.
@@ -1074,7 +1079,7 @@
             const nextHourStr = `${pad(nextDate.getHours())}:00 น.`;
 
             // คำนวณเวลาที่เหลือจนถึงรอบต้นชั่วโมงถัดไป
-            const nextDiffMs = nextDate.getTime() - Date.now();
+            const nextDiffMs = nextDate.getTime() - now.getTime();
             const nextDiffSec = Math.floor(nextDiffMs / 1000);
             let nextStatus = '';
             if (nextDiffSec <= 0) {
@@ -1164,7 +1169,7 @@
                 const nextHourTime = new Date(memDate);
                 nextHourTime.setMinutes(0, 0, 0, 0);
                 nextHourTime.setHours(nextHourTime.getHours() + 1);
-                if (Date.now() < nextHourTime.getTime()) {
+                if (Date.now() < nextHourTime.getTime() && memDate.getTime() <= Date.now() + 60000) {
                     updateUIWithData(mem);
                     updateDataBadge(mem.fromCache, mem.cachedAt);
                     return;
@@ -1715,10 +1720,11 @@
             const mem = cachedCityData[defaultKey];
             let isExpired = true;
             if (mem && mem.cachedAt) {
-                const nextHourTime = new Date(mem.cachedAt);
+                const memDate = new Date(mem.cachedAt);
+                const nextHourTime = new Date(memDate);
                 nextHourTime.setMinutes(0, 0, 0, 0);
                 nextHourTime.setHours(nextHourTime.getHours() + 1);
-                isExpired = Date.now() >= nextHourTime.getTime();
+                isExpired = Date.now() >= nextHourTime.getTime() || memDate.getTime() > Date.now() + 60000;
             }
 
             if (mem) {
