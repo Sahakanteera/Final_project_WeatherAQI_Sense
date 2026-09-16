@@ -913,10 +913,17 @@
         async function fetchLiveCityData(cityKey) {
             currentCityKey = cityKey.toLowerCase();
 
-            // Sync select element ให้ตรงกับ city ที่เลือก
+            // Sync select / search input ให้ตรงกับ city ที่เลือก
             const selectEl = document.getElementById('citySelect');
-            if (selectEl.value !== currentCityKey) {
+            if (selectEl && selectEl.value !== currentCityKey) {
                 selectEl.value = currentCityKey;
+            }
+            const pObj = PROVINCES.find(x => x.key === currentCityKey);
+            if (pObj) {
+                const searchInput = document.getElementById('provinceSearchInput');
+                if (searchInput) {
+                    searchInput.value = (currentLang === 'th' ? pObj.nameTh : pObj.nameEn);
+                }
             }
 
             const cityObj = cityCoords[currentCityKey];
@@ -1256,17 +1263,7 @@
                 console.warn('[Init] Supabase bulk load failed:', e);
             }
 
-            // ตรวจว่ามี province ไหนที่ยังไม่มี cache → ดึง API แบบ batch
-            const missing = PROVINCES.filter(p => !cachedCityData[p.key]);
-            if (missing.length > 0) {
-                console.log(`[Init] ${missing.length} provinces need API fetch. Batching...`);
-                await batchFetchProvinces(missing);
-            } else {
-                console.log('[Init] All provinces loaded from cache ✅');
-            }
-
-            renderCityList();
-            // โหลด default city
+            // แสดงผล default city ทันที (ไม่ต้องรอ batch fetch ทั้งหมด)
             const defaultKey = 'khon kaen';
             if (cachedCityData[defaultKey]) {
                 currentCityKey = defaultKey;
@@ -1276,6 +1273,17 @@
                 updateDataBadge(true, cachedCityData[defaultKey].cachedAt);
             } else {
                 fetchLiveCityData(defaultKey);
+            }
+
+            renderCityList();
+
+            // ตรวจว่ามี province ไหนที่ยังไม่มี cache → ดึง API แบบ batch ใน background
+            const missing = PROVINCES.filter(p => !cachedCityData[p.key]);
+            if (missing.length > 0) {
+                console.log(`[Init] ${missing.length} provinces need API fetch. Batching in background...`);
+                batchFetchProvinces(missing);
+            } else {
+                console.log('[Init] All provinces loaded from cache ✅');
             }
         }
 
