@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  WeatherAQI Sense — Config EXAMPLE
 //  📋 คัดลอกไฟล์นี้เป็น config.js แล้วใส่ค่าจริง
 //  cp config.example.js config.js
@@ -12,5 +12,5 @@
 const APP_CONFIG = {
     SUPABASE_URL:      'https://YOUR_PROJECT_ID.supabase.co',
     SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
-    CACHE_TTL_MINUTES: 30
+    CACHE_TTL_MINUTES: 60
 };

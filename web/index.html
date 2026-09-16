@@ -238,6 +238,15 @@
             padding-top: 0.15rem;
         }
 
+        .advisory-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 0.65rem;
+        }
+
         .advisory-city-tag {
             display: inline-flex;
             align-items: center;
@@ -246,7 +255,6 @@
             border: 1.5px solid rgba(56, 189, 248, 0.55);
             padding: 0.35rem 1rem;
             border-radius: 9999px;
-            margin-bottom: 0.55rem;
             box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
         }
         .adv-pin {
@@ -263,6 +271,26 @@
         .adv-city-sub {
             font-size: 0.92rem;
             color: #7dd3fc;
+            font-weight: 600;
+        }
+
+        .advisory-time-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 0.32rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(8px);
+        }
+        .advisory-time-tag .adv-clock-icon {
+            font-size: 0.95rem;
+        }
+        .advisory-time-tag strong {
+            color: #38bdf8;
             font-weight: 600;
         }
 
@@ -363,7 +391,7 @@
             outline: none;
             cursor: text;
             transition: all 0.3s ease;
-            width: 250px;
+            width: 280px;
         }
         #provinceSearchInput:focus {
             border-color: var(--accent-cyan);
@@ -398,12 +426,12 @@
             left: 0;
             right: 0;
             width: 100%;
-            min-width: 250px;
+            min-width: 290px;
             background: rgba(15, 23, 42, 0.98);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(56, 189, 248, 0.35);
             border-radius: 14px;
-            max-height: 300px;
+            max-height: 320px;
             overflow-y: auto;
             z-index: 9999;
             box-shadow: 0 16px 48px rgba(0,0,0,0.8);
@@ -412,7 +440,7 @@
         }
         .province-dropdown.open { display: block; }
         .province-opt {
-            padding: 0.65rem 1.1rem;
+            padding: 0.65rem 1rem;
             cursor: pointer;
             font-size: 0.92rem;
             border-radius: 8px;
@@ -422,18 +450,37 @@
             overflow: hidden;
             text-overflow: ellipsis;
             color: var(--text-primary);
+            display: flex;
+            align-items: baseline;
         }
         .province-opt:hover, .province-opt.active, .province-opt.selected {
             background: rgba(56,189,248,0.22);
             color: var(--accent-cyan);
             font-weight: 600;
-            padding-left: 1.35rem;
+            padding-left: 1.25rem;
         }
         .province-opt mark {
             background: transparent;
             color: #38bdf8;
             font-weight: 700;
             text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .prov-name-main {
+            font-weight: 500;
+            color: inherit;
+        }
+        .prov-name-sub {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-left: 0.45rem;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+        .province-opt:hover .prov-name-sub,
+        .province-opt.selected .prov-name-sub {
+            color: #bae6fd;
+            opacity: 1;
         }
         /* City list region headers */
         .region-header {
@@ -493,7 +540,7 @@
 
                 <!-- Province Searchable Dropdown -->
                 <div class="province-search-wrap" id="provinceSearchWrap">
-                    <input type="text" id="provinceSearchInput" placeholder="🔍 ค้นหาจังหวัด... (เช่น นคร, เชียง)" autocomplete="off" oninput="filterProvinceList(this.value)" onfocus="openProvinceDropdown()" />
+                    <input type="text" id="provinceSearchInput" placeholder="🔍 ค้นหาจังหวัด (ไทย / English)..." autocomplete="off" oninput="filterProvinceList(this.value)" onfocus="openProvinceDropdown()" />
                     <button type="button" class="clear-search-btn" id="clearSearchBtn" onclick="clearProvinceSearch(event)" title="ล้างคำค้นหา">✕</button>
                     <div class="province-dropdown" id="provinceDropdown"></div>
                 </div>
@@ -506,11 +553,19 @@
         <!-- Advisory Banner -->
         <div class="advisory-box" id="advisoryBox">
             <div class="advisory-icon" id="advIcon">🟢</div>
-            <div class="advisory-text">
-                <div class="advisory-city-tag" id="advCityTag">
-                    <span class="adv-pin">📍</span>
-                    <span id="advCityName" class="adv-city-name">จังหวัดขอนแก่น</span>
-                    <span id="advCitySub" class="adv-city-sub">(Khon Kaen)</span>
+            <div class="advisory-text" style="flex: 1;">
+                <div class="advisory-header-row">
+                    <div class="advisory-city-tag" id="advCityTag">
+                        <span class="adv-pin">📍</span>
+                        <span id="advCityName" class="adv-city-name">จังหวัดขอนแก่น</span>
+                        <span id="advCitySub" class="adv-city-sub">(Khon Kaen)</span>
+                    </div>
+                    <div class="advisory-time-tag" id="advTimeTag">
+                        <span class="adv-clock-icon">🕒</span>
+                        <span id="advLastUpdated">อัปเดตล่าสุด: กำลังโหลด...</span>
+                        <span style="opacity: 0.35; margin: 0 0.15rem;">|</span>
+                        <span id="advNextUpdate" style="color: #34d399;">รอบถัดไป: ...</span>
+                    </div>
                 </div>
                 <h3 id="advTitle">คำแนะนำสุขภาพ AI: กำลังโหลดข้อมูล...</h3>
                 <p id="advDesc">Fetching real-time weather and air quality metrics from API servers...</p>
@@ -589,6 +644,10 @@
                         <span style="font-size: 0.8rem; color: var(--text-secondary);" id="lblDataMode">Processing & Storage</span>
                         <p style="font-weight: 600; font-size: 0.9rem;" id="lblDataDesc">Real-Time Client Fetch + Supabase Cloud Cache</p>
                     </div>
+                    <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.5rem; margin-top: 0.1rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);" id="lblLastUpdated">Last Synchronized Time</span>
+                        <p style="font-weight: 600; font-size: 0.88rem; color: #38bdf8; margin-top: 0.15rem;" id="cardLastUpdated">--</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -652,7 +711,7 @@
         const _cfg = (typeof APP_CONFIG !== 'undefined') ? APP_CONFIG : {};
         const SUPABASE_URL      = _cfg.SUPABASE_URL      || 'https://gufpmcpwqdgrtgincffa.supabase.co';
         const SUPABASE_ANON_KEY = _cfg.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0.XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU';
-        const CACHE_TTL_MINUTES = _cfg.CACHE_TTL_MINUTES || 30;
+        const CACHE_TTL_MINUTES = _cfg.CACHE_TTL_MINUTES || 60;
 
         // Initialize Supabase client
         let supabaseClient = null;
@@ -795,7 +854,9 @@
                 lblTeamHdr: "ตารางหมุนเวียนบทบาททีม (SPRINT 1 - 4)",
                 lblCoverage: "การันตีทำครบทุกตำแหน่ง 100%",
                 chartTempLabel: "อุณหภูมิ (°C)",
-                chartAqiLabel: "ดัชนีคุณภาพอากาศ (AQI)"
+                chartAqiLabel: "ดัชนีคุณภาพอากาศ (AQI)",
+                searchPlaceholder: "🔍 ค้นหาจังหวัด (ไทย / English)...",
+                lblLastUpdated: "เวลาอัปเดตข้อมูลล่าสุด"
             },
             en: {
                 hdrSub: "CP352301 Final Project — Real-time Health & Environmental Monitor",
@@ -818,8 +879,25 @@
                 lblTeamHdr: "TEAM ROLE ROTATION MATRIX (SPRINT 1 - 4)",
                 lblCoverage: "100% COVERAGE GUARANTEE",
                 chartTempLabel: "Temperature (°C)",
-                chartAqiLabel: "AQI (US EPA)"
+                chartAqiLabel: "AQI (US EPA)",
+                searchPlaceholder: "🔍 Search province (English / Thai)...",
+                lblLastUpdated: "Last Synchronized Time"
             }
+        };
+
+        // ─── คำค้นหาทางเลือกและตัวย่อ (Aliases) สำหรับค้นหาได้รวดเร็วขึ้น ───────────
+        const PROVINCE_ALIASES = {
+            'bangkok': ['กรุงเทพ', 'กทม', 'bkk', 'krung thep', 'krungthep'],
+            'chiang mai': ['cnx', 'chiangmai', 'เจียงใหม่'],
+            'chiang rai': ['cei', 'chiangrai'],
+            'nakhon ratchasima': ['โคราช', 'korat'],
+            'chonburi': ['พัทยา', 'pattaya', 'บางแสน', 'bangsaen'],
+            'ayutthaya': ['อยุธยา'],
+            'songkhla': ['หาดใหญ่', 'hatyai', 'hat yai'],
+            'phuket': ['hkt', 'ภูเก็ต'],
+            'khon kaen': ['kku', 'kkc'],
+            'prachuap khiri khan': ['หัวหิน', 'huahin', 'hua hin'],
+            'surat thani': ['สมุย', 'samui', 'koh samui']
         };
 
         let myChart = null;
@@ -868,10 +946,16 @@
             document.getElementById('lblLiveStatus').innerText = dict.lblLiveStatus;
             document.getElementById('lblTeamHdr').innerText = dict.lblTeamHdr;
             document.getElementById('lblCoverage').innerText = dict.lblCoverage;
+            const elLastUpd = document.getElementById('lblLastUpdated');
+            if (elLastUpd) elLastUpd.innerText = dict.lblLastUpdated;
+
+            const searchInput = document.getElementById('provinceSearchInput');
+            if (searchInput) {
+                searchInput.placeholder = dict.searchPlaceholder;
+            }
 
             const p = PROVINCES.find(x => x.key === currentCityKey);
             if (p) {
-                const searchInput = document.getElementById('provinceSearchInput');
                 if (searchInput) searchInput.value = currentLang === 'th' ? p.nameTh : p.nameEn;
                 const elCityName = document.getElementById('advCityName');
                 const elCitySub = document.getElementById('advCitySub');
@@ -901,8 +985,11 @@
                 if (error || !data) return null;
 
                 const fetchedAt = new Date(data.fetched_at);
-                const ageMinutes = (Date.now() - fetchedAt.getTime()) / 60000;
-                const isExpired = ageMinutes > CACHE_TTL_MINUTES;
+                // ตัดเศษนาที อัปเดตรอบทุกต้นชั่วโมง (:00)
+                const nextHourTime = new Date(fetchedAt);
+                nextHourTime.setMinutes(0, 0, 0);
+                nextHourTime.setHours(nextHourTime.getHours() + 1);
+                const isExpired = Date.now() >= nextHourTime.getTime();
 
                 const weatherText = mapWmoCodeToText(data.weather_code || 0);
                 return {
@@ -969,22 +1056,92 @@
         }
 
         // ============================================================
+        //  Helper: จัดรูปแบบวันและเวลาอัปเดตล่าสุด
+        // ============================================================
+        function formatLastUpdated(date, lang) {
+            if (!date) date = new Date();
+            const d = new Date(date);
+            const now = new Date();
+
+            if (isNaN(d.getTime())) {
+                const curH = String(now.getHours()).padStart(2, '0') + ':00';
+                const nxtH = String((now.getHours() + 1) % 24).padStart(2, '0') + ':00';
+                return {
+                    full: lang === 'th' ? `ข้อมูลสดเรียลไทม์ รอบ ${curH} น.` : `Real-time Live Data (${curH})`,
+                    short: lang === 'th' ? `รอบ ${curH} น.` : curH,
+                    next: lang === 'th' ? `${nxtH} น.` : nxtH,
+                    cycle: curH
+                };
+            }
+
+            // เวลาของรอบข้อมูล ตัดเศษนาทีให้เป็นชั่วโมงเต็ม :00 (เช่น 04:00 น.)
+            const currentHourStr = String(d.getHours()).padStart(2, '0') + ':00';
+
+            // คำนวณรอบถัดไปแบบต้นชั่วโมงถัดไปพอดีเป๊ะ (:00) เช่น ตี 5.00 น. (05:00 น.)
+            const nextDate = new Date(d);
+            nextDate.setMinutes(0, 0, 0);
+            nextDate.setHours(nextDate.getHours() + 1);
+            const nextHourStr = String(nextDate.getHours()).padStart(2, '0') + ':00';
+
+            const nextDiffSec = Math.floor((nextDate.getTime() - Date.now()) / 1000);
+            let nextStr = '';
+            if (nextDiffSec <= 0) {
+                nextStr = lang === 'th' ? 'ถึงรอบอัปเดตแล้ว' : 'Due now';
+            } else if (nextDiffSec < 60) {
+                nextStr = lang === 'th' ? 'ใน <1 นาที' : 'in <1m';
+            } else {
+                const remMin = Math.ceil(nextDiffSec / 60);
+                nextStr = lang === 'th' ? `อีก ~${remMin} นาที` : `in ~${remMin}m`;
+            }
+
+            const nextDisplay = lang === 'th' 
+                ? `${nextHourStr} น. (${nextStr})`
+                : `${nextHourStr} (${nextStr})`;
+
+            if (lang === 'th') {
+                const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                const dateStr = `${d.getDate()} ${thMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
+                return {
+                    full: `${dateStr} รอบ ${currentHourStr} น.`,
+                    short: `รอบ ${currentHourStr} น.`,
+                    next: nextDisplay,
+                    cycle: `${currentHourStr} น.`
+                };
+            } else {
+                const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const dateStr = `${d.getDate()} ${enMonths[d.getMonth()]} ${d.getFullYear()}`;
+                return {
+                    full: `${dateStr}, Cycle ${currentHourStr}`,
+                    short: `Cycle ${currentHourStr}`,
+                    next: nextDisplay,
+                    cycle: currentHourStr
+                };
+            }
+        }
+
+        // ============================================================
         //  อัปเดต badge แสดงว่าข้อมูลมาจาก cache หรือ Live API
         // ============================================================
         function updateDataBadge(fromCache, cachedAt) {
             const badge = document.getElementById('dataBadge');
-            badge.style.display = 'inline-block';
+            badge.style.display = 'inline-flex';
+            badge.style.alignItems = 'center';
+            badge.style.gap = '0.35rem';
+
+            const timeInfo = formatLastUpdated(cachedAt, currentLang);
+
             if (fromCache && cachedAt) {
-                const ageMin = Math.round((Date.now() - new Date(cachedAt).getTime()) / 60000);
                 badge.style.background  = 'rgba(52,211,153,0.15)';
                 badge.style.color       = '#34d399';
                 badge.style.borderColor = '#34d399';
-                badge.innerText = `● CACHE (${ageMin}m ago)`;
+                badge.innerHTML = `● CACHE • 🕒 ${timeInfo.short}`;
+                badge.title = timeInfo.full;
             } else {
                 badge.style.background  = 'rgba(56,189,248,0.15)';
                 badge.style.color       = '#38bdf8';
                 badge.style.borderColor = '#38bdf8';
-                badge.innerText = '⚡ LIVE API';
+                badge.innerHTML = `⚡ LIVE API • 🕒 ${timeInfo.short}`;
+                badge.title = timeInfo.full;
             }
         }
 
@@ -1015,12 +1172,17 @@
 
             document.getElementById('currentCityTag').innerText = (cityObj.name[currentLang] || cityObj.name.en).toUpperCase();
 
-            // 1) ถ้ามี cache อยู่ใน memory และไม่ได้กด forceRefresh → แสดงผลทันที
+            // 1) ถ้ามี cache อยู่ใน memory และยังไม่ข้ามชั่วโมง และไม่ได้กด forceRefresh → แสดงผลทันที
             if (!forceRefresh && cachedCityData[currentCityKey]) {
                 const mem = cachedCityData[currentCityKey];
-                updateUIWithData(mem);
-                updateDataBadge(mem.fromCache, mem.cachedAt);
-                return;
+                const nextHourTime = new Date(mem.cachedAt || Date.now());
+                nextHourTime.setMinutes(0, 0, 0);
+                nextHourTime.setHours(nextHourTime.getHours() + 1);
+                if (Date.now() < nextHourTime.getTime()) {
+                    updateUIWithData(mem);
+                    updateDataBadge(mem.fromCache, mem.cachedAt);
+                    return;
+                }
             }
 
             // 2) ถ้ายังไม่มีใน memory ตรวจสอบ Supabase cache
@@ -1187,6 +1349,23 @@
             document.getElementById('advTitle').innerText = cityPrefix + (advTitleStr[currentLang] || advTitleStr.en);
             document.getElementById('advDesc').innerText = advDescStr[currentLang] || advDescStr.en;
 
+            // อัปเดตระบุเวลาอัปเดตข้อมูลล่าสุดอย่างเด่นชัด และรอบอัปเดตถัดไปแบบตรงชั่วโมง :00
+            const timeInfo = formatLastUpdated(data.cachedAt, currentLang);
+            const elAdvLastUpdated = document.getElementById('advLastUpdated');
+            if (elAdvLastUpdated) {
+                const prefix = currentLang === 'th' ? 'ข้อมูลรอบ: ' : 'Data Cycle: ';
+                elAdvLastUpdated.innerHTML = `${prefix}<strong>${timeInfo.full}</strong>`;
+            }
+            const elAdvNextUpdate = document.getElementById('advNextUpdate');
+            if (elAdvNextUpdate) {
+                const nextPrefix = currentLang === 'th' ? 'รอบถัดไป: ' : 'Next: ';
+                elAdvNextUpdate.innerHTML = `${nextPrefix}<strong>${timeInfo.next}</strong>`;
+            }
+            const elCardLastUpdated = document.getElementById('cardLastUpdated');
+            if (elCardLastUpdated) {
+                elCardLastUpdated.innerHTML = `${timeInfo.full} <br><span style="color:#34d399;font-size:0.8rem;">${currentLang === 'th' ? 'รอบอัปเดตถัดไป: ' : 'Next update: '}${timeInfo.next}</span>`;
+            }
+
             initChart(data.history.labels, data.history.temp, data.history.aqi);
         }
 
@@ -1284,33 +1463,57 @@
             const clearBtn = document.getElementById('clearSearchBtn');
             if (clearBtn) clearBtn.style.display = filter ? 'flex' : 'none';
 
+            // ตรวจจับว่าผู้ใช้กำลังพิมพ์อักษรละติน (อังกฤษ) หรือไทย
+            const isLatinQuery = /^[a-zA-Z0-9\s\-_.]+$/.test(q);
+
             let matches = PROVINCES;
             if (q) {
-                // Filter matches by Thai name, English name, or key
-                matches = PROVINCES.filter(p =>
-                    p.nameTh.toLowerCase().includes(q) ||
-                    p.nameEn.toLowerCase().includes(q) ||
-                    p.key.toLowerCase().includes(q)
-                ).sort((a, b) => {
-                    // Priority: Provinces whose name STARTS with the search query (e.g. นคร... over ...นคร)
-                    const aThStarts = a.nameTh.toLowerCase().startsWith(q);
-                    const bThStarts = b.nameTh.toLowerCase().startsWith(q);
-                    const aEnStarts = a.nameEn.toLowerCase().startsWith(q);
-                    const bEnStarts = b.nameEn.toLowerCase().startsWith(q);
+                // ค้นหาได้ทั้ง 2 ภาษา (ภาษาไทย + ภาษาอังกฤษ + Aliases)
+                matches = PROVINCES.filter(p => {
+                    const matchTh = p.nameTh.toLowerCase().includes(q);
+                    const matchEn = p.nameEn.toLowerCase().includes(q);
+                    const matchKey = p.key.toLowerCase().includes(q);
+                    const aliases = (PROVINCE_ALIASES[p.key] || []);
+                    const matchAlias = aliases.some(a => a.toLowerCase().includes(q));
+                    return matchTh || matchEn || matchKey || matchAlias;
+                }).sort((a, b) => {
+                    if (isLatinQuery) {
+                        // เมื่อพิมพ์ภาษาอังกฤษ: ให้ความสำคัญกับชื่อภาษาอังกฤษที่ขึ้นต้นด้วยตัวที่พิมพ์ก่อน
+                        const aEnStarts = a.nameEn.toLowerCase().startsWith(q) || a.key.toLowerCase().startsWith(q);
+                        const bEnStarts = b.nameEn.toLowerCase().startsWith(q) || b.key.toLowerCase().startsWith(q);
+                        if (aEnStarts && !bEnStarts) return -1;
+                        if (!aEnStarts && bEnStarts) return 1;
 
-                    if (aThStarts && !bThStarts) return -1;
-                    if (!aThStarts && bThStarts) return 1;
-                    if (aEnStarts && !bEnStarts) return -1;
-                    if (!aEnStarts && bEnStarts) return 1;
+                        const aThStarts = a.nameTh.toLowerCase().startsWith(q);
+                        const bThStarts = b.nameTh.toLowerCase().startsWith(q);
+                        if (aThStarts && !bThStarts) return -1;
+                        if (!aThStarts && bThStarts) return 1;
 
-                    return a.nameTh.localeCompare(b.nameTh, 'th');
+                        return a.nameEn.localeCompare(b.nameEn);
+                    } else {
+                        // เมื่อพิมพ์ภาษาไทย: ให้ความสำคัญกับชื่อภาษาไทยที่ขึ้นต้นด้วยตัวที่พิมพ์ก่อน
+                        const aThStarts = a.nameTh.toLowerCase().startsWith(q);
+                        const bThStarts = b.nameTh.toLowerCase().startsWith(q);
+                        if (aThStarts && !bThStarts) return -1;
+                        if (!aThStarts && bThStarts) return 1;
+
+                        const aEnStarts = a.nameEn.toLowerCase().startsWith(q);
+                        const bEnStarts = b.nameEn.toLowerCase().startsWith(q);
+                        if (aEnStarts && !bEnStarts) return -1;
+                        if (!aEnStarts && bEnStarts) return 1;
+
+                        return a.nameTh.localeCompare(b.nameTh, 'th');
+                    }
                 });
             }
 
             if (matches.length === 0) {
+                const noResultMsg = currentLang === 'th'
+                    ? `🔍 ไม่พบจังหวัดที่ตรงกับ "<strong>${escapeHtml(filter.trim())}</strong>"`
+                    : `🔍 No provinces found matching "<strong>${escapeHtml(filter.trim())}</strong>"`;
                 dd.innerHTML = `
                     <div style="padding: 1.2rem; text-align: center; color: var(--text-secondary); font-size: 0.88rem;">
-                        🔍 ไม่พบจังหวัดที่ตรงกับ "<strong>${escapeHtml(filter.trim())}</strong>"
+                        ${noResultMsg}
                     </div>`;
                 return;
             }
@@ -1322,13 +1525,21 @@
                 div.dataset.index = idx;
                 div.dataset.key = p.key;
 
-                const displayName = currentLang === 'th' ? p.nameTh : p.nameEn;
-                const highlightedName = q ? highlightMatch(displayName, q) : escapeHtml(displayName);
+                // กำหนดชื่อหลักและชื่อรองเพื่อแสดงทั้ง 2 ภาษาชัดเจน
+                const mainName = currentLang === 'th' ? p.nameTh : p.nameEn;
+                const subName  = currentLang === 'th' ? p.nameEn : p.nameTh;
 
-                div.innerHTML = `<span>${highlightedName}</span>`;
+                // ไฮไลต์คำที่ตรงกับ query ทั้ง 2 ภาษา
+                const highlightedMain = q ? highlightMatch(mainName, q) : escapeHtml(mainName);
+                const highlightedSub  = q ? highlightMatch(subName, q)  : escapeHtml(subName);
+
+                div.innerHTML = `
+                    <span class="prov-name-main">${highlightedMain}</span>
+                    <span class="prov-name-sub">(${highlightedSub})</span>
+                `;
 
                 div.onclick = () => {
-                    selectProvince(p.key, displayName);
+                    selectProvince(p.key, mainName);
                 };
 
                 dd.appendChild(div);
@@ -1560,6 +1771,29 @@
                     }
                 });
             }
+
+            // อัปเดต relative time (เช่น "เมื่อสักครู่", "1 นาทีที่แล้ว") อัตโนมัติทุก 30 วินาที
+            setInterval(() => {
+                if (cachedCityData[currentCityKey]) {
+                    const mem = cachedCityData[currentCityKey];
+                    updateDataBadge(mem.fromCache, mem.cachedAt);
+                    const timeInfo = formatLastUpdated(mem.cachedAt, currentLang);
+                    const elAdvLastUpdated = document.getElementById('advLastUpdated');
+                    if (elAdvLastUpdated) {
+                        const prefix = currentLang === 'th' ? 'อัปเดตล่าสุด: ' : 'Last updated: ';
+                        elAdvLastUpdated.innerHTML = `${prefix}<strong>${timeInfo.full}</strong>`;
+                    }
+                    const elAdvNextUpdate = document.getElementById('advNextUpdate');
+                    if (elAdvNextUpdate) {
+                        const nextPrefix = currentLang === 'th' ? 'รอบถัดไป: ' : 'Next: ';
+                        elAdvNextUpdate.innerHTML = `${nextPrefix}<strong>${timeInfo.next}</strong>`;
+                    }
+                    const elCardLastUpdated = document.getElementById('cardLastUpdated');
+                    if (elCardLastUpdated) {
+                        elCardLastUpdated.innerHTML = `${timeInfo.full} <br><span style="color:#34d399;font-size:0.8rem;">${currentLang === 'th' ? 'รอบอัปเดตถัดไป: ' : 'Next update: '}${timeInfo.next}</span>`;
+                    }
+                }
+            }, 30000);
         });
     </script>
 </body>
