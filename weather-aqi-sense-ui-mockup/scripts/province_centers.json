@@ -1,0 +1,541 @@
+{
+  "mae hong son": {
+    "key": "mae hong son",
+    "name": "Mae Hong Son",
+    "th": "แม่ฮ่องสอน",
+    "lat": 18.7549,
+    "lon": 98.0268
+  },
+  "chumphon": {
+    "key": "chumphon",
+    "name": "Chumphon",
+    "th": "ชุมพร",
+    "lat": 10.3666,
+    "lon": 99.0698
+  },
+  "nakhon si thammarat": {
+    "key": "nakhon si thammarat",
+    "name": "Nakhon Si Thammarat",
+    "th": "นครศรีธรรมราช",
+    "lat": 8.3727,
+    "lon": 99.7779
+  },
+  "phuket": {
+    "key": "phuket",
+    "name": "Phuket",
+    "th": "ภูเก็ต",
+    "lat": 7.9747,
+    "lon": 98.3415
+  },
+  "phang nga": {
+    "key": "phang nga",
+    "name": "Phangnga",
+    "th": "พังงา",
+    "lat": 8.6796,
+    "lon": 98.4235
+  },
+  "ranong": {
+    "key": "ranong",
+    "name": "Ranong",
+    "th": "ระนอง",
+    "lat": 10.0009,
+    "lon": 98.7192
+  },
+  "surat thani": {
+    "key": "surat thani",
+    "name": "Surat Thani",
+    "th": "สุราษฎร์ธานี",
+    "lat": 9.0311,
+    "lon": 99.0627
+  },
+  "krabi": {
+    "key": "krabi",
+    "name": "Krabi",
+    "th": "กระบี่",
+    "lat": 8.1532,
+    "lon": 99.0141
+  },
+  "phatthalung": {
+    "key": "phatthalung",
+    "name": "Phatthalung",
+    "th": "พัทลุง",
+    "lat": 7.513,
+    "lon": 100.0321
+  },
+  "satun": {
+    "key": "satun",
+    "name": "Satun",
+    "th": "สตูล",
+    "lat": 6.8502,
+    "lon": 99.9644
+  },
+  "songkhla": {
+    "key": "songkhla",
+    "name": "Songkhla",
+    "th": "สงขลา",
+    "lat": 6.804,
+    "lon": 100.5818
+  },
+  "trang": {
+    "key": "trang",
+    "name": "Trang",
+    "th": "ตรัง",
+    "lat": 7.5279,
+    "lon": 99.6167
+  },
+  "yala": {
+    "key": "yala",
+    "name": "Yala",
+    "th": "ยะลา",
+    "lat": 6.1833,
+    "lon": 101.2248
+  },
+  "chiang rai": {
+    "key": "chiang rai",
+    "name": "Chiang Rai",
+    "th": "เชียงราย",
+    "lat": 19.8441,
+    "lon": 99.8662
+  },
+  "chiang mai": {
+    "key": "chiang mai",
+    "name": "Chiang Mai",
+    "th": "เชียงใหม่",
+    "lat": 18.7905,
+    "lon": 98.7342
+  },
+  "lampang": {
+    "key": "lampang",
+    "name": "Lampang",
+    "th": "ลำปาง",
+    "lat": 18.3523,
+    "lon": 99.5255
+  },
+  "lamphun": {
+    "key": "lamphun",
+    "name": "Lamphun",
+    "th": "ลำพูน",
+    "lat": 18.1417,
+    "lon": 98.9654
+  },
+  "nan": {
+    "key": "nan",
+    "name": "Nan",
+    "th": "น่าน",
+    "lat": 18.8448,
+    "lon": 100.8254
+  },
+  "phayao": {
+    "key": "phayao",
+    "name": "Phayao",
+    "th": "พะเยา",
+    "lat": 19.228,
+    "lon": 100.1853
+  },
+  "phrae": {
+    "key": "phrae",
+    "name": "Phrae",
+    "th": "แพร่",
+    "lat": 18.1947,
+    "lon": 100.0648
+  },
+  "phitsanulok": {
+    "key": "phitsanulok",
+    "name": "Phitsanulok",
+    "th": "พิษณุโลก",
+    "lat": 16.9707,
+    "lon": 100.53
+  },
+  "sukhothai": {
+    "key": "sukhothai",
+    "name": "Sukhothai",
+    "th": "สุโขทัย",
+    "lat": 17.2479,
+    "lon": 99.6987
+  },
+  "uttaradit": {
+    "key": "uttaradit",
+    "name": "Uttaradit",
+    "th": "อุตรดิตถ์",
+    "lat": 17.7423,
+    "lon": 100.5092
+  },
+  "kanchanaburi": {
+    "key": "kanchanaburi",
+    "name": "Kanchanaburi",
+    "th": "กาญจนบุรี",
+    "lat": 14.5845,
+    "lon": 99.0404
+  },
+  "kamphaeng phet": {
+    "key": "kamphaeng phet",
+    "name": "Kamphaeng Phet",
+    "th": "กำแพงเพชร",
+    "lat": 16.3294,
+    "lon": 99.5026
+  },
+  "phichit": {
+    "key": "phichit",
+    "name": "Phichit",
+    "th": "พิจิตร",
+    "lat": 16.2367,
+    "lon": 100.3572
+  },
+  "phetchabun": {
+    "key": "phetchabun",
+    "name": "Phetchabun",
+    "th": "เพชรบูรณ์",
+    "lat": 16.2692,
+    "lon": 101.147
+  },
+  "suphanburi": {
+    "key": "suphanburi",
+    "name": "Suphan Buri",
+    "th": "สุพรรณบุรี",
+    "lat": 14.6079,
+    "lon": 99.898
+  },
+  "tak": {
+    "key": "tak",
+    "name": "Tak",
+    "th": "ตาก",
+    "lat": 16.6981,
+    "lon": 98.7962
+  },
+  "uthai thani": {
+    "key": "uthai thani",
+    "name": "Uthai Thani",
+    "th": "อุทัยธานี",
+    "lat": 15.3389,
+    "lon": 99.4601
+  },
+  "ang thong": {
+    "key": "ang thong",
+    "name": "Ang Thong",
+    "th": "อ่างทอง",
+    "lat": 14.6235,
+    "lon": 100.3551
+  },
+  "chai nat": {
+    "key": "chai nat",
+    "name": "Chai Nat",
+    "th": "ชัยนาท",
+    "lat": 15.1364,
+    "lon": 100.0253
+  },
+  "lop buri": {
+    "key": "lop buri",
+    "name": "Lop Buri",
+    "th": "ลพบุรี",
+    "lat": 15.0745,
+    "lon": 100.9141
+  },
+  "nakhon nayok": {
+    "key": "nakhon nayok",
+    "name": "Nakhon Nayok",
+    "th": "นครนายก",
+    "lat": 14.217,
+    "lon": 101.1748
+  },
+  "prachin buri": {
+    "key": "prachin buri",
+    "name": "Prachin Buri",
+    "th": "ปราจีนบุรี",
+    "lat": 14.0749,
+    "lon": 101.6251
+  },
+  "nakhon sawan": {
+    "key": "nakhon sawan",
+    "name": "Nakhon Sawan",
+    "th": "นครสวรรค์",
+    "lat": 15.6924,
+    "lon": 100.1321
+  },
+  "ayutthaya": {
+    "key": "ayutthaya",
+    "name": "Phra Nakhon Si Ayutthaya",
+    "th": "พระนครศรีอยุธยา",
+    "lat": 14.3407,
+    "lon": 100.5279
+  },
+  "pathum thani": {
+    "key": "pathum thani",
+    "name": "Pathum Thani",
+    "th": "ปทุมธานี",
+    "lat": 14.0615,
+    "lon": 100.6792
+  },
+  "sing buri": {
+    "key": "sing buri",
+    "name": "Sing Buri",
+    "th": "สิงห์บุรี",
+    "lat": 14.9213,
+    "lon": 100.3529
+  },
+  "saraburi": {
+    "key": "saraburi",
+    "name": "Saraburi",
+    "th": "สระบุรี",
+    "lat": 14.5764,
+    "lon": 100.9389
+  },
+  "bangkok": {
+    "key": "bangkok",
+    "name": "Bangkok Metropolis",
+    "th": "กรุงเทพมหานคร",
+    "lat": 13.7713,
+    "lon": 100.6201
+  },
+  "nonthaburi": {
+    "key": "nonthaburi",
+    "name": "Nonthaburi",
+    "th": "นนทบุรี",
+    "lat": 13.9267,
+    "lon": 100.389
+  },
+  "nakhon pathom": {
+    "key": "nakhon pathom",
+    "name": "Nakhon Pathom",
+    "th": "นครปฐม",
+    "lat": 13.9241,
+    "lon": 100.1093
+  },
+  "phetchaburi": {
+    "key": "phetchaburi",
+    "name": "Phetchaburi",
+    "th": "เพชรบุรี",
+    "lat": 12.9369,
+    "lon": 99.6133
+  },
+  "prachuap khiri khan": {
+    "key": "prachuap khiri khan",
+    "name": "Prachuap Khiri Khan",
+    "th": "ประจวบคีรีขันธ์",
+    "lat": 11.9215,
+    "lon": 99.6265
+  },
+  "ratchaburi": {
+    "key": "ratchaburi",
+    "name": "Ratchaburi",
+    "th": "ราชบุรี",
+    "lat": 13.5318,
+    "lon": 99.5738
+  },
+  "samut prakan": {
+    "key": "samut prakan",
+    "name": "Samut Prakan",
+    "th": "สมุทรปราการ",
+    "lat": 13.5979,
+    "lon": 100.706
+  },
+  "samut sakhon": {
+    "key": "samut sakhon",
+    "name": "Samut Sakhon",
+    "th": "สมุทรสาคร",
+    "lat": 13.5707,
+    "lon": 100.2159
+  },
+  "samut songkhram": {
+    "key": "samut songkhram",
+    "name": "Samut Songkhram",
+    "th": "สมุทรสงคราม",
+    "lat": 13.3938,
+    "lon": 99.9562
+  },
+  "si sa ket": {
+    "key": "si sa ket",
+    "name": "Si Sa Ket",
+    "th": "ศรีสะเกษ",
+    "lat": 14.8569,
+    "lon": 104.3788
+  },
+  "ubon ratchathani": {
+    "key": "ubon ratchathani",
+    "name": "Ubon Ratchathani",
+    "th": "อุบลราชธานี",
+    "lat": 15.1775,
+    "lon": 105.1197
+  },
+  "amnat charoen": {
+    "key": "amnat charoen",
+    "name": "Amnat Charoen",
+    "th": "อำนาจเจริญ",
+    "lat": 15.8702,
+    "lon": 104.7681
+  },
+  "yasothon": {
+    "key": "yasothon",
+    "name": "Yasothon",
+    "th": "ยโสธร",
+    "lat": 15.8898,
+    "lon": 104.3385
+  },
+  "chonburi": {
+    "key": "chonburi",
+    "name": "Chon Buri",
+    "th": "ชลบุรี",
+    "lat": 13.1971,
+    "lon": 101.211
+  },
+  "chachoengsao": {
+    "key": "chachoengsao",
+    "name": "Chachoengsao",
+    "th": "ฉะเชิงเทรา",
+    "lat": 13.6039,
+    "lon": 101.4463
+  },
+  "chanthaburi": {
+    "key": "chanthaburi",
+    "name": "Chanthaburi",
+    "th": "จันทบุรี",
+    "lat": 12.8632,
+    "lon": 102.12
+  },
+  "sa kaeo": {
+    "key": "sa kaeo",
+    "name": "Sa Kaeo",
+    "th": "สระแก้ว",
+    "lat": 13.7773,
+    "lon": 102.2935
+  },
+  "rayong": {
+    "key": "rayong",
+    "name": "Rayong",
+    "th": "ระยอง",
+    "lat": 12.8517,
+    "lon": 101.4225
+  },
+  "trat": {
+    "key": "trat",
+    "name": "Trat",
+    "th": "ตราด",
+    "lat": 12.3578,
+    "lon": 102.5342
+  },
+  "buri ram": {
+    "key": "buri ram",
+    "name": "Buri Ram",
+    "th": "บุรีรัมย์",
+    "lat": 14.8233,
+    "lon": 102.9718
+  },
+  "chaiyaphum": {
+    "key": "chaiyaphum",
+    "name": "Chaiyaphum",
+    "th": "ชัยภูมิ",
+    "lat": 16.0095,
+    "lon": 101.8025
+  },
+  "khon kaen": {
+    "key": "khon kaen",
+    "name": "Khon Kaen",
+    "th": "ขอนแก่น",
+    "lat": 16.4038,
+    "lon": 102.5878
+  },
+  "kalasin": {
+    "key": "kalasin",
+    "name": "Kalasin",
+    "th": "กาฬสินธุ์",
+    "lat": 16.6316,
+    "lon": 103.6283
+  },
+  "maha sarakham": {
+    "key": "maha sarakham",
+    "name": "Maha Sarakham",
+    "th": "มหาสารคาม",
+    "lat": 15.9934,
+    "lon": 103.1796
+  },
+  "nakhon ratchasima": {
+    "key": "nakhon ratchasima",
+    "name": "Nakhon Ratchasima",
+    "th": "นครราชสีมา",
+    "lat": 14.9577,
+    "lon": 102.1169
+  },
+  "roi et": {
+    "key": "roi et",
+    "name": "Roi Et",
+    "th": "ร้อยเอ็ด",
+    "lat": 15.9232,
+    "lon": 103.8262
+  },
+  "surin": {
+    "key": "surin",
+    "name": "Surin",
+    "th": "สุรินทร์",
+    "lat": 14.8841,
+    "lon": 103.6685
+  },
+  "loei": {
+    "key": "loei",
+    "name": "Loei",
+    "th": "เลย",
+    "lat": 17.4089,
+    "lon": 101.6301
+  },
+  "nong khai": {
+    "key": "nong khai",
+    "name": "Nong Khai",
+    "th": "หนองคาย",
+    "lat": 17.9406,
+    "lon": 102.8422
+  },
+  "sakon nakhon": {
+    "key": "sakon nakhon",
+    "name": "Sakon Nakhon",
+    "th": "สกลนคร",
+    "lat": 17.3888,
+    "lon": 103.8213
+  },
+  "udon thani": {
+    "key": "udon thani",
+    "name": "Udon Thani",
+    "th": "อุดรธานี",
+    "lat": 17.4254,
+    "lon": 102.8557
+  },
+  "nong bua lamphu": {
+    "key": "nong bua lamphu",
+    "name": "Nong Bua Lam Phu",
+    "th": "หนองบัวลำภู",
+    "lat": 17.1736,
+    "lon": 102.2974
+  },
+  "nakhon phanom": {
+    "key": "nakhon phanom",
+    "name": "Nakhon Phanom",
+    "th": "นครพนม",
+    "lat": 17.3724,
+    "lon": 104.4349
+  },
+  "mukdahan": {
+    "key": "mukdahan",
+    "name": "Mukdahan",
+    "th": "มุกดาหาร",
+    "lat": 16.5568,
+    "lon": 104.5253
+  },
+  "narathiwat": {
+    "key": "narathiwat",
+    "name": "Narathiwat",
+    "th": "นราธิวาส",
+    "lat": 6.1719,
+    "lon": 101.7215
+  },
+  "pattani": {
+    "key": "pattani",
+    "name": "Pattani",
+    "th": "ปัตตานี",
+    "lat": 6.7305,
+    "lon": 101.3526
+  },
+  "bueng kan": {
+    "key": "bueng kan",
+    "name": "Bueng Kan",
+    "th": "บึงกาฬ",
+    "lat": 18.146,
+    "lon": 103.721
+  }
+}
