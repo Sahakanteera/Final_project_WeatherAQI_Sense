@@ -19,6 +19,9 @@ import {
   ExternalLink,
   Layers,
   Sparkles,
+  CloudRain,
+  Play,
+  Pause,
 } from "lucide-react"
 
 interface ThailandMapProps {
@@ -31,6 +34,11 @@ interface ThailandMapProps {
 type MapMode = "aqi" | "weather"
 type TileLayerType = "clean" | "satellite" | "osm"
 type DensityMode = "all" | "smart"
+
+interface RadarFrame {
+  time: number
+  path: string
+}
 
 const MAJOR_KEYS = new Set([
   "bangkok",
@@ -79,6 +87,7 @@ export function ThailandInteractiveMap({
   const tileLayerRef = useRef<any>(null)
   const maskLayerRef = useRef<any>(null)
   const provincesGeoLayerRef = useRef<any>(null)
+  const radarLayerRef = useRef<any>(null)
 
   const [mode, setMode] = useState<MapMode>("aqi")
   const [layerType, setLayerType] = useState<TileLayerType>("clean")
@@ -89,6 +98,14 @@ export function ThailandInteractiveMap({
   const [provincesGeo, setProvincesGeo] = useState<any>(null)
   const [countryGeo, setCountryGeo] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState("")
+
+  // Rain Radar States
+  const [showRadar, setShowRadar] = useState(true)
+  const [radarFrames, setRadarFrames] = useState<RadarFrame[]>([])
+  const [radarHost, setRadarHost] = useState("https://tilecache.rainviewer.com")
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [radarOpacity, setRadarOpacity] = useState(0.8)
 
   const activeCity = cities.find((c) => c.key === activeKey) ?? cities[0]
 
@@ -105,7 +122,36 @@ export function ThailandInteractiveMap({
       .catch((err) => console.error("Error loading provinces boundary:", err))
   }, [])
 
-  // 2. Load Leaflet CSS & Script dynamically on client
+  // 2. Fetch Live RainViewer Doppler Radar Frames
+  useEffect(() => {
+    fetch("https://api.rainviewer.com/public/weather-maps.json")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return
+        const host = data.host || "https://tilecache.rainviewer.com"
+        const past: RadarFrame[] = data.radar?.past || []
+        const nowcast: RadarFrame[] = data.radar?.nowcast || []
+        const all = [...past, ...nowcast]
+        setRadarHost(host)
+        setRadarFrames(all)
+        if (all.length > 0) {
+          const latestPastIdx = past.length > 0 ? past.length - 1 : all.length - 1
+          setCurrentFrameIndex(latestPastIdx)
+        }
+      })
+      .catch((err) => console.error("Error loading RainViewer radar frames:", err))
+  }, [])
+
+  // 3. Radar animation loop
+  useEffect(() => {
+    if (!isPlaying || !showRadar || radarFrames.length <= 1) return
+    const interval = setInterval(() => {
+      setCurrentFrameIndex((prev) => (prev + 1) % radarFrames.length)
+    }, 850)
+    return () => clearInterval(interval)
+  }, [isPlaying, showRadar, radarFrames.length])
+
+  // 4. Load Leaflet CSS & Script dynamically on client
   useEffect(() => {
     if (typeof window === "undefined") return
 
@@ -131,7 +177,7 @@ export function ThailandInteractiveMap({
     document.body.appendChild(script)
   }, [])
 
-  // 3. Initialize Leaflet Map Instance
+  // 5. Initialize Leaflet Map Instance
   useEffect(() => {
     if (!leafletLoaded || !mapContainerRef.current || mapInstanceRef.current) return
 
@@ -165,7 +211,7 @@ export function ThailandInteractiveMap({
     }
   }, [leafletLoaded])
 
-  // 4. Handle Tile Layer Switching (Clean / Satellite / OSM) — NO WATERMARK
+  // 6. Handle Tile Layer Switching (Clean / Satellite / OSM) — NO WATERMARK
   useEffect(() => {
     const map = mapInstanceRef.current
     const L = (window as any).L
@@ -192,7 +238,40 @@ export function ThailandInteractiveMap({
     tileLayerRef.current = newLayer
   }, [layerType, leafletLoaded])
 
-  // 5. Inverted Mask to Dim Neighboring Countries (Myanmar, Laos, Cambodia, Malaysia)
+  // 7. Render / Update Live Rain Radar Layer on Leaflet
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    const L = (window as any).L
+    if (!map || !L) return
+
+    if (!showRadar || radarFrames.length === 0) {
+      if (radarLayerRef.current) {
+        map.removeLayer(radarLayerRef.current)
+        radarLayerRef.current = null
+      }
+      return
+    }
+
+    const frame = radarFrames[currentFrameIndex]
+    if (!frame) return
+
+    // Color scheme 2 = universal precipitation radar
+    const tileUrl = `${radarHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`
+
+    const newRadarLayer = L.tileLayer(tileUrl, {
+      opacity: radarOpacity,
+      zIndex: 350,
+      maxZoom: 18,
+      tileSize: 256,
+    }).addTo(map)
+
+    if (radarLayerRef.current) {
+      map.removeLayer(radarLayerRef.current)
+    }
+    radarLayerRef.current = newRadarLayer
+  }, [showRadar, currentFrameIndex, radarFrames, radarHost, radarOpacity, leafletLoaded])
+
+  // 8. Inverted Mask to Dim Neighboring Countries (Myanmar, Laos, Cambodia, Malaysia)
   useEffect(() => {
     const map = mapInstanceRef.current
     const L = (window as any).L
@@ -221,7 +300,7 @@ export function ThailandInteractiveMap({
         ]
         const thailandHole = mainlandPoints.map((pt: any) => [pt[1], pt[0]])
         const maskColor = layerType === "satellite" ? "#0f172a" : "#f1f3f4"
-        const maskOpacity = layerType === "satellite" ? 0.65 : 0.75
+        const maskOpacity = layerType === "satellite" ? 0.65 : 0.72
 
         const mask = L.polygon([outerWorld, thailandHole], {
           stroke: false,
@@ -236,7 +315,7 @@ export function ThailandInteractiveMap({
     }
   }, [countryGeo, layerType, leafletLoaded])
 
-  // 6. Render 77 Province Boundary Outlines (Interactive Outline Polygons with Accurate Centroids)
+  // 9. Render 77 Province Boundary Outlines (Interactive Outline Polygons with Accurate Centroids)
   useEffect(() => {
     const map = mapInstanceRef.current
     const L = (window as any).L
@@ -256,10 +335,10 @@ export function ThailandInteractiveMap({
         return {
           color: isSelected ? "#0b57d0" : layerType === "satellite" ? "#cbd5e1" : "#64748b",
           weight: isSelected ? 2.5 : 1.2,
-          opacity: isSelected ? 1 : 0.75,
+          opacity: isSelected ? 1 : 0.8,
           dashArray: isSelected ? "" : "3, 2",
           fillColor: isSelected ? "#1a73e8" : "#ffffff",
-          fillOpacity: isSelected ? 0.28 : 0.04,
+          fillOpacity: isSelected ? 0.28 : showRadar ? 0.02 : 0.04,
         }
       },
       onEachFeature: (feature: any, polygonLayer: any) => {
@@ -343,9 +422,9 @@ export function ThailandInteractiveMap({
     }).addTo(map)
 
     provincesGeoLayerRef.current = layer
-  }, [provincesGeo, cities, activeKey, lang, layerType, leafletLoaded])
+  }, [provincesGeo, cities, activeKey, lang, layerType, showRadar, leafletLoaded])
 
-  // 7. Render GPS Station Markers across Thailand (Centered Exactly at Polygon Centroid)
+  // 10. Render GPS Station Markers across Thailand (Centered Exactly at Polygon Centroid)
   useEffect(() => {
     const map = mapInstanceRef.current
     const L = (window as any).L
@@ -502,6 +581,14 @@ export function ThailandInteractiveMap({
     }
   }
 
+  function formatRadarTime(timestamp?: number) {
+    if (!timestamp) return ""
+    const date = new Date(timestamp * 1000)
+    const hours = date.getHours().toString().padStart(2, "0")
+    const minutes = date.getMinutes().toString().padStart(2, "0")
+    return `${hours}:${minutes} น.`
+  }
+
   const filteredProvinces = cities.filter((c) => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return true
@@ -527,23 +614,41 @@ export function ThailandInteractiveMap({
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-semibold text-[#202124]">
                 {lang === "th"
-                  ? "แผนที่ประเทศไทยแยก 77 จังหวัด (Province Outlines & GIS Centroids)"
-                  : "Thailand 77 Province Outlines & GIS Centroids"}
+                  ? "แผนที่เรดาร์สภาพอากาศ & ฝนปกคลุม 77 จังหวัด"
+                  : "Thailand Weather & Precipitation Radar Map"}
               </h3>
               <span className="rounded-full bg-[#1a73e8] px-2 py-0.5 text-[10px] font-bold text-white">
-                {lang === "th" ? "พิกัดตรงใจกลางจังหวัด 100%" : "Exact 77 Centroids"}
+                {lang === "th" ? "Doppler Radar & 77 Centroids" : "Doppler & Centroids"}
               </span>
             </div>
             <span className="text-[11px] text-[#5f6368]">
               {lang === "th"
-                ? "จุดหมุดคำนวณจากกึ่งกลางพื้นที่จังหวัด (Centroid) ตรงขอบเขตเป๊ะ • ซูมเข้าเพื่อดูรายละเอียด"
-                : "Station markers calculated from exact polygon centroids • Click to zoom & inspect"}
+                ? "เรดาร์ตรวจกลุ่มฝนสดแบบเคลื่อนไหว • แสดงขอบเขตและใจกลาง 77 จังหวัดแม่นยำ 100%"
+                : "Live Doppler rain radar overlay • Exact 77 province outlines & centroids"}
             </span>
           </div>
         </div>
 
         {/* Controls: Mode & Map Layer Switcher */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Rain Radar Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowRadar(!showRadar)}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition ${
+              showRadar
+                ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-300"
+                : "border border-[#dadce0] bg-white text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#202124]"
+            }`}
+            title={lang === "th" ? "เปิด/ปิด เลเยอร์เรดาร์กลุ่มฝน" : "Toggle Rain Radar"}
+          >
+            <CloudRain size={13} />
+            <span>{lang === "th" ? "เรดาร์ฝนสด" : "Rain Radar"}</span>
+            {showRadar && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            )}
+          </button>
+
           {/* Data Mode Switcher */}
           <div className="flex rounded-full border border-[#e0e0e0] bg-[#f8f9fa] p-0.5">
             <button
@@ -678,7 +783,7 @@ export function ThailandInteractiveMap({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-medium text-[#1a73e8] hover:underline"
           >
-            <span>OpenWeatherMap API</span>
+            <span>OpenWeatherMap</span>
             <ExternalLink size={11} />
           </a>
           <span className="text-[#dadce0]">|</span>
@@ -688,12 +793,22 @@ export function ThailandInteractiveMap({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-medium text-[#1a73e8] hover:underline"
           >
-            <span>IQAir AirVisual API</span>
+            <span>IQAir AirVisual</span>
+            <ExternalLink size={11} />
+          </a>
+          <span className="text-[#dadce0]">|</span>
+          <a
+            href="https://www.rainviewer.com/api.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-blue-700 hover:underline"
+          >
+            <span>RainViewer Doppler Radar (TMD Thailand)</span>
             <ExternalLink size={11} />
           </a>
         </div>
         <div className="flex items-center gap-2 text-[10px] text-[#80868b]">
-          <span>GIS Polygons: High-Precision 77 Provinces GeoJSON</span>
+          <span>GIS Polygons: 77 Provinces GeoJSON Centroids</span>
         </div>
       </div>
 
@@ -704,10 +819,106 @@ export function ThailandInteractiveMap({
           <div
             ref={mapContainerRef}
             className={`w-full transition-all duration-300 ${
-              expanded ? "h-[650px]" : "h-[450px]"
+              expanded ? "h-[650px]" : "h-[470px]"
             }`}
             style={{ zIndex: 1 }}
           />
+
+          {/* Radar Player Floating Controller (Top-Left) */}
+          {showRadar && radarFrames.length > 0 && (
+            <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/95 p-3 shadow-xl backdrop-blur-md text-xs text-[#202124] max-w-[320px]">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                  </span>
+                  <span className="font-bold text-[#1a73e8]">
+                    {lang === "th" ? "เรดาร์ตรวจฝนสด (Doppler)" : "Live Rain Radar"}
+                  </span>
+                </div>
+                <span className="rounded bg-[#e8f0fe] px-1.5 py-0.5 text-[10px] font-semibold text-[#1a73e8]">
+                  {formatRadarTime(radarFrames[currentFrameIndex]?.time)}
+                  {currentFrameIndex === radarFrames.length - 1
+                    ? lang === "th"
+                      ? " (สด)"
+                      : " (Live)"
+                    : ""}
+                </span>
+              </div>
+
+              {/* Play / Pause & Scrubber */}
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1a73e8] text-white shadow-sm hover:bg-[#1557b0] transition"
+                  title={isPlaying ? "หยุดชั่วคราว" : "เล่นภาพเคลื่อนไหว"}
+                >
+                  {isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
+                </button>
+
+                <input
+                  type="range"
+                  min={0}
+                  max={radarFrames.length - 1}
+                  value={currentFrameIndex}
+                  onChange={(e) => {
+                    setIsPlaying(false)
+                    setCurrentFrameIndex(Number(e.target.value))
+                  }}
+                  className="h-1.5 flex-1 cursor-pointer accent-[#1a73e8]"
+                />
+
+                <span className="text-[10px] text-[#5f6368] tabular-nums whitespace-nowrap">
+                  {currentFrameIndex + 1}/{radarFrames.length}
+                </span>
+              </div>
+
+              {/* Rain Intensity Color Scale Bar */}
+              <div className="pt-0.5">
+                <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
+                  <span>{lang === "th" ? "ระดับความหนาแน่นกลุ่มฝน:" : "Precipitation Rate:"}</span>
+                  <span>{lang === "th" ? "เบา ➔ ฟ้าคะนอง" : "Light ➔ Extreme"}</span>
+                </div>
+                <div
+                  className="h-2 w-full rounded-full overflow-hidden"
+                  style={{
+                    background:
+                      "linear-gradient(to right, #79d279 0%, #ffd24d 25%, #ff9933 50%, #ff3333 75%, #b300b3 100%)",
+                  }}
+                />
+                <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
+                  <span>&lt;2.5 mm/h</span>
+                  <span>5 mm/h</span>
+                  <span>10 mm/h</span>
+                  <span>&gt;25 mm/h</span>
+                </div>
+              </div>
+
+              {/* Opacity selector */}
+              <div className="flex items-center justify-between pt-1 border-t border-[#f1f3f4] text-[10px] text-[#5f6368]">
+                <span>{lang === "th" ? "ความทึบเรดาร์:" : "Opacity:"}</span>
+                <div className="flex items-center gap-1">
+                  {[0.5, 0.75, 1.0].map((op) => (
+                    <button
+                      key={op}
+                      type="button"
+                      onClick={() => setRadarOpacity(op)}
+                      className={`rounded px-1.5 py-0.5 font-medium transition ${
+                        radarOpacity === op
+                          ? "bg-[#1a73e8] text-white"
+                          : "bg-[#f1f3f4] text-[#3c4043] hover:bg-[#e8eaed]"
+                      }`}
+                    >
+                      {Math.round(op * 100)}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Color Legend (Bottom-Left overlay) */}
           <div className="pointer-events-none absolute bottom-3 left-3 z-[1000] rounded-xl border border-black/5 bg-white/90 p-2 text-[10px] shadow-lg backdrop-blur-md">
