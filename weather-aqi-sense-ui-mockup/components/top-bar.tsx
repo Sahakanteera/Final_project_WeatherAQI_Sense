@@ -12,9 +12,10 @@ interface TopBarProps {
   onSelectCity: (key: string) => void
   onRefresh: () => void
   refreshing: boolean
+  dataSource?: "live" | "supabase" | "cache" | "demo"
 }
 
-export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing }: TopBarProps) {
+export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing, dataSource }: TopBarProps) {
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
@@ -148,6 +149,25 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
           >
             <RefreshCw size={17} strokeWidth={1.75} className={refreshing ? "animate-spin" : ""} />
           </button>
+
+          {dataSource && (
+            <span
+              className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold border transition-all ${
+                dataSource === "live"
+                  ? "bg-sky-50 text-sky-700 border-sky-300"
+                  : dataSource === "supabase"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                    : "bg-amber-50 text-amber-700 border-amber-300"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${dataSource === "live" ? "bg-sky-500 animate-pulse" : dataSource === "supabase" ? "bg-emerald-500" : "bg-amber-500"}`} />
+              {dataSource === "live"
+                ? (lang === "th" ? "LIVE OPEN-METEO" : "LIVE OPEN-METEO")
+                : dataSource === "supabase"
+                  ? (lang === "th" ? "SUPABASE CACHE" : "SUPABASE CACHE")
+                  : (lang === "th" ? "BASELINE DATA" : "BASELINE DATA")}
+            </span>
+          )}
         </div>
       </div>
     </header>

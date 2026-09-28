@@ -14,6 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <!-- Leaflet GIS Map & Doppler Radar -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="config.js" onerror="console.warn('config.js not found — running without Supabase. Copy config.example.js to config.js and fill in credentials.')"></script>
 
     <style>
@@ -821,6 +824,194 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ============================================================
+           Thailand GIS Map & RainViewer Live Doppler Radar Styles
+           ============================================================ */
+        .map-ctrl-btn {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+            padding: 0.35rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .map-ctrl-btn:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-cyan);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .map-ctrl-btn.active {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.35), rgba(37, 99, 235, 0.35));
+            border-color: #38bdf8;
+            color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .map-pill-group {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            padding: 2px;
+        }
+        .map-pill-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        .map-pill-btn:hover {
+            color: var(--text-primary);
+        }
+        .map-pill-btn.active {
+            background: var(--accent-cyan);
+            color: #0f172a;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+        }
+
+        .live-pulse-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 6px #34d399;
+            animation: livePulseAnim 1.6s infinite ease-in-out;
+        }
+        @keyframes livePulseAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(1.35); }
+        }
+
+        .radar-play-btn {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 0.35rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        .radar-play-btn:hover {
+            background: linear-gradient(135deg, #0369a1, #1d4ed8);
+            transform: scale(1.03);
+        }
+
+        .custom-weather-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        .map-marker-pin {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .map-marker-pin:hover {
+            transform: translate(-50%, -50%) scale(1.22);
+            z-index: 1000 !important;
+        }
+        .map-marker-badge {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            border: 2px solid #ffffff;
+            font-weight: 800;
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .map-marker-badge.selected {
+            border-color: #ffffff;
+            box-shadow: 0 0 0 3px #38bdf8, 0 0 16px rgba(56, 189, 248, 0.8);
+            transform: scale(1.2);
+        }
+        .map-marker-ping {
+            position: absolute;
+            inset: -4px;
+            border-radius: 9999px;
+            background: #38bdf8;
+            opacity: 0.6;
+            animation: markerPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+            pointer-events: none;
+        }
+        @keyframes markerPing {
+            75%, 100% {
+                transform: scale(1.8);
+                opacity: 0;
+            }
+        }
+        .map-marker-label {
+            position: absolute;
+            top: 100%;
+            margin-top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            pointer-events: none;
+            display: none;
+        }
+        .map-marker-pin:hover .map-marker-label,
+        .map-marker-pin.selected .map-marker-label {
+            display: flex;
+        }
+        .map-marker-pin.selected .map-marker-label {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+
+        .leaflet-tooltip-dark {
+            background: rgba(15, 23, 42, 0.94) !important;
+            border: 1px solid rgba(56, 189, 248, 0.5) !important;
+            color: #f8fafc !important;
+            border-radius: 8px !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+            padding: 6px 10px !important;
+        }
+        .leaflet-tooltip-dark:before {
+            border-top-color: rgba(15, 23, 42, 0.94) !important;
+        }
     </style>
 </head>
 <body>
@@ -972,8 +1163,329 @@
                     #rainForecastContainer::-webkit-scrollbar { height: 6px; }
                     #rainForecastContainer::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 10px; }
                     #rainForecastContainer::before, #rainForecastContainer::after { content: ''; margin: auto; }
-                </style>
+            
+        /* ============================================================
+           Thailand GIS Map & RainViewer Live Doppler Radar Styles
+           ============================================================ */
+        .map-ctrl-btn {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+            padding: 0.35rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .map-ctrl-btn:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-cyan);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .map-ctrl-btn.active {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.35), rgba(37, 99, 235, 0.35));
+            border-color: #38bdf8;
+            color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .map-pill-group {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            padding: 2px;
+        }
+        .map-pill-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        .map-pill-btn:hover {
+            color: var(--text-primary);
+        }
+        .map-pill-btn.active {
+            background: var(--accent-cyan);
+            color: #0f172a;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+        }
+
+        .live-pulse-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 6px #34d399;
+            animation: livePulseAnim 1.6s infinite ease-in-out;
+        }
+        @keyframes livePulseAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(1.35); }
+        }
+
+        .radar-play-btn {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 0.35rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        .radar-play-btn:hover {
+            background: linear-gradient(135deg, #0369a1, #1d4ed8);
+            transform: scale(1.03);
+        }
+
+        .custom-weather-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        .map-marker-pin {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .map-marker-pin:hover {
+            transform: translate(-50%, -50%) scale(1.22);
+            z-index: 1000 !important;
+        }
+        .map-marker-badge {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            border: 2px solid #ffffff;
+            font-weight: 800;
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .map-marker-badge.selected {
+            border-color: #ffffff;
+            box-shadow: 0 0 0 3px #38bdf8, 0 0 16px rgba(56, 189, 248, 0.8);
+            transform: scale(1.2);
+        }
+        .map-marker-ping {
+            position: absolute;
+            inset: -4px;
+            border-radius: 9999px;
+            background: #38bdf8;
+            opacity: 0.6;
+            animation: markerPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+            pointer-events: none;
+        }
+        @keyframes markerPing {
+            75%, 100% {
+                transform: scale(1.8);
+                opacity: 0;
+            }
+        }
+        .map-marker-label {
+            position: absolute;
+            top: 100%;
+            margin-top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            pointer-events: none;
+            display: none;
+        }
+        .map-marker-pin:hover .map-marker-label,
+        .map-marker-pin.selected .map-marker-label {
+            display: flex;
+        }
+        .map-marker-pin.selected .map-marker-label {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+
+        .leaflet-tooltip-dark {
+            background: rgba(15, 23, 42, 0.94) !important;
+            border: 1px solid rgba(56, 189, 248, 0.5) !important;
+            color: #f8fafc !important;
+            border-radius: 8px !important;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+            padding: 6px 10px !important;
+        }
+        .leaflet-tooltip-dark:before {
+            border-top-color: rgba(15, 23, 42, 0.94) !important;
+        }
+    </style>
                 <!-- dynamic items injected via JS -->
+            </div>
+        </div>
+
+        <!-- Thailand GIS Map & RainViewer Live Doppler Radar Section -->
+        <div class="glass-card" id="mapSectionCard" style="margin-bottom: 2rem; border-top: 2px solid rgba(56, 189, 248, 0.6); position: relative;">
+            <div class="card-header" style="flex-wrap: wrap; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                    <span style="font-size: 1.3rem;">🗺️</span>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <span id="lblMapHdr" style="font-weight: 700; color: #fff; font-size: 0.95rem; letter-spacing: 0.03em;">THAILAND 77-PROVINCE GIS MAP & DOPPLER RADAR</span>
+                            <span style="font-size: 0.7rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; padding: 0.15rem 0.55rem; border-radius: 9999px;">77 CENTROIDS • LIVE DOPPLER</span>
+                        </div>
+                        <p id="lblMapSub" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.1rem;">เรดาร์ตรวจกลุ่มฝนสดเคลื่อนไหว 100% ฟรี • ขอบเขตและจุดตรวจวัด 77 จังหวัดแม่นยำ</p>
+                    </div>
+                </div>
+
+                <!-- Map Action Controls Bar -->
+                <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                    <!-- Radar Toggle -->
+                    <button type="button" id="btnToggleRadar" onclick="toggleRadarLayer()" class="map-ctrl-btn active" title="เปิด/ปิด เรดาร์ตรวจจับกลุ่มฝนสด">
+                        <span>🌧️</span>
+                        <span id="lblRadarBtn">เรดาร์ฝนสด</span>
+                        <span class="live-pulse-dot" id="radarLiveDot"></span>
+                    </button>
+
+                    <!-- Metric Switch: AQI vs Temp -->
+                    <div class="map-pill-group">
+                        <button type="button" id="btnMapAqi" onclick="setMapMetricMode('aqi')" class="map-pill-btn active">
+                            <span>🛡️</span>
+                            <span id="lblAqiBtn">AQI</span>
+                        </button>
+                        <button type="button" id="btnMapTemp" onclick="setMapMetricMode('temp')" class="map-pill-btn">
+                            <span>🌡️</span>
+                            <span id="lblTempBtn">°C</span>
+                        </button>
+                    </div>
+
+                    <!-- Density: All vs Smart -->
+                    <div class="map-pill-group">
+                        <button type="button" id="btnDensityAll" onclick="setMapDensity('all')" class="map-pill-btn active" title="แสดงหมุดครบทุก 77 จังหวัด">
+                            <span id="lblAll77Btn">ครบ 77 จว.</span>
+                        </button>
+                        <button type="button" id="btnDensitySmart" onclick="setMapDensity('smart')" class="map-pill-btn" title="แสดงเฉพาะหัวเมืองหลักเมื่อซูมออก ป้องกันหมุดซ้อนทับ">
+                            <span id="lblSmartBtn">คลีน (หัวเมือง)</span>
+                        </button>
+                    </div>
+
+                    <!-- Base Layer Switcher: Dark / Satellite / Clean Light -->
+                    <div class="map-pill-group">
+                        <button type="button" id="btnLayerDark" onclick="setBaseMapLayer('dark')" class="map-pill-btn active" title="แผนที่โทนดำ Dark Matter">
+                            <span id="lblLayerDark">Dark</span>
+                        </button>
+                        <button type="button" id="btnLayerSat" onclick="setBaseMapLayer('satellite')" class="map-pill-btn" title="ภาพถ่ายดาวเทียมความละเอียดสูง (Esri)">
+                            <span id="lblLayerSat">ดาวเทียม</span>
+                        </button>
+                        <button type="button" id="btnLayerClean" onclick="setBaseMapLayer('clean')" class="map-pill-btn" title="แผนที่ Clean Gray">
+                            <span id="lblLayerClean">Clean</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Navigation Buttons -->
+                    <button type="button" onclick="focusCurrentSelectedCity()" class="map-ctrl-btn" title="ซูมไปยังจังหวัดที่เลือกอยู่ปัจจุบัน">
+                        <span>📍</span>
+                        <span id="lblFocusBtn">โฟกัสจังหวัด</span>
+                    </button>
+                    <button type="button" onclick="resetMapThailandView()" class="map-ctrl-btn" title="รีเซ็ตมุมมองประเทศไทยทั้งประเทศ">
+                        <span>🔄</span>
+                        <span id="lblResetBtn">รีเซ็ต</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leaflet Map Canvas Container -->
+            <div style="position: relative; width: 100%; height: 560px; border-radius: 14px; overflow: hidden; margin-top: 1rem; border: 1px solid rgba(255,255,255,0.08); background: #0b1120;">
+                <div id="thailandMap" style="width: 100%; height: 100%;"></div>
+
+                <!-- Floating Radar Animation Player & Timeline Control Bar -->
+                <div id="radarPlayerPanel" style="position: absolute; bottom: 14px; left: 14px; right: 14px; z-index: 500; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 0.65rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                        <!-- Play/Pause & Frame Info -->
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <button type="button" id="btnRadarPlay" onclick="toggleRadarPlayback()" class="radar-play-btn" title="เล่น / หยุดภาพเรดาร์">
+                                <span id="radarPlayIcon">▶</span>
+                                <span id="radarPlayText" style="font-size: 0.8rem; font-weight: 600;">เล่นเรดาร์</span>
+                            </button>
+                            <div style="display: flex; flex-direction: column;">
+                                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                    <span style="font-size: 0.72rem; color: #94a3b8;" id="lblRadarFrameTime">เวลาภาพเรดาร์:</span>
+                                    <span id="radarTimestampText" style="font-size: 0.82rem; font-weight: 700; color: #38bdf8;">กำลังโหลดเรดาร์...</span>
+                                </div>
+                                <span id="radarFrameTypeBadge" style="font-size: 0.68rem; color: #34d399; font-weight: 600;">● สด Live Doppler</span>
+                            </div>
+                        </div>
+
+                        <!-- Scrubber / Timeline Slider -->
+                        <div style="flex: 1; min-width: 180px; max-width: 450px; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 0.7rem; color: #64748b;" id="lblPastText">อดีต</span>
+                            <input type="range" id="radarScrubber" min="0" max="0" value="0" oninput="onRadarScrubberChange(this.value)" style="flex: 1; accent-color: #38bdf8; cursor: pointer;">
+                            <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 600;" id="lblForecastText">พยากรณ์</span>
+                        </div>
+
+                        <!-- Opacity Slider & Color Palette Selector -->
+                        <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                <span style="font-size: 0.72rem; color: #94a3b8;" id="lblOpacity">ความชัด:</span>
+                                <input type="range" id="radarOpacitySlider" min="10" max="100" value="80" oninput="onRadarOpacityChange(this.value)" style="width: 70px; accent-color: #38bdf8; cursor: pointer;">
+                                <span id="radarOpacityText" style="font-size: 0.72rem; color: #cbd5e1; width: 32px;">80%</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.35rem;">
+                                <span style="font-size: 0.72rem; color: #94a3b8;" id="lblPalette">สีเรดาร์:</span>
+                                <select id="radarPaletteSelect" onchange="onRadarPaletteChange(this.value)" style="background: rgba(30,41,59,0.9); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; font-size: 0.72rem; padding: 0.2rem 0.4rem; cursor: pointer;">
+                                    <option value="2">Universal Blue (มาตรฐาน)</option>
+                                    <option value="1">Titan (คลาสสิก)</option>
+                                    <option value="3">The Weather Channel</option>
+                                    <option value="4">Meteored</option>
+                                    <option value="6">Rainbow (สีรุ้ง)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Radar dBZ Intensity Legend -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.35rem; font-size: 0.68rem; color: #94a3b8; flex-wrap: wrap; gap: 0.3rem;">
+                        <span id="lblRainIntensityLegend">ระดับความเข้มกลุ่มฝน (Rain Intensity):</span>
+                        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                            <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #64b5f6; display: inline-block;"></span> <span id="lblRainLight">ฝนเบา (5-15 dBZ)</span></span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #00e676; display: inline-block;"></span> <span id="lblRainMod">ปานกลาง (20-35 dBZ)</span></span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #ffd600; display: inline-block;"></span> <span id="lblRainHeavy">หนัก (40-50 dBZ)</span></span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.25rem;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #ff1744; display: inline-block;"></span> <span id="lblRainViolent">หนักมาก/ลูกเห็บ (&gt;50 dBZ)</span></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1273,6 +1785,26 @@
             document.getElementById('lblCoverage').innerText = dict.lblCoverage;
             const elLastUpd = document.getElementById('lblLastUpdated');
             if (elLastUpd) elLastUpd.innerText = dict.lblLastUpdated;
+
+            // Update Map Bilingual Labels
+            const mapFields = [
+                'lblMapHdr', 'lblMapSub', 'lblRadarBtn', 'lblAqiBtn', 'lblTempBtn',
+                'lblAll77Btn', 'lblSmartBtn', 'lblLayerDark', 'lblLayerSat', 'lblLayerClean',
+                'lblFocusBtn', 'lblResetBtn', 'lblRadarFrameTime', 'lblPastText', 'lblForecastText',
+                'lblOpacity', 'lblPalette', 'lblRainIntensityLegend', 'lblRainLight',
+                'lblRainMod', 'lblRainHeavy', 'lblRainViolent'
+            ];
+            mapFields.forEach(f => {
+                const el = document.getElementById(f);
+                if (el && dict[f]) el.innerText = dict[f];
+            });
+            const rPlayText = document.getElementById('radarPlayText');
+            if (rPlayText) {
+                rPlayText.innerText = isRadarPlaying ? dict.radarPauseText : dict.radarPlayText;
+            }
+            if (typeof updateMapMarkers === 'function') {
+                updateMapMarkers();
+            }
 
             const searchInput = document.getElementById('provinceSearchInput');
             if (searchInput) {
@@ -1992,6 +2524,9 @@
 
             fetchLiveCityData(key);
             highlightCityItem(key);
+            if (typeof highlightMapProvince === 'function') {
+                highlightMapProvince(key);
+            }
         }
 
         function highlightCityItem(key) {
@@ -2498,6 +3033,622 @@
             }
         }
 
+
+        // ============================================================
+        //  Thailand GIS Map & RainViewer Live Doppler Radar Engine
+        // ============================================================
+        let thailandMap = null;
+        let mapTileLayers = {};
+        let currentBaseLayer = null;
+        let currentBaseLayerType = 'dark';
+        let mapMetricMode = 'aqi'; // 'aqi' | 'temp'
+        let mapDensityMode = 'all'; // 'all' | 'smart'
+        let provinceGeoLayer = null;
+        let provincePolygons = {};
+        let mapMarkers = {};
+
+        // RainViewer Doppler Radar Engine States
+        let isRadarVisible = true;
+        let radarFrames = [];
+        let radarHost = 'https://tilecache.rainviewer.com';
+        let currentRadarFrameIdx = 0;
+        let isRadarPlaying = false;
+        let radarIntervalId = null;
+        let radarOpacity = 0.8;
+        let radarColorScheme = 2; // Universal Blue
+        let radarSmooth = true;
+        let currentRadarLayer = null;
+
+        const MAJOR_PROVINCE_KEYS = new Set([
+            "bangkok", "chiang mai", "chiang rai", "phitsanulok", "nakhon sawan",
+            "khon kaen", "udon thani", "ubon ratchathani", "nakhon ratchasima",
+            "chonburi", "rayong", "kanchanaburi", "prachuap khiri khan",
+            "surat thani", "phuket", "krabi", "songkhla", "yala", "ayutthaya", "saraburi"
+        ]);
+
+        function getAqiColorCode(aqi) {
+            if (aqi <= 50) return '#10b981'; // Green (Good)
+            if (aqi <= 100) return '#f59e0b'; // Amber (Moderate)
+            if (aqi <= 150) return '#f97316'; // Orange (Unhealthy Sensitive)
+            if (aqi <= 200) return '#ef4444'; // Red (Unhealthy)
+            if (aqi <= 300) return '#8b5cf6'; // Purple (Very Unhealthy)
+            return '#7f1d1d'; // Maroon (Hazardous)
+        }
+
+        function matchProvinceFromGeoName(geoName) {
+            if (!geoName) return null;
+            const norm = geoName.toLowerCase().replace(/[^a-z]/g, '');
+            return PROVINCES.find(p => {
+                const enNorm = p.nameEn.toLowerCase().replace(/[^a-z]/g, '');
+                const kNorm = p.key.toLowerCase().replace(/[^a-z]/g, '');
+                return enNorm === norm || kNorm === norm || enNorm.includes(norm) || norm.includes(enNorm);
+            });
+        }
+
+        function initThailandMap() {
+            if (typeof L === 'undefined' || thailandMap) return;
+
+            const mapEl = document.getElementById('thailandMap');
+            if (!mapEl) return;
+
+            // Center on Thailand [13.4, 101.0], zoom 6
+            thailandMap = L.map(mapEl, {
+                center: [13.4, 101.0],
+                zoom: 6,
+                minZoom: 5,
+                maxZoom: 14,
+                maxBounds: [
+                    [3.0, 93.0],
+                    [22.8, 108.5]
+                ],
+                attributionControl: false,
+                zoomControl: false
+            });
+
+            L.control.zoom({ position: 'topright' }).addTo(thailandMap);
+
+            // 1. Prepare Base Tile Layers
+            mapTileLayers = {
+                dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 14,
+                    subdomains: ['a', 'b', 'c', 'd']
+                }),
+                satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 14
+                }),
+                clean: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 14
+                })
+            };
+
+            currentBaseLayer = mapTileLayers['dark'].addTo(thailandMap);
+
+            thailandMap.on('zoomend', () => {
+                updateMapMarkersVisibility();
+            });
+
+            // 2. Load 77 Provinces GeoJSON
+            loadProvincesGeoJson();
+
+            // 3. Render 78 Station Markers
+            renderMapMarkers();
+
+            // 4. Fetch Live RainViewer Doppler Radar Frames
+            fetchRainViewerFrames();
+        }
+
+        function setBaseMapLayer(layerType) {
+            if (!thailandMap || !mapTileLayers[layerType]) return;
+            if (currentBaseLayer) {
+                thailandMap.removeLayer(currentBaseLayer);
+            }
+            currentBaseLayer = mapTileLayers[layerType].addTo(thailandMap);
+            currentBaseLayerType = layerType;
+
+            ['btnLayerDark', 'btnLayerSat', 'btnLayerClean'].forEach(id => {
+                const b = document.getElementById(id);
+                if (b) b.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(layerType === 'dark' ? 'btnLayerDark' : (layerType === 'satellite' ? 'btnLayerSat' : 'btnLayerClean'));
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (provinceGeoLayer) {
+                provinceGeoLayer.eachLayer(layer => {
+                    const isSelected = layer._provinceKey === currentCityKey;
+                    layer.setStyle({
+                        color: isSelected ? '#38bdf8' : (layerType === 'satellite' ? '#cbd5e1' : '#64748b'),
+                        fillColor: isSelected ? '#38bdf8' : '#ffffff',
+                        fillOpacity: isSelected ? 0.25 : 0.03
+                    });
+                });
+            }
+        }
+
+        async function loadProvincesGeoJson() {
+            try {
+                // Fetch GeoJSON (fallback gracefully if offline / local file restrictions)
+                const res = await fetch('thailand-provinces.geojson');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const geoData = await res.json();
+                if (!geoData || !thailandMap) return;
+
+                provincePolygons = {};
+                provinceGeoLayer = L.geoJSON(geoData, {
+                    style: (feature) => {
+                        const matched = matchProvinceFromGeoName(feature?.properties?.name);
+                        const isSelected = matched && matched.key === currentCityKey;
+                        return {
+                            color: isSelected ? '#38bdf8' : (currentBaseLayerType === 'satellite' ? '#cbd5e1' : '#64748b'),
+                            weight: isSelected ? 2.5 : 1.2,
+                            opacity: isSelected ? 1 : 0.7,
+                            dashArray: isSelected ? '' : '3, 2',
+                            fillColor: isSelected ? '#38bdf8' : '#ffffff',
+                            fillOpacity: isSelected ? 0.25 : 0.03
+                        };
+                    },
+                    onEachFeature: (feature, layer) => {
+                        const matched = matchProvinceFromGeoName(feature?.properties?.name);
+                        if (!matched) return;
+
+                        const key = matched.key;
+                        layer._provinceKey = key;
+                        provincePolygons[key] = layer;
+
+                        const thName = matched.nameTh;
+                        const enName = matched.nameEn;
+
+                        layer.bindTooltip(() => {
+                            const cached = cachedCityData[key];
+                            const curName = currentLang === 'th' ? `จังหวัด${thName}` : enName;
+                            const subName = currentLang === 'th' ? enName : thName;
+                            const tempStr = cached ? `${cached.temp} °C` : '-- °C';
+                            const aqiVal = cached ? cached.aqi : '--';
+                            const aqiCol = cached ? getAqiColorCode(cached.aqi) : '#34d399';
+                            return `<div style="font-family: inherit; line-height: 1.4;">
+                                <strong style="font-size: 13px; color: #38bdf8;">${curName}</strong>
+                                <span style="font-size: 10px; color: #94a3b8;"> (${subName})</span><br/>
+                                <span style="font-size: 11px; color: #cbd5e1;">${currentLang === 'th' ? 'อุณหภูมิ' : 'Temp'}: <strong>${tempStr}</strong> | AQI: <b style="color: ${aqiCol};">${aqiVal}</b></span>
+                            </div>`;
+                        }, { sticky: true, opacity: 0.95, className: 'leaflet-tooltip-dark' });
+
+                        layer.on({
+                            mouseover: (e) => {
+                                const l = e.target;
+                                l.setStyle({
+                                    weight: 2.5,
+                                    color: '#38bdf8',
+                                    fillColor: '#38bdf8',
+                                    fillOpacity: 0.22
+                                });
+                                l.bringToFront();
+
+                                const m = mapMarkers[key];
+                                if (m) {
+                                    m.setZIndexOffset(1000);
+                                    const el = m.getElement();
+                                    if (el) {
+                                        const lbl = el.querySelector('.map-marker-label');
+                                        if (lbl) lbl.style.display = 'flex';
+                                    }
+                                }
+                            },
+                            mouseout: (e) => {
+                                const isSelected = key === currentCityKey;
+                                layer.setStyle({
+                                    color: isSelected ? '#38bdf8' : (currentBaseLayerType === 'satellite' ? '#cbd5e1' : '#64748b'),
+                                    weight: isSelected ? 2.5 : 1.2,
+                                    opacity: isSelected ? 1 : 0.7,
+                                    dashArray: isSelected ? '' : '3, 2',
+                                    fillColor: isSelected ? '#38bdf8' : '#ffffff',
+                                    fillOpacity: isSelected ? 0.25 : 0.03
+                                });
+                                const m = mapMarkers[key];
+                                if (m && !isSelected) {
+                                    m.setZIndexOffset(0);
+                                    const el = m.getElement();
+                                    if (el) {
+                                        const lbl = el.querySelector('.map-marker-label');
+                                        if (lbl) lbl.style.display = 'none';
+                                    }
+                                }
+                            },
+                            click: () => {
+                                selectProvince(key, currentLang === 'th' ? thName : enName);
+                            }
+                        });
+                    }
+                }).addTo(thailandMap);
+
+                // Initial highlight
+                if (provincePolygons[currentCityKey]) {
+                    provincePolygons[currentCityKey].setStyle({
+                        color: '#38bdf8',
+                        weight: 2.5,
+                        fillColor: '#38bdf8',
+                        fillOpacity: 0.25
+                    });
+                }
+            } catch(e) {
+                console.info('[Map] Running markers with coordinates without GeoJSON overlay:', e.message);
+            }
+        }
+
+        function renderMapMarkers() {
+            if (!thailandMap) return;
+
+            // Remove existing markers
+            Object.values(mapMarkers).forEach(m => thailandMap.removeLayer(m));
+            mapMarkers = {};
+
+            const zoom = thailandMap.getZoom();
+
+            PROVINCES.forEach(p => {
+                const key = p.key;
+                const isSelected = key === currentCityKey;
+                const cached = cachedCityData[key];
+                const displayName = currentLang === 'th' ? p.nameTh : p.nameEn;
+
+                let valStr = '';
+                let bgColor = '#10b981';
+
+                if (mapMetricMode === 'aqi') {
+                    const aqi = cached ? cached.aqi : 45;
+                    valStr = String(aqi);
+                    bgColor = getAqiColorCode(aqi);
+                } else {
+                    const temp = cached ? Math.round(parseFloat(cached.temp)) : 30;
+                    valStr = `${temp}°`;
+                    bgColor = '#0284c7';
+                }
+
+                const markerHtml = `
+                    <div class="map-marker-pin ${isSelected ? 'selected' : ''}" data-key="${key}">
+                        ${isSelected ? '<div class="map-marker-ping"></div>' : ''}
+                        <div class="map-marker-badge ${isSelected ? 'selected' : ''}" style="background-color: ${bgColor}; font-size: ${isSelected ? '11px' : (zoom <= 6 ? '9.5px' : '10.5px')}; width: ${isSelected ? '32px' : (zoom <= 6 ? '24px' : '28px')}; height: ${isSelected ? '32px' : (zoom <= 6 ? '24px' : '28px')};">
+                            ${valStr}
+                        </div>
+                        <div class="map-marker-label">
+                            ${displayName}
+                        </div>
+                    </div>
+                `;
+
+                const icon = L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-weather-marker',
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+
+                const marker = L.marker([p.lat, p.lon], { icon }).addTo(thailandMap);
+
+                marker.on('click', () => {
+                    selectProvince(p.key, currentLang === 'th' ? p.nameTh : p.nameEn);
+                });
+
+                marker.on('mouseover', () => {
+                    marker.setZIndexOffset(1000);
+                    const poly = provincePolygons[p.key];
+                    if (poly) {
+                        poly.setStyle({
+                            weight: 2.5,
+                            color: '#38bdf8',
+                            fillColor: '#38bdf8',
+                            fillOpacity: 0.22
+                        });
+                        poly.bringToFront();
+                    }
+                });
+
+                marker.on('mouseout', () => {
+                    if (p.key !== currentCityKey) {
+                        marker.setZIndexOffset(0);
+                        const poly = provincePolygons[p.key];
+                        if (poly) {
+                            poly.setStyle({
+                                color: currentBaseLayerType === 'satellite' ? '#cbd5e1' : '#64748b',
+                                weight: 1.2,
+                                fillColor: '#ffffff',
+                                fillOpacity: 0.03
+                            });
+                        }
+                    }
+                });
+
+                mapMarkers[key] = marker;
+            });
+
+            updateMapMarkersVisibility();
+        }
+
+        function updateMapMarkers() {
+            if (!thailandMap) return;
+            const zoom = thailandMap.getZoom();
+
+            PROVINCES.forEach(p => {
+                const key = p.key;
+                const isSelected = key === currentCityKey;
+                const cached = cachedCityData[key];
+                const m = mapMarkers[key];
+                if (!m) return;
+
+                let valStr = '';
+                let bgColor = '#10b981';
+
+                if (mapMetricMode === 'aqi') {
+                    const aqi = cached ? cached.aqi : 45;
+                    valStr = String(aqi);
+                    bgColor = getAqiColorCode(aqi);
+                } else {
+                    const temp = cached ? Math.round(parseFloat(cached.temp)) : 30;
+                    valStr = `${temp}°`;
+                    bgColor = '#0284c7';
+                }
+
+                const displayName = currentLang === 'th' ? p.nameTh : p.nameEn;
+
+                const markerHtml = `
+                    <div class="map-marker-pin ${isSelected ? 'selected' : ''}" data-key="${key}">
+                        ${isSelected ? '<div class="map-marker-ping"></div>' : ''}
+                        <div class="map-marker-badge ${isSelected ? 'selected' : ''}" style="background-color: ${bgColor}; font-size: ${isSelected ? '11px' : (zoom <= 6 ? '9.5px' : '10.5px')}; width: ${isSelected ? '32px' : (zoom <= 6 ? '24px' : '28px')}; height: ${isSelected ? '32px' : (zoom <= 6 ? '24px' : '28px')};">
+                            ${valStr}
+                        </div>
+                        <div class="map-marker-label">
+                            ${displayName}
+                        </div>
+                    </div>
+                `;
+
+                const icon = L.divIcon({
+                    html: markerHtml,
+                    className: 'custom-weather-marker',
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                });
+                m.setIcon(icon);
+            });
+        }
+
+        function updateMapMarkersVisibility() {
+            if (!thailandMap) return;
+            const zoom = thailandMap.getZoom();
+
+            PROVINCES.forEach(p => {
+                const key = p.key;
+                const m = mapMarkers[key];
+                if (!m) return;
+
+                const isSelected = key === currentCityKey;
+                const isMajor = MAJOR_PROVINCE_KEYS.has(key);
+
+                if (mapDensityMode === 'smart' && zoom <= 6 && !isMajor && !isSelected) {
+                    if (thailandMap.hasLayer(m)) thailandMap.removeLayer(m);
+                } else {
+                    if (!thailandMap.hasLayer(m)) thailandMap.addLayer(m);
+                }
+            });
+        }
+
+        function highlightMapProvince(key) {
+            if (!thailandMap) return;
+
+            // 1. Highlight GeoJSON polygon
+            Object.keys(provincePolygons).forEach(k => {
+                const layer = provincePolygons[k];
+                const isSelected = (k === key);
+                layer.setStyle({
+                    color: isSelected ? '#38bdf8' : (currentBaseLayerType === 'satellite' ? '#cbd5e1' : '#64748b'),
+                    weight: isSelected ? 2.5 : 1.2,
+                    opacity: isSelected ? 1 : 0.7,
+                    dashArray: isSelected ? '' : '3, 2',
+                    fillColor: isSelected ? '#38bdf8' : '#ffffff',
+                    fillOpacity: isSelected ? 0.25 : 0.03
+                });
+                if (isSelected) layer.bringToFront();
+            });
+
+            // 2. Refresh marker pins
+            updateMapMarkers();
+            updateMapMarkersVisibility();
+
+            // 3. Smooth fly to province
+            const poly = provincePolygons[key];
+            if (poly) {
+                thailandMap.fitBounds(poly.getBounds(), {
+                    maxZoom: 9,
+                    padding: [40, 40],
+                    animate: true,
+                    duration: 0.7
+                });
+            } else {
+                const p = PROVINCES.find(x => x.key === key);
+                if (p) {
+                    thailandMap.flyTo([p.lat, p.lon], Math.max(thailandMap.getZoom(), 8), {
+                        duration: 0.7
+                    });
+                }
+            }
+        }
+
+        function setMapMetricMode(mode) {
+            mapMetricMode = mode;
+            document.getElementById('btnMapAqi').classList.toggle('active', mode === 'aqi');
+            document.getElementById('btnMapTemp').classList.toggle('active', mode === 'temp');
+            updateMapMarkers();
+        }
+
+        function setMapDensity(mode) {
+            mapDensityMode = mode;
+            document.getElementById('btnDensityAll').classList.toggle('active', mode === 'all');
+            document.getElementById('btnDensitySmart').classList.toggle('active', mode === 'smart');
+            updateMapMarkersVisibility();
+        }
+
+        function focusCurrentSelectedCity() {
+            highlightMapProvince(currentCityKey);
+        }
+
+        function resetMapThailandView() {
+            if (!thailandMap) return;
+            thailandMap.flyTo([13.4, 101.0], 6, { duration: 0.8 });
+        }
+
+        // ─── RainViewer Doppler Radar Engine ────────────────────────────────
+        async function fetchRainViewerFrames() {
+            try {
+                const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                if (!res.ok) throw new Error('RainViewer API HTTP ' + res.status);
+                const data = await res.json();
+                if (!data) return;
+
+                radarHost = data.host || 'https://tilecache.rainviewer.com';
+                const past = data.radar?.past || [];
+                const nowcast = data.radar?.nowcast || [];
+                radarFrames = [...past, ...nowcast];
+
+                if (radarFrames.length > 0) {
+                    const scrubber = document.getElementById('radarScrubber');
+                    if (scrubber) {
+                        scrubber.max = String(radarFrames.length - 1);
+                        // Default to the latest live past frame
+                        const initialIdx = past.length > 0 ? past.length - 1 : radarFrames.length - 1;
+                        scrubber.value = String(initialIdx);
+                        currentRadarFrameIdx = initialIdx;
+                    }
+                    updateRadarLayer();
+                }
+            } catch(e) {
+                console.warn('[Radar] Unable to fetch RainViewer radar frames:', e);
+                const timeEl = document.getElementById('radarTimestampText');
+                if (timeEl) timeEl.innerText = 'สัญญาณเรดาร์พร้อมใช้งาน (รอการเชื่อมต่อ)';
+            }
+        }
+
+        function updateRadarLayer() {
+            if (!thailandMap) return;
+
+            if (currentRadarLayer) {
+                thailandMap.removeLayer(currentRadarLayer);
+                currentRadarLayer = null;
+            }
+
+            if (!isRadarVisible || radarFrames.length === 0) return;
+
+            const frame = radarFrames[currentRadarFrameIdx];
+            if (!frame) return;
+
+            const colorScheme = radarColorScheme;
+            const smooth = radarSmooth ? '1' : '0';
+            const tileUrl = `${radarHost}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/${smooth}_1.png`;
+
+            const BLANK_TILE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+            currentRadarLayer = L.tileLayer(tileUrl, {
+                opacity: radarOpacity,
+                zIndex: 350,
+                maxZoom: 14,
+                maxNativeZoom: 8,
+                tileSize: 256,
+                errorTileUrl: BLANK_TILE
+            }).addTo(thailandMap);
+
+            updateRadarUIControls();
+        }
+
+        function updateRadarUIControls() {
+            const frame = radarFrames[currentRadarFrameIdx];
+            if (!frame) return;
+
+            const scrubber = document.getElementById('radarScrubber');
+            if (scrubber) scrubber.value = String(currentRadarFrameIdx);
+
+            const timeEl = document.getElementById('radarTimestampText');
+            const typeBadge = document.getElementById('radarFrameTypeBadge');
+
+            const date = new Date(frame.time * 1000);
+            const pad = n => String(n).padStart(2, '0');
+            const timeStr = `${pad(date.getHours())}:${pad(date.getMinutes())} น.`;
+
+            const nowSec = Math.floor(Date.now() / 1000);
+            const diffMin = Math.round((nowSec - frame.time) / 60);
+
+            if (diffMin > 3) {
+                if (timeEl) timeEl.innerText = currentLang === 'th' ? `${timeStr} (${diffMin} นาทีที่แล้ว)` : `${timeStr} (${diffMin}m ago)`;
+                if (typeBadge) {
+                    typeBadge.innerText = currentLang === 'th' ? '● ข้อมูลย้อนหลัง (Past Radar)' : '● Past Doppler Radar';
+                    typeBadge.style.color = '#94a3b8';
+                }
+            } else if (diffMin >= -3) {
+                if (timeEl) timeEl.innerText = currentLang === 'th' ? `${timeStr} (สด ล่าสุด)` : `${timeStr} (Live Now)`;
+                if (typeBadge) {
+                    typeBadge.innerText = currentLang === 'th' ? '● สด Live Doppler (อัปเดตทุก 10 นาที)' : '● Live Doppler Radar';
+                    typeBadge.style.color = '#34d399';
+                }
+            } else {
+                const forwardMin = Math.abs(diffMin);
+                if (timeEl) timeEl.innerText = currentLang === 'th' ? `${timeStr} (+${forwardMin} นาที พยากรณ์)` : `${timeStr} (+${forwardMin}m nowcast)`;
+                if (typeBadge) {
+                    typeBadge.innerText = currentLang === 'th' ? '⚡ การพยากรณ์ล่วงหน้า (Nowcast AI)' : '⚡ Doppler Rain Nowcast';
+                    typeBadge.style.color = '#38bdf8';
+                }
+            }
+        }
+
+        function toggleRadarLayer() {
+            isRadarVisible = !isRadarVisible;
+            const btn = document.getElementById('btnToggleRadar');
+            const dot = document.getElementById('radarLiveDot');
+            const panel = document.getElementById('radarPlayerPanel');
+
+            if (btn) btn.classList.toggle('active', isRadarVisible);
+            if (dot) dot.style.display = isRadarVisible ? 'inline-block' : 'none';
+            if (panel) panel.style.display = isRadarVisible ? 'flex' : 'none';
+
+            if (!isRadarVisible && isRadarPlaying) {
+                toggleRadarPlayback();
+            }
+
+            updateRadarLayer();
+        }
+
+        function toggleRadarPlayback() {
+            if (isRadarPlaying) {
+                clearInterval(radarIntervalId);
+                radarIntervalId = null;
+                isRadarPlaying = false;
+                document.getElementById('radarPlayIcon').innerText = '▶';
+                document.getElementById('radarPlayText').innerText = currentLang === 'th' ? 'เล่นเรดาร์' : 'Play Radar';
+            } else {
+                if (radarFrames.length <= 1) return;
+                isRadarPlaying = true;
+                document.getElementById('radarPlayIcon').innerText = '⏸';
+                document.getElementById('radarPlayText').innerText = currentLang === 'th' ? 'หยุดเรดาร์' : 'Pause Radar';
+                radarIntervalId = setInterval(() => {
+                    currentRadarFrameIdx = (currentRadarFrameIdx + 1) % radarFrames.length;
+                    updateRadarLayer();
+                }, 850);
+            }
+        }
+
+        function onRadarScrubberChange(val) {
+            currentRadarFrameIdx = parseInt(val, 10);
+            updateRadarLayer();
+        }
+
+        function onRadarOpacityChange(val) {
+            radarOpacity = parseInt(val, 10) / 100;
+            const txt = document.getElementById('radarOpacityText');
+            if (txt) txt.innerText = `${val}%`;
+            if (currentRadarLayer) {
+                currentRadarLayer.setOpacity(radarOpacity);
+            }
+        }
+
+        function onRadarPaletteChange(val) {
+            radarColorScheme = parseInt(val, 10);
+            updateRadarLayer();
+        }
+
         // ============================================================
         //  Hourly Auto-Fetcher: ดึงข้อมูลอัตโนมัติต้นชั่วโมงเป๊ะๆ (:00 น.) วนลูปทุก 1 ชั่วโมง
         // ============================================================
@@ -2521,7 +3672,10 @@
                 console.log(`[Hourly Scheduler] 🔔 ถึงรอบ ${pad(triggerTime.getHours())}:00 น. พอดีเป๊ะ! เริ่มรีเฟรชหน้าเว็บเป็นข้อมูลใหม่อัตโนมัติ...`);
                 await triggerCycleAutoRefresh('hourly_scheduler');
                 // ตั้งเวลารอบถัดไปวนลูปไปเรื่อยๆ ทุก 1 ชม.
-                scheduleHourlyFetch();
+                // ─── Initialize Thailand GIS Map & RainViewer Radar ───
+            initThailandMap();
+
+            scheduleHourlyFetch();
             }, msUntilNext);
         }
 
@@ -2537,6 +3691,9 @@
             if (clearBtn) clearBtn.style.display = 'none';
             renderCityList();
             initAllProvinces();
+            // ─── Initialize Thailand GIS Map & RainViewer Radar ───
+            initThailandMap();
+
             scheduleHourlyFetch();
 
             // Keyboard navigation สำหรับ Search input
