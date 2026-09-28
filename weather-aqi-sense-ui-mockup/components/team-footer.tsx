@@ -11,17 +11,17 @@ const MEMBERS: Member[] = [
   {
     name: { th: "สหกานต์ธีรา", en: "Sahakanteera" },
     nickname: { th: "ผักกาด", en: "Phakkad" },
-    roles: ["S1 Planner", "S2 Coder", "S3 Debugger"],
+    roles: ["S1 Planner", "S2 Coder", "S3 Debugger", "Final Integration Lead"],
   },
   {
     name: { th: "ปิยภัทร", en: "Piyaphat" },
     nickname: { th: "พัตเตอร์", en: "Putter" },
-    roles: ["S1 Coder", "S2 Debugger", "S3 Planner"],
+    roles: ["S1 Coder", "S2 Debugger", "S3 Planner", "Final AI Feature Lead"],
   },
   {
     name: { th: "อัษฎาวุธ", en: "Atsadawut" },
     nickname: { th: "กล้า", en: "Kla" },
-    roles: ["S1 Debugger", "S2 Planner", "S3 Coder"],
+    roles: ["S1 Debugger", "S2 Planner", "S3 Coder", "Final DevOps Lead"],
   },
 ]
 
