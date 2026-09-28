@@ -15393,18 +15393,44 @@ export function aqiPercent(aqi: number): number {
 }
 
 export function buildHourly(city: City): HourPoint[] {
-  if (city.hourly && city.hourly.length) return city.hourly
-  const hours = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"]
-  const tempCurve = [-4, -5, -3, 1, 3, 2, -1, -3]
-  const aqiCurve = [4, 6, 8, 2, -4, -2, 2, 4]
-  return hours.map((time, i) => ({
-    time,
-    temp: Math.round(city.temp + tempCurve[i]),
-    aqi: Math.max(0, Math.round(city.aqi + aqiCurve[i])),
-    rainChance: Math.max(0, Math.min(100, Math.round(city.rainChance + (i % 2 === 0 ? 5 : -5)))),
-    wind: city.wind,
-    weather: city.weather,
-  }))
+  let baseHourly = city.hourly
+  if (!baseHourly || baseHourly.length === 0) {
+    const hours = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"]
+    const tempCurve = [-4, -5, -3, 1, 3, 2, -1, -3]
+    const aqiCurve = [4, 6, 8, 2, -4, -2, 2, 4]
+    baseHourly = hours.map((time, i) => ({
+      time,
+      temp: Math.round(city.temp + tempCurve[i]),
+      aqi: Math.max(0, Math.round(city.aqi + aqiCurve[i])),
+      rainChance: Math.max(0, Math.min(100, Math.round(city.rainChance + (i % 2 === 0 ? 5 : -5)))),
+      wind: city.wind,
+      weather: city.weather,
+    }))
+  }
+
+  // Expand 8 points (every 3 hours) to 24 points (every hour)
+  if (baseHourly.length === 8) {
+    const result: HourPoint[] = []
+    for (let h = 0; h < 24; h++) {
+      const idx1 = Math.floor(h / 3)
+      const idx2 = (idx1 + 1) % 8
+      const p1 = baseHourly[idx1]
+      const p2 = baseHourly[idx2]
+      const factor = (h % 3) / 3
+      
+      result.push({
+        time: `${h.toString().padStart(2, "0")}:00`,
+        temp: Math.round(p1.temp + (p2.temp - p1.temp) * factor),
+        aqi: Math.max(0, Math.round(p1.aqi + (p2.aqi - p1.aqi) * factor)),
+        rainChance: Math.max(0, Math.min(100, Math.round(p1.rainChance + (p2.rainChance - p1.rainChance) * factor))),
+        wind: Math.round(p1.wind + (p2.wind - p1.wind) * factor),
+        weather: factor < 0.5 ? p1.weather : p2.weather
+      })
+    }
+    return result
+  }
+
+  return baseHourly
 }
 
 export function getThailandRankings(cities: City[]) {
