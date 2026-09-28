@@ -22,11 +22,7 @@ import {
   CloudRain,
   Play,
   Pause,
-  Wind,
-  Cloud,
-  Gauge,
   X,
-  Sliders,
 } from "lucide-react"
 
 interface ThailandMapProps {
@@ -39,7 +35,6 @@ interface ThailandMapProps {
 type MapMode = "aqi" | "weather"
 type TileLayerType = "clean" | "satellite" | "osm"
 type DensityMode = "all" | "smart"
-type WeatherOverlay = "none" | "radar" | "satellite_ir" | "temp" | "clouds" | "wind" | "pressure"
 
 interface RadarFrame {
   time: number
@@ -105,17 +100,15 @@ export function ThailandInteractiveMap({
   const [countryGeo, setCountryGeo] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Weather & Radar Overlays States
-  const [weatherOverlay, setWeatherOverlay] = useState<WeatherOverlay>("radar")
+  // Rain Radar States (100% Free RainViewer Doppler Radar - No API Key Required)
+  const [showRadar, setShowRadar] = useState(true)
   const [radarFrames, setRadarFrames] = useState<RadarFrame[]>([])
-  const [satelliteFrames, setSatelliteFrames] = useState<RadarFrame[]>([])
   const [radarHost, setRadarHost] = useState("https://tilecache.rainviewer.com")
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [radarOpacity, setRadarOpacity] = useState(0.8)
   const [radarColorScheme, setRadarColorScheme] = useState<number>(2)
   const [radarSmooth, setRadarSmooth] = useState<boolean>(true)
-  const owmLayerRef = useRef<any>(null)
 
   const activeCity = cities.find((c) => c.key === activeKey) ?? cities[0]
 
@@ -132,22 +125,18 @@ export function ThailandInteractiveMap({
       .catch((err) => console.error("Error loading provinces boundary:", err))
   }, [])
 
-  // 2. Fetch Live RainViewer Doppler Radar + Satellite IR Frames
+  // 2. Fetch Live RainViewer Doppler Radar Frames
   useEffect(() => {
     fetch("https://api.rainviewer.com/public/weather-maps.json")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return
         const host = data.host || "https://tilecache.rainviewer.com"
-        // Radar frames
         const past: RadarFrame[] = data.radar?.past || []
         const nowcast: RadarFrame[] = data.radar?.nowcast || []
         const all = [...past, ...nowcast]
-        // Satellite IR frames
-        const satFrames: RadarFrame[] = data.satellite?.infrared || []
         setRadarHost(host)
         setRadarFrames(all)
-        setSatelliteFrames(satFrames)
         if (all.length > 0) {
           const latestPastIdx = past.length > 0 ? past.length - 1 : all.length - 1
           setCurrentFrameIndex(latestPastIdx)
@@ -156,16 +145,14 @@ export function ThailandInteractiveMap({
       .catch((err) => console.error("Error loading RainViewer frames:", err))
   }, [])
 
-  // 3. Radar / Satellite animation loop
-  const activeFrames = weatherOverlay === "satellite_ir" ? satelliteFrames : radarFrames
-  const showRadar = weatherOverlay === "radar" || weatherOverlay === "satellite_ir"
+  // 3. Radar animation loop
   useEffect(() => {
-    if (!isPlaying || !showRadar || activeFrames.length <= 1) return
+    if (!isPlaying || !showRadar || radarFrames.length <= 1) return
     const interval = setInterval(() => {
-      setCurrentFrameIndex((prev) => (prev + 1) % activeFrames.length)
+      setCurrentFrameIndex((prev) => (prev + 1) % radarFrames.length)
     }, 850)
     return () => clearInterval(interval)
-  }, [isPlaying, showRadar, activeFrames.length])
+  }, [isPlaying, showRadar, radarFrames.length])
 
   // 4. Load Leaflet CSS & Script dynamically on client
   useEffect(() => {
@@ -254,71 +241,41 @@ export function ThailandInteractiveMap({
     tileLayerRef.current = newLayer
   }, [layerType, leafletLoaded])
 
-  // 7. Render / Update Weather Overlay Layer (Radar / Satellite IR / OWM)
+  // 7. Render / Update Live Rain Radar Layer on Leaflet (100% Free - Zero API Key)
   useEffect(() => {
     const map = mapInstanceRef.current
     const L = (window as any).L
     if (!map || !L) return
 
-    // Clear previous layers
     if (radarLayerRef.current) {
       map.removeLayer(radarLayerRef.current)
       radarLayerRef.current = null
     }
-    if (owmLayerRef.current) {
-      map.removeLayer(owmLayerRef.current)
-      owmLayerRef.current = null
-    }
+
+    if (!showRadar || radarFrames.length === 0) return
+
+    const frame = radarFrames[currentFrameIndex]
+    if (!frame) return
+
+    const colorScheme = radarColorScheme
+    const smooth = radarSmooth ? "1" : "0"
+    const tileUrl = `${radarHost}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/${smooth}_1.png`
 
     const BLANK_TILE =
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 
-    if (weatherOverlay === "radar" || weatherOverlay === "satellite_ir") {
-      const frames = weatherOverlay === "satellite_ir" ? satelliteFrames : radarFrames
-      if (frames.length === 0) return
-      const frame = frames[currentFrameIndex]
-      if (!frame) return
-
-      const colorScheme = weatherOverlay === "satellite_ir" ? 0 : radarColorScheme
-      const smooth = weatherOverlay === "satellite_ir" ? "0" : radarSmooth ? "1" : "0"
-      const tileUrl = `${radarHost}${frame.path}/256/{z}/{x}/{y}/${colorScheme}/${smooth}_1.png`
-
-      radarLayerRef.current = L.tileLayer(tileUrl, {
-        opacity: radarOpacity,
-        zIndex: 350,
-        maxZoom: 14,
-        maxNativeZoom: 8,
-        tileSize: 256,
-        errorTileUrl: BLANK_TILE,
-      }).addTo(map)
-    } else if (["temp", "clouds", "wind", "pressure"].includes(weatherOverlay)) {
-      // OpenWeatherMap tile layers
-      const owmKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY
-      if (!owmKey) return
-      const layerMap: Record<string, string> = {
-        temp: "temp_new",
-        clouds: "clouds_new",
-        wind: "wind_new",
-        pressure: "pressure_new",
-      }
-      const layer = layerMap[weatherOverlay]
-      if (!layer) return
-      const tileUrl = `https://tile.openweathermap.org/map/${layer}/{z}/{x}/{y}.png?appid=${owmKey}`
-
-      owmLayerRef.current = L.tileLayer(tileUrl, {
-        opacity: radarOpacity,
-        zIndex: 350,
-        maxZoom: 14,
-        maxNativeZoom: 10,
-        tileSize: 256,
-        errorTileUrl: BLANK_TILE,
-      }).addTo(map)
-    }
+    radarLayerRef.current = L.tileLayer(tileUrl, {
+      opacity: radarOpacity,
+      zIndex: 350,
+      maxZoom: 14,
+      maxNativeZoom: 8,
+      tileSize: 256,
+      errorTileUrl: BLANK_TILE,
+    }).addTo(map)
   }, [
-    weatherOverlay,
+    showRadar,
     currentFrameIndex,
     radarFrames,
-    satelliteFrames,
     radarHost,
     radarOpacity,
     radarColorScheme,
@@ -393,7 +350,7 @@ export function ThailandInteractiveMap({
           opacity: isSelected ? 1 : 0.8,
           dashArray: isSelected ? "" : "3, 2",
           fillColor: isSelected ? "#1a73e8" : "#ffffff",
-          fillOpacity: isSelected ? 0.28 : weatherOverlay !== "none" ? 0.02 : 0.04,
+          fillOpacity: isSelected ? 0.28 : showRadar ? 0.02 : 0.04,
         }
       },
       onEachFeature: (feature: any, polygonLayer: any) => {
@@ -477,7 +434,7 @@ export function ThailandInteractiveMap({
     }).addTo(map)
 
     provincesGeoLayerRef.current = layer
-  }, [provincesGeo, cities, activeKey, lang, layerType, weatherOverlay, leafletLoaded])
+  }, [provincesGeo, cities, activeKey, lang, layerType, showRadar, leafletLoaded])
 
   // 10. Render GPS Station Markers across Thailand (Centered Exactly at Polygon Centroid)
   useEffect(() => {
@@ -686,84 +643,26 @@ export function ThailandInteractiveMap({
 
         {/* Controls: Mode & Map Layer Switcher */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Weather & Radar Overlays Selector */}
-          <div className="flex items-center rounded-full border border-[#dadce0] bg-[#f8f9fa] p-0.5 text-xs shadow-sm">
-            <button
-              type="button"
-              onClick={() => {
-                setWeatherOverlay(weatherOverlay === "radar" ? "none" : "radar")
-                setIsPlaying(false)
-              }}
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold transition ${
-                weatherOverlay === "radar"
-                  ? "bg-blue-600 text-white shadow-sm ring-1 ring-blue-400"
-                  : "text-[#5f6368] hover:bg-[#e8eaed] hover:text-[#202124]"
-              }`}
-              title={lang === "th" ? "เรดาร์ตรวจกลุ่มฝนสด (Doppler)" : "Live Doppler Rain Radar"}
-            >
-              <CloudRain size={13} />
-              <span>{lang === "th" ? "เรดาร์ฝนสด" : "Rain Radar"}</span>
-              {weatherOverlay === "radar" && (
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setWeatherOverlay(weatherOverlay === "clouds" ? "none" : "clouds")}
-              className={`flex items-center gap-1 rounded-full px-2 py-1 font-medium transition ${
-                weatherOverlay === "clouds"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-[#5f6368] hover:bg-[#e8eaed] hover:text-[#202124]"
-              }`}
-              title={lang === "th" ? "เมฆปกคลุม (Clouds)" : "Cloud Cover"}
-            >
-              <Cloud size={13} />
-              <span>{lang === "th" ? "เมฆ" : "Clouds"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setWeatherOverlay(weatherOverlay === "wind" ? "none" : "wind")}
-              className={`flex items-center gap-1 rounded-full px-2 py-1 font-medium transition ${
-                weatherOverlay === "wind"
-                  ? "bg-teal-600 text-white shadow-sm"
-                  : "text-[#5f6368] hover:bg-[#e8eaed] hover:text-[#202124]"
-              }`}
-              title={lang === "th" ? "ความเร็วลม (Wind)" : "Wind Speed"}
-            >
-              <Wind size={13} />
-              <span>{lang === "th" ? "ลม" : "Wind"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setWeatherOverlay(weatherOverlay === "temp" ? "none" : "temp")}
-              className={`flex items-center gap-1 rounded-full px-2 py-1 font-medium transition ${
-                weatherOverlay === "temp"
-                  ? "bg-amber-600 text-white shadow-sm"
-                  : "text-[#5f6368] hover:bg-[#e8eaed] hover:text-[#202124]"
-              }`}
-              title={lang === "th" ? "แผนที่ความร้อน (Temp Heatmap)" : "Temperature"}
-            >
-              <Thermometer size={13} />
-              <span>{lang === "th" ? "ความร้อน" : "Temp"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setWeatherOverlay(weatherOverlay === "pressure" ? "none" : "pressure")}
-              className={`flex items-center gap-1 rounded-full px-2 py-1 font-medium transition ${
-                weatherOverlay === "pressure"
-                  ? "bg-purple-600 text-white shadow-sm"
-                  : "text-[#5f6368] hover:bg-[#e8eaed] hover:text-[#202124]"
-              }`}
-              title={lang === "th" ? "ความกดอากาศ (Pressure)" : "Atmospheric Pressure"}
-            >
-              <Gauge size={13} />
-              <span>{lang === "th" ? "ความกด" : "Press"}</span>
-            </button>
-          </div>
+          {/* Rain Radar Toggle Button (100% Free - Zero API Key Required) */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowRadar(!showRadar)
+              setIsPlaying(false)
+            }}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition ${
+              showRadar
+                ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-300"
+                : "border border-[#dadce0] bg-white text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#202124]"
+            }`}
+            title={lang === "th" ? "เปิด/ปิด เรดาร์ตรวจจับกลุ่มฝนสด" : "Toggle Rain Radar"}
+          >
+            <CloudRain size={13} />
+            <span>{lang === "th" ? "เรดาร์ฝนสด" : "Rain Radar"}</span>
+            {showRadar && (
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            )}
+          </button>
 
           {/* Data Mode Switcher */}
           <div className="flex rounded-full border border-[#e0e0e0] bg-[#f8f9fa] p-0.5">
@@ -940,10 +839,10 @@ export function ThailandInteractiveMap({
             style={{ zIndex: 1 }}
           />
 
-          {/* Weather & Radar Floating Controller (Top-Left) */}
-          {weatherOverlay !== "none" && (
-            <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/95 p-3 shadow-xl backdrop-blur-md text-xs text-[#202124] max-w-[340px]">
-              {/* Header with Title and Close Button */}
+          {/* Radar Player Floating Controller (Top-Left, 100% Free Live Doppler) */}
+          {showRadar && radarFrames.length > 0 && (
+            <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/95 p-3 shadow-xl backdrop-blur-md text-xs text-[#202124] max-w-[320px]">
+              {/* Header */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
                   <span className="relative flex h-2.5 w-2.5">
@@ -951,227 +850,120 @@ export function ThailandInteractiveMap({
                     <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
                   </span>
                   <span className="font-bold text-[#1a73e8]">
-                    {weatherOverlay === "radar"
-                      ? lang === "th"
-                        ? "เรดาร์ตรวจฝนสด (Doppler)"
-                        : "Live Doppler Rain Radar"
-                      : weatherOverlay === "clouds"
-                      ? lang === "th"
-                        ? "เลเยอร์เมฆปกคลุม (Clouds)"
-                        : "Cloud Cover Layer"
-                      : weatherOverlay === "wind"
-                      ? lang === "th"
-                        ? "เลเยอร์ความเร็วลม (Wind)"
-                        : "Wind Speed Layer"
-                      : weatherOverlay === "temp"
-                      ? lang === "th"
-                        ? "เลเยอร์อุณหภูมิ (Temperature)"
-                        : "Temperature Layer"
-                      : lang === "th"
-                      ? "ความกดอากาศ (Pressure)"
-                      : "Pressure Layer"}
+                    {lang === "th" ? "เรดาร์ตรวจฝนสด (Doppler)" : "Live Rain Radar"}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  {weatherOverlay === "radar" && radarFrames.length > 0 && (
-                    <span className="rounded bg-[#e8f0fe] px-1.5 py-0.5 text-[10px] font-semibold text-[#1a73e8]">
-                      {formatRadarTime(radarFrames[currentFrameIndex]?.time)}
-                      {currentFrameIndex === radarFrames.length - 1
-                        ? lang === "th"
-                          ? " (สด)"
-                          : " (Live)"
-                        : ""}
-                    </span>
-                  )}
+                  <span className="rounded bg-[#e8f0fe] px-1.5 py-0.5 text-[10px] font-semibold text-[#1a73e8]">
+                    {formatRadarTime(radarFrames[currentFrameIndex]?.time)}
+                    {currentFrameIndex === radarFrames.length - 1
+                      ? lang === "th"
+                        ? " (สด)"
+                        : " (Live)"
+                      : ""}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
-                      setWeatherOverlay("none")
+                      setShowRadar(false)
                       setIsPlaying(false)
                     }}
                     className="flex h-5 w-5 items-center justify-center rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#202124]"
-                    title="ปิดเลเยอร์นี้"
+                    title="ปิดเรดาร์"
                   >
                     <X size={13} />
                   </button>
                 </div>
               </div>
 
-              {/* Rain Radar Player Controls */}
-              {weatherOverlay === "radar" && radarFrames.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <button
-                      type="button"
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1a73e8] text-white shadow-sm hover:bg-[#1557b0] transition"
-                      title={isPlaying ? "หยุดชั่วคราว" : "เล่นภาพเคลื่อนไหว"}
-                    >
-                      {isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
-                    </button>
+              {/* Play / Pause & Scrubber */}
+              <div className="flex items-center gap-2 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1a73e8] text-white shadow-sm hover:bg-[#1557b0] transition"
+                  title={isPlaying ? "หยุดชั่วคราว" : "เล่นภาพเคลื่อนไหว"}
+                >
+                  {isPlaying ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
+                </button>
 
-                    <input
-                      type="range"
-                      min={0}
-                      max={radarFrames.length - 1}
-                      value={currentFrameIndex}
-                      onChange={(e) => {
-                        setIsPlaying(false)
-                        setCurrentFrameIndex(Number(e.target.value))
-                      }}
-                      className="h-1.5 flex-1 cursor-pointer accent-[#1a73e8]"
-                    />
+                <input
+                  type="range"
+                  min={0}
+                  max={radarFrames.length - 1}
+                  value={currentFrameIndex}
+                  onChange={(e) => {
+                    setIsPlaying(false)
+                    setCurrentFrameIndex(Number(e.target.value))
+                  }}
+                  className="h-1.5 flex-1 cursor-pointer accent-[#1a73e8]"
+                />
 
-                    <span className="text-[10px] text-[#5f6368] tabular-nums whitespace-nowrap">
-                      {currentFrameIndex + 1}/{radarFrames.length}
-                    </span>
-                  </div>
+                <span className="text-[10px] text-[#5f6368] tabular-nums whitespace-nowrap">
+                  {currentFrameIndex + 1}/{radarFrames.length}
+                </span>
+              </div>
 
-                  {/* Radar Color Scale Bar */}
-                  <div className="pt-0.5">
-                    <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
-                      <span>{lang === "th" ? "ระดับความหนาแน่นกลุ่มฝน:" : "Precipitation Rate:"}</span>
-                      <span>{lang === "th" ? "เบา ➔ ฟ้าคะนอง" : "Light ➔ Extreme"}</span>
-                    </div>
-                    <div
-                      className="h-2 w-full rounded-full overflow-hidden"
-                      style={{
-                        background:
-                          radarColorScheme === 6
-                            ? "linear-gradient(to right, #00ece6 0%, #00a000 25%, #ffff00 50%, #e70000 75%, #ff00ff 100%)"
-                            : radarColorScheme === 7
-                            ? "linear-gradient(to right, #00ffff 0%, #0000ff 25%, #00ff00 50%, #ffff00 75%, #ff0000 100%)"
-                            : radarColorScheme === 8
-                            ? "linear-gradient(to right, #4575b4 0%, #91bfdb 25%, #fee090 50%, #fc8d59 75%, #d73027 100%)"
-                            : "linear-gradient(to right, #79d279 0%, #ffd24d 25%, #ff9933 50%, #ff3333 75%, #b300b3 100%)",
-                      }}
-                    />
-                    <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
-                      <span>&lt;2.5 mm/h</span>
-                      <span>5 mm/h</span>
-                      <span>10 mm/h</span>
-                      <span>&gt;25 mm/h</span>
-                    </div>
-                  </div>
-
-                  {/* Radar Style Selector & Smooth Toggle */}
-                  <div className="flex items-center justify-between pt-1 border-t border-[#f1f3f4] text-[10px] text-[#5f6368]">
-                    <div className="flex items-center gap-1">
-                      <span>{lang === "th" ? "สีเรดาร์:" : "Palette:"}</span>
-                      <select
-                        value={radarColorScheme}
-                        onChange={(e) => setRadarColorScheme(Number(e.target.value))}
-                        className="rounded border border-[#dadce0] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[#202124] focus:outline-none"
-                      >
-                        <option value={2}>{lang === "th" ? "มาตรฐาน (Universal)" : "Universal"}</option>
-                        <option value={6}>NEXRAD (USA)</option>
-                        <option value={7}>Rainbow (รุ้ง)</option>
-                        <option value={8}>Dark Sky</option>
-                      </select>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setRadarSmooth(!radarSmooth)}
-                      className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition ${
-                        radarSmooth
-                          ? "bg-[#e8f0fe] text-[#1a73e8]"
-                          : "bg-[#f1f3f4] text-[#5f6368]"
-                      }`}
-                      title={lang === "th" ? "เปิด/ปิด การเกลี่ยความเนียนของภาพเรดาร์" : "Toggle smoothing"}
-                    >
-                      {radarSmooth ? (lang === "th" ? "ภาพเนียน" : "Smooth") : (lang === "th" ? "คมชัดดิบ" : "Raw")}
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Other Weather Overlays Legend */}
-              {weatherOverlay === "clouds" && (
-                <div className="pt-0.5">
-                  <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
-                    <span>{lang === "th" ? "ความหนาแน่นเมฆ:" : "Cloud Cover:"}</span>
-                    <span>0% ➔ 100%</span>
-                  </div>
-                  <div
-                    className="h-2 w-full rounded-full overflow-hidden"
-                    style={{
-                      background: "linear-gradient(to right, #f1f5f9 0%, #94a3b8 50%, #1e293b 100%)",
-                    }}
-                  />
-                  <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
-                    <span>{lang === "th" ? "ฟ้าโปร่ง (0%)" : "Clear (0%)"}</span>
-                    <span>{lang === "th" ? "มีเมฆบางส่วน" : "Scattered"}</span>
-                    <span>{lang === "th" ? "เมฆทึบ (100%)" : "Overcast (100%)"}</span>
-                  </div>
+              {/* Rain Intensity Color Scale Bar */}
+              <div className="pt-0.5">
+                <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
+                  <span>{lang === "th" ? "ระดับความหนาแน่นกลุ่มฝน:" : "Precipitation Rate:"}</span>
+                  <span>{lang === "th" ? "เบา ➔ ฟ้าคะนอง" : "Light ➔ Extreme"}</span>
                 </div>
-              )}
-
-              {weatherOverlay === "wind" && (
-                <div className="pt-0.5">
-                  <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
-                    <span>{lang === "th" ? "ความเร็วลม:" : "Wind Speed:"}</span>
-                    <span>0 ➔ &gt;40 m/s</span>
-                  </div>
-                  <div
-                    className="h-2 w-full rounded-full overflow-hidden"
-                    style={{
-                      background: "linear-gradient(to right, #38bdf8 0%, #34d399 33%, #fbbf24 66%, #f87171 100%)",
-                    }}
-                  />
-                  <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
-                    <span>0 m/s (สงบ)</span>
-                    <span>10 m/s</span>
-                    <span>25 m/s</span>
-                    <span>&gt;40 m/s (พายุ)</span>
-                  </div>
+                <div
+                  className="h-2 w-full rounded-full overflow-hidden"
+                  style={{
+                    background:
+                      radarColorScheme === 6
+                        ? "linear-gradient(to right, #00ece6 0%, #00a000 25%, #ffff00 50%, #e70000 75%, #ff00ff 100%)"
+                        : radarColorScheme === 7
+                        ? "linear-gradient(to right, #00ffff 0%, #0000ff 25%, #00ff00 50%, #ffff00 75%, #ff0000 100%)"
+                        : radarColorScheme === 8
+                        ? "linear-gradient(to right, #4575b4 0%, #91bfdb 25%, #fee090 50%, #fc8d59 75%, #d73027 100%)"
+                        : "linear-gradient(to right, #79d279 0%, #ffd24d 25%, #ff9933 50%, #ff3333 75%, #b300b3 100%)",
+                  }}
+                />
+                <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
+                  <span>&lt;2.5 mm/h</span>
+                  <span>5 mm/h</span>
+                  <span>10 mm/h</span>
+                  <span>&gt;25 mm/h</span>
                 </div>
-              )}
+              </div>
 
-              {weatherOverlay === "temp" && (
-                <div className="pt-0.5">
-                  <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
-                    <span>{lang === "th" ? "อุณหภูมิ:" : "Temperature Range:"}</span>
-                    <span>10°C ➔ 45°C</span>
-                  </div>
-                  <div
-                    className="h-2 w-full rounded-full overflow-hidden"
-                    style={{
-                      background: "linear-gradient(to right, #38bdf8 0%, #34d399 25%, #facc15 50%, #fb923c 75%, #ef4444 100%)",
-                    }}
-                  />
-                  <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
-                    <span>10°C (เย็น)</span>
-                    <span>25°C</span>
-                    <span>35°C</span>
-                    <span>&gt;42°C (ร้อนจัด)</span>
-                  </div>
+              {/* Radar Style Selector & Smooth Toggle */}
+              <div className="flex items-center justify-between pt-1 border-t border-[#f1f3f4] text-[10px] text-[#5f6368]">
+                <div className="flex items-center gap-1">
+                  <span>{lang === "th" ? "สีเรดาร์:" : "Palette:"}</span>
+                  <select
+                    value={radarColorScheme}
+                    onChange={(e) => setRadarColorScheme(Number(e.target.value))}
+                    className="rounded border border-[#dadce0] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[#202124] focus:outline-none"
+                  >
+                    <option value={2}>{lang === "th" ? "มาตรฐาน (Universal)" : "Universal"}</option>
+                    <option value={6}>NEXRAD (USA)</option>
+                    <option value={7}>Rainbow (รุ้ง)</option>
+                    <option value={8}>Dark Sky</option>
+                  </select>
                 </div>
-              )}
 
-              {weatherOverlay === "pressure" && (
-                <div className="pt-0.5">
-                  <div className="flex items-center justify-between text-[9px] text-[#5f6368] mb-0.5">
-                    <span>{lang === "th" ? "ความกดอากาศระดับน้ำทะเล:" : "Sea-Level Pressure:"}</span>
-                    <span>980 ➔ 1030 hPa</span>
-                  </div>
-                  <div
-                    className="h-2 w-full rounded-full overflow-hidden"
-                    style={{
-                      background: "linear-gradient(to right, #818cf8 0%, #38bdf8 50%, #f472b6 100%)",
-                    }}
-                  />
-                  <div className="flex justify-between text-[8px] text-[#80868b] mt-0.5">
-                    <span>980 hPa (หย่อม L)</span>
-                    <span>1010 hPa</span>
-                    <span>1030 hPa (ลิ่ม H)</span>
-                  </div>
-                </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setRadarSmooth(!radarSmooth)}
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-medium transition ${
+                    radarSmooth
+                      ? "bg-[#e8f0fe] text-[#1a73e8]"
+                      : "bg-[#f1f3f4] text-[#5f6368]"
+                  }`}
+                  title={lang === "th" ? "เปิด/ปิด การเกลี่ยความเนียนของภาพเรดาร์" : "Toggle smoothing"}
+                >
+                  {radarSmooth ? (lang === "th" ? "ภาพเนียน" : "Smooth") : (lang === "th" ? "คมชัดดิบ" : "Raw")}
+                </button>
+              </div>
 
               {/* Opacity selector */}
               <div className="flex items-center justify-between pt-1 border-t border-[#f1f3f4] text-[10px] text-[#5f6368]">
-                <span>{lang === "th" ? "ความโปร่งใส:" : "Opacity:"}</span>
+                <span>{lang === "th" ? "ความทึบเรดาร์:" : "Opacity:"}</span>
                 <div className="flex items-center gap-1">
                   {[0.5, 0.75, 1.0].map((op) => (
                     <button
@@ -1189,16 +981,6 @@ export function ThailandInteractiveMap({
                   ))}
                 </div>
               </div>
-
-              {/* Notice for OpenWeatherMap layers when key is missing */}
-              {["clouds", "wind", "temp", "pressure"].includes(weatherOverlay) &&
-                !process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY && (
-                  <div className="rounded-lg bg-amber-50 p-1.5 text-[9px] text-amber-800 border border-amber-200">
-                    💡 {lang === "th"
-                      ? "ระบุ OPENWEATHER_API_KEY ใน .env.local เพื่อแสดงเลเยอร์สดจาก OpenWeatherMap"
-                      : "Add NEXT_PUBLIC_OPENWEATHER_API_KEY in .env.local to stream live tiles from OpenWeatherMap"}
-                  </div>
-                )}
             </div>
           )}
 
