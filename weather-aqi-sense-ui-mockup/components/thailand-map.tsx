@@ -82,6 +82,7 @@ export function ThailandInteractiveMap({
 }: ThailandMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
+  const [mapInstance, setMapInstance] = useState<any>(null)
   const markersRef = useRef<any[]>([])
   const markersMapRef = useRef<Record<string, any>>({})
   const polygonsMapRef = useRef<Record<string, any>>({})
@@ -114,14 +115,25 @@ export function ThailandInteractiveMap({
 
   // 1. Fetch Thailand Country Boundary & 77 Provinces GeoJSON
   useEffect(() => {
-    fetch("/thailand-boundary.geojson")
+    const getPath = (file: string) => {
+      if (typeof window !== "undefined" && window.location.pathname.includes("Final_project_WeatherAQI_Sense")) {
+        return `/Final_project_WeatherAQI_Sense/${file}`
+      }
+      return `./${file}`
+    }
+
+    fetch(getPath("thailand-boundary.geojson"))
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setCountryGeo(data))
+      .then((data) => {
+        if (data) setCountryGeo(data)
+      })
       .catch((err) => console.error("Error loading country boundary:", err))
 
-    fetch("/thailand-provinces.geojson")
+    fetch(getPath("thailand-provinces.geojson"))
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setProvincesGeo(data))
+      .then((data) => {
+        if (data) setProvincesGeo(data)
+      })
       .catch((err) => console.error("Error loading provinces boundary:", err))
   }, [])
 
@@ -154,7 +166,7 @@ export function ThailandInteractiveMap({
     return () => clearInterval(interval)
   }, [isPlaying, showRadar, radarFrames.length])
 
-  // 4. Load Leaflet CSS & Script dynamically on client
+  // 4. Load Leaflet CSS & Script dynamically on client (with interval check fallback)
   useEffect(() => {
     if (typeof window === "undefined") return
 
@@ -171,21 +183,38 @@ export function ThailandInteractiveMap({
       return
     }
 
-    const script = document.createElement("script")
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    script.async = true
-    script.onload = () => {
-      setLeafletLoaded(true)
+    if (!document.getElementById("leaflet-js")) {
+      const script = document.createElement("script")
+      script.id = "leaflet-js"
+      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      script.async = true
+      script.onload = () => {
+        setLeafletLoaded(true)
+      }
+      document.body.appendChild(script)
     }
-    document.body.appendChild(script)
+
+    const checkTimer = setInterval(() => {
+      if ((window as any).L) {
+        setLeafletLoaded(true)
+        clearInterval(checkTimer)
+      }
+    }, 100)
+
+    return () => clearInterval(checkTimer)
   }, [])
 
   // 5. Initialize Leaflet Map Instance
   useEffect(() => {
-    if (!leafletLoaded || !mapContainerRef.current || mapInstanceRef.current) return
+    if (!leafletLoaded || !mapContainerRef.current) return
+    if (mapInstanceRef.current) return
 
     const L = (window as any).L
     if (!L) return
+
+    if ((mapContainerRef.current as any)._leaflet_id) {
+      delete (mapContainerRef.current as any)._leaflet_id
+    }
 
     // Center on Thailand [13.4, 101.0] with zoom 6
     const map = L.map(mapContainerRef.current, {
@@ -206,27 +235,44 @@ export function ThailandInteractiveMap({
     })
 
     L.control.zoom({ position: "topright" }).addTo(map)
+
     mapInstanceRef.current = map
+    setMapInstance(map)
+
+    setTimeout(() => {
+      map.invalidateSize()
+    }, 200)
 
     return () => {
       map.remove()
       mapInstanceRef.current = null
+      setMapInstance(null)
     }
   }, [leafletLoaded])
 
+  // Invalidate map size on expand/collapse
+  useEffect(() => {
+    if (mapInstance) {
+      setTimeout(() => {
+        mapInstance.invalidateSize()
+      }, 350)
+    }
+  }, [expanded, mapInstance])
+
   // 6. Handle Tile Layer Switching (Clean / Satellite / OSM) — NO WATERMARK
   useEffect(() => {
-    const map = mapInstanceRef.current
+    if (!mapInstance) return
     const L = (window as any).L
-    if (!map || !L) return
+    if (!L) return
+    const map = mapInstance
 
     if (tileLayerRef.current) {
       map.removeLayer(tileLayerRef.current)
     }
 
-    let url =
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-    let options: any = { maxZoom: 14 }
+    // Clean: CartoDB Positron (High-contrast, elegant, visible coastlines & borders)
+    let url = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+    let options: any = { maxZoom: 14, subdomains: "abcd" }
 
     if (layerType === "satellite") {
       url =
@@ -239,13 +285,14 @@ export function ThailandInteractiveMap({
 
     const newLayer = L.tileLayer(url, options).addTo(map)
     tileLayerRef.current = newLayer
-  }, [layerType, leafletLoaded])
+  }, [mapInstance, layerType])
 
   // 7. Render / Update Live Rain Radar Layer on Leaflet (100% Free - Zero API Key)
   useEffect(() => {
-    const map = mapInstanceRef.current
+    if (!mapInstance) return
     const L = (window as any).L
-    if (!map || !L) return
+    if (!L) return
+    const map = mapInstance
 
     if (radarLayerRef.current) {
       map.removeLayer(radarLayerRef.current)
@@ -273,6 +320,7 @@ export function ThailandInteractiveMap({
       errorTileUrl: BLANK_TILE,
     }).addTo(map)
   }, [
+    mapInstance,
     showRadar,
     currentFrameIndex,
     radarFrames,
@@ -280,14 +328,14 @@ export function ThailandInteractiveMap({
     radarOpacity,
     radarColorScheme,
     radarSmooth,
-    leafletLoaded,
   ])
 
   // 8. Inverted Mask to Dim Neighboring Countries (Myanmar, Laos, Cambodia, Malaysia)
   useEffect(() => {
-    const map = mapInstanceRef.current
+    if (!mapInstance || !countryGeo) return
     const L = (window as any).L
-    if (!map || !L || !countryGeo) return
+    if (!L) return
+    const map = mapInstance
 
     if (maskLayerRef.current) map.removeLayer(maskLayerRef.current)
 
@@ -325,13 +373,14 @@ export function ThailandInteractiveMap({
     } catch (e) {
       console.error("Error creating Thailand mask:", e)
     }
-  }, [countryGeo, layerType, leafletLoaded])
+  }, [mapInstance, countryGeo, layerType])
 
   // 9. Render 77 Province Boundary Outlines (Interactive Outline Polygons with Accurate Centroids)
   useEffect(() => {
-    const map = mapInstanceRef.current
+    if (!mapInstance || !provincesGeo) return
     const L = (window as any).L
-    if (!map || !L || !provincesGeo) return
+    if (!L) return
+    const map = mapInstance
 
     if (provincesGeoLayerRef.current) {
       map.removeLayer(provincesGeoLayerRef.current)
@@ -434,13 +483,14 @@ export function ThailandInteractiveMap({
     }).addTo(map)
 
     provincesGeoLayerRef.current = layer
-  }, [provincesGeo, cities, activeKey, lang, layerType, showRadar, leafletLoaded])
+  }, [mapInstance, provincesGeo, cities, activeKey, lang, layerType, showRadar])
 
   // 10. Render GPS Station Markers across Thailand (Centered Exactly at Polygon Centroid)
   useEffect(() => {
-    const map = mapInstanceRef.current
+    if (!mapInstance) return
     const L = (window as any).L
-    if (!map || !L) return
+    if (!L) return
+    const map = mapInstance
 
     markersRef.current.forEach((m) => map.removeLayer(m))
     markersRef.current = []
@@ -571,7 +621,7 @@ export function ThailandInteractiveMap({
       markersRef.current.push(marker)
       markersMapRef.current[city.key] = marker
     })
-  }, [cities, activeKey, mode, densityMode, zoomLevel, lang, leafletLoaded])
+  }, [mapInstance, cities, activeKey, mode, densityMode, zoomLevel, lang])
 
   function handleRecenter() {
     if (!mapInstanceRef.current) return

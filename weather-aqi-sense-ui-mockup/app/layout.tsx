@@ -38,6 +38,10 @@ export default function RootLayout({
       className={`light ${inter.variable} ${notoThai.variable}`}
       style={{ colorScheme: 'light' }}
     >
+      <head>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossOrigin="" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossOrigin=""></script>
+      </head>
       <body
         className="antialiased"
         style={{
