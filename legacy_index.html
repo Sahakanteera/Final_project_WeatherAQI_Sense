@@ -2108,7 +2108,11 @@
                 }
 
                 if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.time.length >= 24) {
-                    const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
+                    const sampleIndices = [];
+                    for (let i = 0; i < 24; i++) {
+                        const idx = currentHourIndex + i;
+                        if (idx < weatherJson.hourly.time.length) sampleIndices.push(idx);
+                    }
                     hourlyTimes = sampleIndices.map(i => weatherJson.hourly.time[i].split('T')[1]);
                     hourlyTemps = sampleIndices.map(i => weatherJson.hourly.temperature_2m[i]);
                     if (aqiJson.hourly && aqiJson.hourly.us_aqi) {
@@ -2806,7 +2810,11 @@
                     }
 
                     if (wData.hourly && wData.hourly.time && wData.hourly.time.length >= 24) {
-                        const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
+                        const sampleIndices = [];
+                        for (let i = 0; i < 24; i++) {
+                            const idx = currentHourIndex + i;
+                            if (idx < wData.hourly.time.length) sampleIndices.push(idx);
+                        }
                         hourlyTimes = sampleIndices.map(idx => wData.hourly.time[idx].split('T')[1]);
                         hourlyTemps = sampleIndices.map(idx => wData.hourly.temperature_2m[idx]);
                         if (aData.hourly && aData.hourly.us_aqi) {

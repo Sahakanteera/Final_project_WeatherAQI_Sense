@@ -15394,17 +15394,22 @@ export function aqiPercent(aqi: number): number {
 
 export function buildHourly(city: City): HourPoint[] {
   if (city.hourly && city.hourly.length) return city.hourly
-  const hours = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"]
-  const tempCurve = [-4, -5, -3, 1, 3, 2, -1, -3]
-  const aqiCurve = [4, 6, 8, 2, -4, -2, 2, 4]
-  return hours.map((time, i) => ({
-    time,
-    temp: Math.round(city.temp + tempCurve[i]),
-    aqi: Math.max(0, Math.round(city.aqi + aqiCurve[i])),
-    rainChance: Math.max(0, Math.min(100, Math.round(city.rainChance + (i % 2 === 0 ? 5 : -5)))),
-    wind: city.wind,
-    weather: city.weather,
-  }))
+  const result: HourPoint[] = []
+  for (let i = 0; i < 24; i++) {
+    const time = `${i.toString().padStart(2, '0')}:00`
+    const hourOffset = (i - 14) / 12 * Math.PI
+    const tempOffset = Math.cos(hourOffset) * 4
+    const aqiOffset = Math.sin(hourOffset) * -5
+    result.push({
+      time,
+      temp: Math.round(city.temp + tempOffset),
+      aqi: Math.max(0, Math.round(city.aqi + aqiOffset)),
+      rainChance: Math.max(0, Math.min(100, Math.round(city.rainChance + (i % 3 === 0 ? 10 : 0)))),
+      wind: city.wind,
+      weather: city.weather,
+    })
+  }
+  return result
 }
 
 export function getThailandRankings(cities: City[]) {
