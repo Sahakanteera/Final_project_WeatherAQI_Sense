@@ -49,7 +49,14 @@ function ChartTooltip({
 }
 
 export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
-  const hourlyData = buildHourly(city)
+  let hourlyData = buildHourly(city)
+
+  // Rotate to start at the current hour
+  const currentHour = new Date().getHours()
+  const startIndex = hourlyData.findIndex((d) => parseInt(d.time.split(":")[0]) === currentHour)
+  if (startIndex !== -1) {
+    hourlyData = [...hourlyData.slice(startIndex), ...hourlyData.slice(0, startIndex)]
+  }
 
   const chartData = hourlyData.map((d) => ({
     time: d.time,
@@ -109,7 +116,7 @@ export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
       {/* 24-hour Trend Line Chart */}
       <div className="h-52 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 8, right: 8, left: -5, bottom: 0 }}>
             <CartesianGrid stroke="#f1f3f4" vertical={false} />
             <XAxis
               dataKey="time"
