@@ -2217,7 +2217,7 @@
 
             try {
                 const [weatherRes, aqiRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal }),
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok`, { signal: controller.signal }),
                     fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lons}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
                 ]);
                 clearTimeout(timeoutId);
@@ -2242,9 +2242,32 @@
                     const aqi = (aData.current && aData.current.us_aqi !== undefined) ? Math.round(aData.current.us_aqi) : 45;
                     const pm25 = (aData.current && aData.current.pm2_5 !== undefined) ? aData.current.pm2_5.toFixed(1) : '12.5';
 
+                    let currentHourIndex = 12;
+                    if (wData.hourly && wData.hourly.time) {
+                        const now = new Date();
+                        currentHourIndex = wData.hourly.time.findIndex(t => new Date(t).getTime() >= now.getTime());
+                        if (currentHourIndex === -1) currentHourIndex = 0;
+                    }
+
+                    const rain = (wData.hourly && wData.hourly.rain) ? wData.hourly.rain[currentHourIndex] : 0.0;
+
                     let hourlyTimes = ['00:00','04:00','08:00','12:00','16:00','20:00','23:00'];
                     let hourlyTemps = [26, 25, 29, 33, 31, 28, 27];
                     let hourlyAqis  = [42, 40, 48, 55, 52, 45, 43];
+
+                    let rainForecast = [];
+                    if (wData.hourly && wData.hourly.time && wData.hourly.precipitation_probability) {
+                        for (let i = 0; i < 24; i += 3) {
+                            const idx = currentHourIndex + i;
+                            if (idx < wData.hourly.time.length) {
+                                rainForecast.push({
+                                    time: wData.hourly.time[idx].split('T')[1],
+                                    prob: wData.hourly.precipitation_probability[idx] || 0,
+                                    rain: wData.hourly.rain[idx] || 0
+                                });
+                            }
+                        }
+                    }
 
                     if (wData.hourly && wData.hourly.time && wData.hourly.time.length >= 24) {
                         const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
@@ -2260,10 +2283,11 @@
                         temp: Number(temp).toFixed(1),
                         humidity: humidity,
                         wind: Number(wind).toFixed(1),
+                        rain: Number(rain).toFixed(1),
                         weatherText: mapWmoCodeToText(weatherCode),
                         aqi: aqi,
                         pm25: pm25,
-                        history: { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis },
+                        history: { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis, rain: rainForecast },
                         fromCache: false,
                         cachedAt: new Date()
                     };
@@ -2348,7 +2372,8 @@
                                 history:     {
                                     labels: (row.hourly_labels && row.hourly_labels.length) ? row.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
                                     temp:   (row.hourly_temps && row.hourly_temps.length) ? row.hourly_temps : [28,29,31,32,30,29,28],
-                                    aqi:    (row.hourly_aqis && row.hourly_aqis.length) ? row.hourly_aqis : [40,42,48,50,45,43,41]
+                                    aqi:    (row.hourly_aqis && row.hourly_aqis.length) ? row.hourly_aqis : [40,42,48,50,45,43,41],
+                                    rain:   (row.hourly_rains && row.hourly_rains.length) ? row.hourly_rains : []
                                 },
                                 fromCache:   true,
                                 cachedAt:    new Date(row.fetched_at)
