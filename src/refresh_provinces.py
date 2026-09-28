@@ -145,8 +145,8 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         f"https://api.open-meteo.com/v1/forecast"
         f"?latitude={lat}&longitude={lon}"
         f"&current_weather=true"
-        f"&hourly=temperature_2m,relativehumidity_2m"
-        f"&forecast_days=1"
+        f"&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability"
+        f"&forecast_days=2"
         f"&timezone=Asia%2FBangkok"
     )
     aqi_url = (
@@ -175,6 +175,31 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         h_temps  = (weather.get("hourly", {}).get("temperature_2m") or [28,29,31,32,30,29,28])[:7]
         h_aqis   = (aqi.get("hourly", {}).get("us_aqi") or [40,42,48,50,45,43,41])[:7]
 
+        # ดึงข้อมูลพยากรณ์ฝน 24 ชั่วโมง (ข้ามทีละ 3 ชั่วโมง)
+        hourly_rains = []
+        now = datetime.now(timezone.utc) # ใช้เวลาคร่าวๆ เพราะเดี๋ยวเช็กจาก array
+        times = weather.get("hourly", {}).get("time") or []
+        probs = weather.get("hourly", {}).get("precipitation_probability") or []
+        rains = weather.get("hourly", {}).get("rain") or []
+        
+        # หา currentHourIndex แบบเดียวกับ JS
+        current_idx = 0
+        current_time_str = datetime.now().strftime("%Y-%m-%dT%H:00")
+        for i, t in enumerate(times):
+            if t >= current_time_str:
+                current_idx = i
+                break
+                
+        if times and probs:
+            for i in range(0, 24, 3):
+                idx = current_idx + i
+                if idx < len(times):
+                    hourly_rains.append({
+                        "time": times[idx].split("T")[1],
+                        "prob": probs[idx],
+                        "rain": rains[idx]
+                    })
+
         text_th, text_en = wmo_code_to_text(wcode)
         return {
             "city_key":       province["key"],
@@ -185,6 +210,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
             "temperature":    round(temp, 1),
             "humidity":       int(humidity),
             "wind_speed":     round(wind, 1),
+            "rain":           round(rains[current_idx] if rains and current_idx < len(rains) else 0.0, 1),
             "weather_code":   wcode,
             "weather_text_th": text_th,
             "weather_text_en": text_en,
@@ -193,6 +219,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
             "hourly_labels":  h_labels,
             "hourly_temps":   h_temps,
             "hourly_aqis":    h_aqis,
+            "hourly_rains":   hourly_rains,
             "fetched_at":     datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
