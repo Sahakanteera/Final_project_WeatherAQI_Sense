@@ -22,6 +22,8 @@ wheels/
 
 # Excluded sample docs folder
 เอกสารตัวอย่าง/
+docs/
+*.pdf
 
 # Database & generated artifacts
 *.db
