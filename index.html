@@ -2443,6 +2443,60 @@
             });
         }
 
+        // ─── Sync All Provinces from Supabase (Auto Refresh in Background) ───
+        async function syncAllFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('weather_aqi_cache')
+                    .select('*');
+                if (!error && data && data.length > 0) {
+                    let hasUpdates = false;
+                    data.forEach(row => {
+                        const k = (row.city_key || '').toLowerCase().trim();
+                        const rowTime = new Date(row.fetched_at).getTime();
+                        const cacheTime = cachedCityData[k] && cachedCityData[k].cachedAt ? new Date(cachedCityData[k].cachedAt).getTime() : 0;
+                        
+                        // ถ้าระบบฐานข้อมูลมีข้อมูลใหม่กว่า (background script อัปเดตแล้ว)
+                        if (rowTime > cacheTime) {
+                            const wt = mapWmoCodeToText(row.weather_code || 0);
+                            cachedCityData[k] = {
+                                name:        { th: row.city_name_th, en: row.city_name_en },
+                                temp:        String(row.temperature),
+                                humidity:    row.humidity || 65,
+                                wind:        String(row.wind_speed || 10),
+                                weatherText: wt,
+                                aqi:         row.aqi || 45,
+                                pm25:        String(row.pm25 || 12),
+                                history:     {
+                                    labels: (row.hourly_labels && row.hourly_labels.length) ? row.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
+                                    temp:   (row.hourly_temps && row.hourly_temps.length) ? row.hourly_temps : [28,29,31,32,30,29,28],
+                                    aqi:    (row.hourly_aqis && row.hourly_aqis.length) ? row.hourly_aqis : [40,42,48,50,45,43,41],
+                                    rain:   (row.hourly_rains && row.hourly_rains.length) ? row.hourly_rains : []
+                                },
+                                fromCache:   true,
+                                cachedAt:    new Date(row.fetched_at)
+                            };
+                            hasUpdates = true;
+                        }
+                    });
+
+                    // ถ้าพบว่ามีข้อมูลจังหวัดไหนใหม่ขึ้น ให้รีเฟรชหน้าจอแบบเงียบๆ ทีเดียวเลย
+                    if (hasUpdates) {
+                        console.log('[Sync] New data synced from Supabase backend for all provinces.');
+                        if (cachedCityData[currentCityKey]) {
+                            updateUIWithData(cachedCityData[currentCityKey]);
+                            updateDataBadge(true, cachedCityData[currentCityKey].cachedAt);
+                        }
+                        renderCityList();
+                        highlightFreshData();
+                    }
+                }
+            } catch(e) {
+                console.warn('[Sync] Sync from Supabase failed:', e);
+            }
+        }
+
         // ============================================================
         //  Hourly Auto-Fetcher: ดึงข้อมูลอัตโนมัติต้นชั่วโมงเป๊ะๆ (:00 น.) วนลูปทุก 1 ชั่วโมง
         // ============================================================
@@ -2557,6 +2611,31 @@
                     }
                 }
             }, 5000);
+
+            // ─── ระบบ Realtime & Fallback Polling ───
+            // 1. (แนะนำ) ใช้ Supabase Realtime รอรับ event เมื่อฐานข้อมูลมีการเปลี่ยนแปลง
+            if (supabaseClient) {
+                let realtimeSyncTimer = null;
+                supabaseClient
+                    .channel('weather_cache_changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'weather_aqi_cache' }, payload => {
+                        // เมื่อ Python อัปเดตข้อมูล 78 จังหวัด จะเกิด event รัวๆ 78 ครั้ง
+                        // เราใช้ debounce (หน่วงเวลา) 2.5 วินาที เพื่อรอให้อัปเดตครบก่อนค่อยดึงข้อมูลใหม่ทีเดียว
+                        if (realtimeSyncTimer) clearTimeout(realtimeSyncTimer);
+                        realtimeSyncTimer = setTimeout(() => {
+                            console.log('[Realtime] Database changes settled, syncing new data...');
+                            if (!isAutoRefreshing) syncAllFromSupabase();
+                        }, 2500);
+                    })
+                    .subscribe();
+            }
+
+            // 2. (สำรอง) เช็คข้อมูลทุกๆ 5 นาที (300,000 ms) กรณีที่ไม่ได้เปิดใช้งาน Realtime บนหน้าเว็บ Supabase
+            setInterval(() => {
+                if (!isAutoRefreshing) {
+                    syncAllFromSupabase();
+                }
+            }, 300000);
         });
     </script>
     <!-- Toast Notification for Auto-Refresh / Manual Refresh -->
