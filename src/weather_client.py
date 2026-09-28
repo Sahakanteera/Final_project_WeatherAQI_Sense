@@ -117,7 +117,9 @@ class WeatherClient:
 
     def _mock_weather_data(self, city_clean: str) -> Dict[str, Any]:
         mock_map = {
-            "bangkok": {"temp": 32.5, "humidity": 68.0, "pressure": 1009.0, "rain": 0.0, "description": "Partly cloudy"},
+            "bangkok": {
+                "temp": 32.5, "humidity": 68.0, "pressure": 1009.0, "rain": 0.0, "description": "Partly cloudy"
+            },
             "khon kaen": {"temp": 30.2, "humidity": 62.0, "pressure": 1011.0, "rain": 0.0, "description": "Sunny"},
             "chiang mai": {"temp": 28.0, "humidity": 75.0, "pressure": 1012.0, "rain": 0.0, "description": "Haze"},
             "phuket": {"temp": 31.0, "humidity": 80.0, "pressure": 1008.0, "rain": 2.5, "description": "Light rain"}

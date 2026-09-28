@@ -55,7 +55,9 @@ class DataStore:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    INSERT INTO metrics (timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant)
+                    INSERT INTO metrics (
+                        timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant
+                    )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     record.get("timestamp", ""),
