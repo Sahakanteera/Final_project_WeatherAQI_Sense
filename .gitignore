@@ -27,6 +27,7 @@ wheels/
 *.db
 *.png
 !weather-aqi-sense-ui-mockup/public/*.png
+!Sprint2/*.png
 .env
 
 # Supabase credentials (ใช้ config.example.js เป็น template แทน)

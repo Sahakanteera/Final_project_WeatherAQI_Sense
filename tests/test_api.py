@@ -5,6 +5,7 @@ Unit Tests for WeatherClient API Module
 import unittest
 from src.weather_client import WeatherClient
 
+
 class TestWeatherClient(unittest.TestCase):
     def setUp(self):
         self.client = WeatherClient(owm_api_key="demo_owm_key", iqair_api_key="demo_iqair_key")
@@ -27,6 +28,7 @@ class TestWeatherClient(unittest.TestCase):
         self.assertIn("timestamp", snapshot)
         self.assertIn("aqi", snapshot)
         self.assertIn("temp", snapshot)
+
 
 if __name__ == "__main__":
     unittest.main()

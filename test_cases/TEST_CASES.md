@@ -19,6 +19,20 @@
 | **TC-08** | Chart Rendering | พล็อตกราฟ Matplotlib Dual-Axis | 7 Historical Records | สร้างไฟล์ภาพ PNG 2 แกน Y (Temp vs AQI) | ได้ไฟล์ภาพ `trend_khon_kaen.png` สมบูรณ์ | **PASSED** |
 | **TC-09** | UI Bilingual Switch | สลับภาษาหน้าเว็บ TH / EN | Toggle select = "en" | ข้อความ หัวข้อ และคำแนะนำเปลี่ยนเป็นภาษาอังกฤษ | ข้อความเปลี่ยนเป็นภาษาอังกฤษทันทีเรียลไทม์ | **PASSED** |
 | **TC-10** | Defensive Fallback | ทดสอบระบบสำรองเมื่อ API ล้มเหลว | API Key ไม่ถูกต้อง | สลับมาใช้ข้อมูลจำลองที่ปลอดภัย โปรแกรมไม่พัง | ใช้ Fallback Data รันโปรแกรมต่อได้ | **PASSED** |
+| **TC-11** | Search Algorithm | ค้นหาเรคอร์ดตามคำค้น "Bangkok" | keyword = "Bangkok" | พบเรคอร์ดที่มีชื่อเมือง Bangkok | แสดงเรคอร์ด Bangkok ตรงตามที่ค้นหา | **PASSED** |
+| **TC-12** | Search Algorithm | ค้นหาด้วยคำค้นที่ไม่มีในระบบ | keyword = "Atlantis" | ไม่พบเรคอร์ด แสดงรายการว่าง | แสดง empty list ไม่มี error | **PASSED** |
+| **TC-13** | Filter Algorithm | กรองข้อมูลตามช่วง AQI 0-50 | aqi_min=0, aqi_max=50 | พบเฉพาะเรคอร์ดที่ AQI อยู่ในช่วง 0-50 | กรองได้ถูกต้องตามเงื่อนไข | **PASSED** |
+| **TC-14** | Filter Algorithm | กรองข้อมูลตามช่วงอุณหภูมิ 30-40°C | temp_min=30, temp_max=40 | พบเฉพาะเรคอร์ดที่อุณหภูมิอยู่ในช่วง | กรองอุณหภูมิได้แม่นยำ | **PASSED** |
+| **TC-15** | Sort Algorithm | เรียงลำดับข้อมูลตาม AQI น้อยไปมาก | sort_by="aqi", order="asc" | ข้อมูลเรียงจาก AQI ต่ำสุดไปสูงสุด | เรียงลำดับถูกต้อง [20, 60, 100] | **PASSED** |
+| **TC-16** | Sort Algorithm | เรียงลำดับตามอุณหภูมิมากไปน้อย | sort_by="temp", order="desc" | ข้อมูลเรียงจาก Temp สูงสุดไปต่ำสุด | เรียงลำดับถูกต้อง [35, 30, 25] | **PASSED** |
+| **TC-17** | CRUD - Update | แก้ไขเรคอร์ดที่มีอยู่ในระบบ | record_id=1, temp=99.9 | อัปเดตค่า temp สำเร็จ | ค่า temp เปลี่ยนเป็น 99.9 ตรง | **PASSED** |
+| **TC-18** | CRUD - Update | แก้ไขเรคอร์ดที่ไม่มีอยู่ | record_id=99999 | แจ้งเตือนว่าไม่พบเรคอร์ด, return False | return False ไม่มี error | **PASSED** |
+| **TC-19** | CRUD - Delete | ลบเรคอร์ดที่มีอยู่ในระบบ | record_id=1 | ลบสำเร็จ เรคอร์ดหายจากฐานข้อมูล | ลบได้ถูกต้อง fetch กลับมาเป็น empty | **PASSED** |
+| **TC-20** | CRUD - Delete | ลบเรคอร์ดที่ไม่มีอยู่ | record_id=99999 | แจ้งเตือนว่าไม่พบเรคอร์ด, return False | return False ไม่มี error | **PASSED** |
+| **TC-21** | AQI Boundary | ทดสอบ AQI = 0 (ขอบล่างสุด) | AQI = 0 | หมวด "Good" | หมวด Good ตรงตามเกณฑ์ | **PASSED** |
+| **TC-22** | AQI Boundary | ทดสอบ AQI = 301 (ขอบ Hazardous) | AQI = 301 | หมวด "Hazardous" | หมวด Hazardous ตรง | **PASSED** |
+| **TC-23** | Temp Boundary | ทดสอบอุณหภูมิ -20°C (หนาวจัด) | Temp = -20.0 | แจ้งเตือน "Cool Notice" | Cool Notice ตรงตามเกณฑ์ | **PASSED** |
+| **TC-24** | Temp Boundary | ทดสอบอุณหภูมิ 50°C (ร้อนจัด) | Temp = 50.0 | แจ้งเตือน "Heat Warning" | Heat Warning ตรง | **PASSED** |
 
 ---
 

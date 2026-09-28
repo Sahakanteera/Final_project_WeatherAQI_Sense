@@ -6,6 +6,20 @@
 
 ---
 
+## 📁 โฟลเดอร์ส่งงานแต่ละ Sprint บน GitHub (Sprint Deliverables)
+
+> 📌 **หมายเหตุส่งงาน:** แยกโฟลเดอร์ `Sprint1/`, `Sprint2/`, `Sprint3/` อย่างชัดเจน พร้อม `CHANGELOG.md` ที่สอดคล้องกับทุก Sprint
+
+| โฟลเดอร์ | Sprint | ผลงานสำคัญที่ส่งมอบ | เอกสารสรุป |
+|:---:|:---|:---|:---:|
+| 📦 `Sprint1/` | **Sprint 1: Core OOP & CLI** | OOP Skeleton, CLI Interface, SQLite Store, Defensive Fallbacks, Unit Tests 22/22 Passed | [📄 เปิดโฟลเดอร์ Sprint 1](./Sprint1/README.md) |
+| 📦 `Sprint2/` | **Sprint 2: Back-End & Cloud** | Supabase Cloud, Dual-Axis Chart, AI Advisory, Search/Filter/Sort, CRUD ครบ 4 ตัว, AI Logs | [📄 เปิดโฟลเดอร์ Sprint 2](./Sprint2/README.md) |
+| 📦 `Sprint3/` | **Sprint 3: Web & DevOps** | Web Dashboard Glassmorphism (78 จังหวัด), Bilingual TH/EN, CI/CD Actions, QA 62 Tests | [📄 เปิดโฟลเดอร์ Sprint 3](./Sprint3/README.md) |
+| 📝 `CHANGELOG.md` | **Changelog ราย Sprint** | ประวัติการพัฒนา [v0.1.0] Sprint 1, [v0.2.0] Sprint 2, [v0.3.0] Sprint 3 | [📄 เปิดดู CHANGELOG.md](./CHANGELOG.md) |
+| 📋 `PLAN.md` | **Architecture & Plan** | UML Class Diagram, Data Schema (SQLite + Supabase), Definition of Done (DoD) | [📄 เปิดดู PLAN.md](./PLAN.md) |
+
+---
+
 ## 👥 สมาชิกในทีมและการหมุนเวียนบทบาท (Role Rotation Matrix)
 
 เพื่อให้สมาชิกทุกคนในทีมได้ฝึกฝนทั้ง 3 บทบาทหลัก (**Planner / Architect**, **Coder / Dev**, **Debugger / QA & DevOps**) ครบทุกคน 100%:
@@ -30,13 +44,22 @@
 - 🏥 **Health & Temp Advisory**: คำนวณระดับความเสี่ยง AQI ให้คำแนะนำสุขภาพ การออกกำลังกายกลางแจ้ง และแจ้งเตือนเมื่ออุณหภูมิสูงเกินเกณฑ์
 - 🧪 **Automated Test Coverage (`tests/`)**: มีชุดทดสอบระบบด้วย `pytest` ครอบคลุมทั้ง API Gateway และ SQLite Database (Pass 100%)
 
-### 🟡 ฟีเจอร์ตามแผนงานที่จะพัฒนาใน Sprint ถัดไป (Planned Features Roadmap)
-- ☁️ **Cloud Database Migration (Sprint 2)**: ย้ายการจัดเก็บข้อมูลจาก Local SQLite ไปยัง Cloud Database (Supabase PostgreSQL)
-- 📈 **Dual-Axis Chart Generator (Sprint 2)**: ระบบส่งออกภาพกราฟวิเคราะห์เปรียบเทียบ Temp vs AQI ย้อนหลังด้วย Matplotlib (`src/report_generator.py`)
-- 🧠 **AI Health Advisory Module (Sprint 2)**: ระบบประมวลผลคำแนะนำสุขภาพและกิจกรรมกลางแจ้งเชิงลึกด้วย LLM/GenAI (`src/ai_advisory.py`)
-- 🌐 **Web Dashboard Interface (Sprint 3)**: หน้าเว็บแดชบอร์ดสไตล์ Glassmorphism UI ดึงข้อมูล Live API บนเบราว์เซอร์ (`index.html`)
-- 🌐 **Bilingual UI Support (Sprint 3)**: สลับภาษาในการแสดงผลหน้าเว็บได้ 2 ภาษา (ไทย/อังกฤษ - TH/EN Toggle)
-- 🚀 **GitHub Pages Deployment (Sprint 3)**: ระบบ CI/CD จัดส่งหน้าเว็บอัตโนมัติไปยัง GitHub Pages (`.github/workflows/static.yml`)
+### 🟢 ฟีเจอร์ที่พัฒนาเสร็จใน Sprint 2 (Completed - Sprint 2)
+- ☁️ **Cloud Database Migration**: ย้ายการจัดเก็บข้อมูลจาก Local SQLite ไปยัง Cloud Database (Supabase PostgreSQL)
+- 📈 **Dual-Axis Chart Generator**: ระบบส่งออกภาพกราฟวิเคราะห์เปรียบเทียบ Temp vs AQI ย้อนหลังด้วย Matplotlib (`src/report_generator.py`)
+- 🧠 **AI Health Advisory Module**: ระบบประมวลผลคำแนะนำสุขภาพและกิจกรรมกลางแจ้งเชิงลึก 6 ระดับ AQI (`src/ai_advisory.py`)
+- 🔍 **Search Algorithm**: ค้นหาเรคอร์ดตามคำค้น (ชื่อเมือง/คำอธิบาย) — `DataStore.search_records(keyword)`
+- 🔎 **Filter Algorithm**: กรองข้อมูลหลายเงื่อนไข (AQI range, Temp range, City) — `DataStore.filter_records()`
+- 📊 **Sort Algorithm**: เรียงลำดับตามคอลัมน์ (aqi, temp, timestamp, city) — `DataStore.fetch_sorted_records()`
+- ✏️ **CRUD Complete**: เพิ่ม Update (`update_record`) และ Delete (`delete_record`) ให้ CRUD ครบ 4 ตัว
+
+### 🟢 ฟีเจอร์ที่พัฒนาเสร็จใน Sprint 3 (Completed - Sprint 3)
+- 🌐 **Web Dashboard Interface**: หน้าเว็บแดชบอร์ดสไตล์ Glassmorphism UI ดึงข้อมูล Live API 78 จังหวัดทั่วไทย (`index.html`)
+- 🌐 **Bilingual UI Support**: สลับภาษาในการแสดงผลหน้าเว็บได้ 2 ภาษา (ไทย/อังกฤษ - TH/EN Toggle)
+- 🚀 **GitHub Pages Deployment**: ระบบ CI/CD จัดส่งหน้าเว็บอัตโนมัติไปยัง GitHub Pages (`.github/workflows/static.yml`)
+- 🧪 **CI/CD Pipeline**: ระบบ Linting (flake8) และ Unit Test (pytest) อัตโนมัติ (`.github/workflows/ci.yml`)
+- 🔄 **Auto Data Refresh**: ดึงข้อมูลสดทุก 12 ชม. ผ่าน GitHub Actions Cron (`.github/workflows/refresh_data.yml`)
+- 🧪 **Edge Case Testing**: ชุดทดสอบ 44 เคส ครอบคลุม boundary, CRUD, Search/Filter/Sort
 
 ---
 

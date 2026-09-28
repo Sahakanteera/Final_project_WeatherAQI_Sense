@@ -6,19 +6,32 @@ and Air Quality Index (AQI) data from IQAir API with defensive programming.
 
 import requests
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
+
 
 class WeatherClient:
     """
     Client for interacting with OpenWeatherMap and IQAir APIs.
     Includes defensive checks, timeouts, and graceful fallbacks.
     """
-    
+
     DEFAULT_CITIES = {
-        "bangkok": {"lat": 13.7563, "lon": 100.5018, "name": "Bangkok", "state": "Bangkok", "country": "Thailand"},
-        "khon kaen": {"lat": 16.4322, "lon": 102.8236, "name": "Khon Kaen", "state": "Khon Kaen", "country": "Thailand"},
-        "chiang mai": {"lat": 18.7883, "lon": 98.9853, "name": "Chiang Mai", "state": "Chiang Mai", "country": "Thailand"},
-        "phuket": {"lat": 7.8804, "lon": 98.3923, "name": "Phuket", "state": "Phuket", "country": "Thailand"}
+        "bangkok": {
+            "lat": 13.7563, "lon": 100.5018,
+            "name": "Bangkok", "state": "Bangkok", "country": "Thailand"
+        },
+        "khon kaen": {
+            "lat": 16.4322, "lon": 102.8236,
+            "name": "Khon Kaen", "state": "Khon Kaen", "country": "Thailand"
+        },
+        "chiang mai": {
+            "lat": 18.7883, "lon": 98.9853,
+            "name": "Chiang Mai", "state": "Chiang Mai", "country": "Thailand"
+        },
+        "phuket": {
+            "lat": 7.8804, "lon": 98.3923,
+            "name": "Phuket", "state": "Phuket", "country": "Thailand"
+        }
     }
 
     def __init__(self, owm_api_key: str = "demo_owm_key", iqair_api_key: str = "demo_iqair_key"):
@@ -60,8 +73,14 @@ class WeatherClient:
         if self.iqair_api_key == "demo_iqair_key" or not self.iqair_api_key:
             return self._mock_aqi_data(city_clean)
 
-        city_info = self.DEFAULT_CITIES.get(city_clean, {"name": city, "state": city, "country": "Thailand"})
-        url = f"https://api.airvisual.com/v2/city?city={city_info['name']}&state={city_info['state']}&country={city_info['country']}&key={self.iqair_api_key}"
+        city_info = self.DEFAULT_CITIES.get(
+            city_clean, {"name": city, "state": city, "country": "Thailand"}
+        )
+        url = (
+            f"https://api.airvisual.com/v2/city?city={city_info['name']}&"
+            f"state={city_info['state']}&country={city_info['country']}&"
+            f"key={self.iqair_api_key}"
+        )
         try:
             response = requests.get(url, timeout=5)
             response.raise_for_status()
@@ -82,7 +101,7 @@ class WeatherClient:
         weather = self.fetch_weather(city)
         aqi_info = self.fetch_aqi(city)
         city_name = city.strip().title()
-        
+
         return {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "city": city_name,
@@ -101,7 +120,10 @@ class WeatherClient:
             "chiang mai": {"temp": 28.0, "humidity": 75.0, "pressure": 1012.0, "description": "Haze"},
             "phuket": {"temp": 31.0, "humidity": 80.0, "pressure": 1008.0, "description": "Light rain"}
         }
-        return mock_map.get(city_clean, {"temp": 29.5, "humidity": 65.0, "pressure": 1010.0, "description": "Clear sky"})
+        return mock_map.get(
+            city_clean,
+            {"temp": 29.5, "humidity": 65.0, "pressure": 1010.0, "description": "Clear sky"}
+        )
 
     def _mock_aqi_data(self, city_clean: str) -> Dict[str, Any]:
         mock_map = {

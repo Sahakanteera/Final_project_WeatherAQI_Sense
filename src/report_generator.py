@@ -6,14 +6,15 @@ using Matplotlib with dual-axis rendering and defensive data handling.
 
 import matplotlib.pyplot as plt
 import os
-from typing import List, Dict, Any, Optional
+from typing import Optional
 from src.data_store import DataStore
+
 
 class ReportGenerator:
     """
     Generates Matplotlib trend analysis charts from DataStore SQLite records.
     """
-    
+
     def __init__(self, data_store: DataStore):
         self.data_store = data_store
 

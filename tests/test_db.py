@@ -7,6 +7,7 @@ import os
 import tempfile
 from src.data_store import DataStore
 
+
 class TestDataStore(unittest.TestCase):
     def setUp(self):
         fd, self.temp_path = tempfile.mkstemp(suffix=".db")
@@ -39,6 +40,7 @@ class TestDataStore(unittest.TestCase):
         self.assertEqual(fetched[0]["city"], "Khon Kaen")
         self.assertEqual(fetched[0]["temp"], 30.5)
         self.assertEqual(fetched[0]["aqi"], 45)
+
 
 if __name__ == "__main__":
     unittest.main()

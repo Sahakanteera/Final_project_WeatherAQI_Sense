@@ -9,7 +9,13 @@ import re
 import os
 
 SUPABASE_URL = "https://gufpmcpwqdgrtgincffa.supabase.co"
-SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0.XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU"
+SUPABASE_ANON_KEY = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiw"
+    "icm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0."
+    "XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU"
+)
+
 
 def map_wmo_code_to_text(code: int):
     if code == 0:
@@ -28,6 +34,7 @@ def map_wmo_code_to_text(code: int):
         return {"th": "🌩️ มีพายุฝนฟ้าคะนอง", "en": "🌩️ Thunderstorm Warning"}
     return {"th": "☀️ อากาศโปร่งใส", "en": "☀️ Clear Weather"}
 
+
 def get_provinces():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     index_file = os.path.join(root, "index.html")
@@ -45,7 +52,11 @@ def get_provinces():
         if not line or line.startswith("//"):
             continue
         # e.g. {key:"bangkok", nameTh:"กรุงเทพมหานคร", nameEn:"Bangkok", region:"central", lat:13.7563, lon:100.5018},
-        m = re.search(r'key:"([^"]+)",\s*nameTh:"([^"]+)",\s*nameEn:"([^"]+)",\s*region:"([^"]+)",\s*lat:([0-9.]+),\s*lon:([0-9.]+)', line)
+        pattern = (
+            r'key:"([^"]+)",\s*nameTh:"([^"]+)",\s*nameEn:"([^"]+)",\s*'
+            r'region:"([^"]+)",\s*lat:([0-9.]+),\s*lon:([0-9.]+)'
+        )
+        m = re.search(pattern, line)
         if m:
             provinces.append({
                 "key": m.group(1),
@@ -56,6 +67,7 @@ def get_provinces():
                 "lon": float(m.group(6))
             })
     return provinces
+
 
 def sync():
     provinces = get_provinces()
@@ -72,8 +84,14 @@ def sync():
 
         print(f"Fetching Open-Meteo batch for chunk {chunk_idx // chunk_size + 1} ({len(chunk)} provinces)...")
 
-        weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1"
-        aqi_url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lats}&longitude={lons}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1"
+        weather_url = (
+            f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}"
+            "&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1"
+        )
+        aqi_url = (
+            f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lats}&longitude={lons}"
+            "&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1"
+        )
 
         req_w = urllib.request.Request(weather_url, headers={"User-Agent": "WeatherAQISense/1.0"})
         req_a = urllib.request.Request(aqi_url, headers={"User-Agent": "WeatherAQISense/1.0"})
@@ -149,6 +167,7 @@ def sync():
             print(f"Upserted records {b+1} to {min(b+20, len(all_records))} (Status {res.status})")
 
     print("\n[SUCCESS] All provinces successfully synced to Supabase!\n")
+
 
 if __name__ == "__main__":
     sync()

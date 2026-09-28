@@ -9,6 +9,7 @@ from src.ai_advisory import AIAdvisory
 from src.data_store import DataStore
 from src.report_generator import ReportGenerator
 
+
 class TestReportsAndAdvisory(unittest.TestCase):
     def test_ai_advisory_good_aqi(self):
         advisory = AIAdvisory.get_advisory(aqi=30, temp=25.0)
@@ -25,7 +26,7 @@ class TestReportsAndAdvisory(unittest.TestCase):
         os.close(fd_db)
         fd_png, temp_png_path = tempfile.mkstemp(suffix=".png")
         os.close(fd_png)
-        
+
         try:
             store = DataStore(db_path=temp_db_path)
             store.save_record({
@@ -36,7 +37,7 @@ class TestReportsAndAdvisory(unittest.TestCase):
                 "aqi": 80,
                 "main_pollutant": "p2"
             })
-            
+
             reporter = ReportGenerator(store)
             output = reporter.plot_city_trends("Bangkok", output_path=temp_png_path)
             self.assertIsNotNone(output)
@@ -52,6 +53,7 @@ class TestReportsAndAdvisory(unittest.TestCase):
                     os.remove(temp_png_path)
                 except Exception:
                     pass
+
 
 if __name__ == "__main__":
     unittest.main()
