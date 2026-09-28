@@ -62,9 +62,11 @@ export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
     time: d.time,
     [pick(UI.temperature, lang)]: d.temp,
     AQI: d.aqi,
+    Rain: d.rainChance,
   }))
 
   const tempKey = pick(UI.temperature, lang)
+  const RAIN_COLOR = "#0ea5e9" // A nice light blue for rain
 
   return (
     <section className={cardClass}>
@@ -82,6 +84,10 @@ export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
             <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: AQI_COLOR }} />
             AQI
           </span>
+          <span className="flex items-center gap-1.5 text-xs text-[#5f6368]">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: RAIN_COLOR }} />
+            Rain %
+          </span>
         </div>
       </div>
 
@@ -89,7 +95,7 @@ export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
       <div className="mb-5 flex gap-2.5 overflow-x-auto pb-2.5 pt-1 scrollbar-thin">
         {hourlyData.map((h, i) => (
           <div
-            key={h.time}
+            key={h.time + i}
             className={`flex min-w-[70px] flex-col items-center rounded-xl border p-2.5 transition ${
               i === 0
                 ? "border-[#1a73e8]/30 bg-[#e8f0fe]/50 font-medium"
@@ -145,6 +151,14 @@ export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
               stroke={AQI_COLOR}
               strokeWidth={2.5}
               dot={{ r: 3, fill: AQI_COLOR, strokeWidth: 0 }}
+              activeDot={{ r: 5 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="Rain"
+              stroke={RAIN_COLOR}
+              strokeWidth={2.5}
+              dot={{ r: 3, fill: RAIN_COLOR, strokeWidth: 0 }}
               activeDot={{ r: 5 }}
             />
           </LineChart>
