@@ -971,6 +971,7 @@
                 <style>
                     #rainForecastContainer::-webkit-scrollbar { height: 6px; }
                     #rainForecastContainer::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 10px; }
+                    #rainForecastContainer::before, #rainForecastContainer::after { content: ''; margin: auto; }
                 </style>
                 <!-- dynamic items injected via JS -->
             </div>
@@ -1562,7 +1563,7 @@
 
                 let rainForecast = [];
                 if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.precipitation_probability) {
-                    for (let i = 0; i < 24; i += 3) {
+                    for (let i = 0; i < 24; i++) {
                         const idx = currentHourIndex + i;
                         if (idx < weatherJson.hourly.time.length) {
                             rainForecast.push({
@@ -2257,7 +2258,7 @@
 
                     let rainForecast = [];
                     if (wData.hourly && wData.hourly.time && wData.hourly.precipitation_probability) {
-                        for (let i = 0; i < 24; i += 3) {
+                        for (let i = 0; i < 24; i++) {
                             const idx = currentHourIndex + i;
                             if (idx < wData.hourly.time.length) {
                                 rainForecast.push({

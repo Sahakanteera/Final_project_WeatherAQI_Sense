@@ -191,7 +191,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
                 break
                 
         if times and probs:
-            for i in range(0, 24, 3):
+            for i in range(24):
                 idx = current_idx + i
                 if idx < len(times):
                     hourly_rains.append({
