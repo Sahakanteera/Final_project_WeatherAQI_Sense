@@ -1730,22 +1730,26 @@
             }
 
             const rainContainer = document.getElementById('rainForecastContainer');
-            if (rainContainer && data.history && data.history.rain) {
+            if (rainContainer) {
                 rainContainer.innerHTML = '';
-                data.history.rain.forEach(item => {
-                    let probColor = item.prob > 50 ? '#38bdf8' : (item.prob > 20 ? '#34d399' : 'var(--text-secondary)');
-                    let iconStr = item.prob > 50 ? '🌧️' : (item.prob > 20 ? '⛅' : '☀️');
-                    let timeFmt = item.time.substring(0, 5); // get HH:MM
-                    let html = `
-                        <div style="flex: 0 0 auto; width: 85px; padding: 1rem 0.5rem; background: rgba(30,41,59,0.6); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); text-align: center; display: flex; flex-direction: column; gap: 0.3rem; transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                            <span style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">${timeFmt}</span>
-                            <span style="font-size: 1.8rem; margin: 0.2rem 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${iconStr}</span>
-                            <span style="font-size: 1.1rem; font-weight: 800; color: ${probColor};">${item.prob}%</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">${item.rain > 0 ? item.rain + 'mm' : '-'}</span>
-                        </div>
-                    `;
-                    rainContainer.innerHTML += html;
-                });
+                if (data.history && data.history.rain && data.history.rain.length > 0) {
+                    data.history.rain.forEach(item => {
+                        let probColor = item.prob > 50 ? '#38bdf8' : (item.prob > 20 ? '#34d399' : 'var(--text-secondary)');
+                        let iconStr = item.prob > 50 ? '🌧️' : (item.prob > 20 ? '⛅' : '☀️');
+                        let timeFmt = item.time.substring(0, 5); // get HH:MM
+                        let html = `
+                            <div style="flex: 0 0 auto; width: 85px; padding: 1rem 0.5rem; background: rgba(30,41,59,0.6); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); text-align: center; display: flex; flex-direction: column; gap: 0.3rem; transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <span style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">${timeFmt}</span>
+                                <span style="font-size: 1.8rem; margin: 0.2rem 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${iconStr}</span>
+                                <span style="font-size: 1.1rem; font-weight: 800; color: ${probColor};">${item.prob}%</span>
+                                <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">${item.rain > 0 ? item.rain + 'mm' : '-'}</span>
+                            </div>
+                        `;
+                        rainContainer.innerHTML += html;
+                    });
+                } else {
+                    rainContainer.innerHTML = `<div style="padding: 1rem; color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">กำลังรอข้อมูลพยากรณ์ฝนชุดใหม่... (คลิก Refresh Live API)</div>`;
+                }
             }
 
             initChart(data.history.labels, data.history.temp, data.history.aqi);
