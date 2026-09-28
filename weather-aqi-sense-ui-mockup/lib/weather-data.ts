@@ -15393,7 +15393,7 @@ export function aqiPercent(aqi: number): number {
 }
 
 export function buildHourly(city: City): HourPoint[] {
-  if (city.hourly && city.hourly.length) return city.hourly
+  // Ignored hardcoded city.hourly to force 24 hours generation
   const result: HourPoint[] = []
   for (let i = 0; i < 24; i++) {
     const time = `${i.toString().padStart(2, '0')}:00`

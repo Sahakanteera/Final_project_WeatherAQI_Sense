@@ -1,0 +1,33 @@
+name: Sync Weather Data to Supabase
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # รันทุกๆ ต้นชั่วโมง (เช่น 09:00, 10:00, 11:00) ตามเวลา UTC
+  workflow_dispatch:      # ปุ่มกดรันแบบ Manual ในหน้าเว็บ GitHub
+
+jobs:
+  sync_data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # ถ้ามี requirements.txt ให้รัน pip install -r requirements.txt
+        pip install requests python-dotenv
+
+    - name: Run sync_supabase script
+      env:
+        # ดึงความลับจาก GitHub Secrets
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: |
+        python src/sync_supabase.py

@@ -154,7 +154,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         f"?latitude={lat}&longitude={lon}"
         f"&current=us_aqi,pm2_5"
         f"&hourly=us_aqi,pm2_5"
-        f"&forecast_days=1"
+        f"&forecast_days=2"
         f"&timezone=Asia%2FBangkok"
     )
     try:
@@ -171,9 +171,13 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         aqi_val = round((aqi.get("current", {}).get("us_aqi") or 45))
         pm25_val = round(float((aqi.get("current", {}).get("pm2_5") or 12.5)), 1)
 
-        h_labels = [(t.split("T")[1]) for t in (weather.get("hourly", {}).get("time") or [])[:7]]
-        h_temps  = (weather.get("hourly", {}).get("temperature_2m") or [28,29,31,32,30,29,28])[:7]
-        h_aqis   = (aqi.get("hourly", {}).get("us_aqi") or [40,42,48,50,45,43,41])[:7]
+        h_labels = []
+        h_temps = []
+        h_aqis = []
+        
+        t_list = weather.get("hourly", {}).get("time") or []
+        temp_list = weather.get("hourly", {}).get("temperature_2m") or []
+        aqi_list = aqi.get("hourly", {}).get("us_aqi") or []
 
         # ดึงข้อมูลพยากรณ์ฝน 24 ชั่วโมง (ข้ามทีละ 3 ชั่วโมง)
         hourly_rains = []
@@ -194,10 +198,13 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
             for i in range(24):
                 idx = current_idx + i
                 if idx < len(times):
+                    h_labels.append(t_list[idx].split("T")[1] if idx < len(t_list) else "")
+                    h_temps.append(temp_list[idx] if idx < len(temp_list) else 0)
+                    h_aqis.append(aqi_list[idx] if idx < len(aqi_list) else 0)
                     hourly_rains.append({
                         "time": times[idx].split("T")[1],
-                        "prob": probs[idx],
-                        "rain": rains[idx]
+                        "prob": probs[idx] if idx < len(probs) else 0,
+                        "rain": rains[idx] if idx < len(rains) else 0
                     })
 
         text_th, text_en = wmo_code_to_text(wcode)

@@ -86,11 +86,11 @@ def sync():
 
         weather_url = (
             f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}"
-            "&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1"
+            "&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok"
         )
         aqi_url = (
             f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lats}&longitude={lons}"
-            "&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1"
+            "&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=2&timezone=Asia%2FBangkok"
         )
 
         req_w = urllib.request.Request(weather_url, headers={"User-Agent": "WeatherAQISense/1.0"})
@@ -122,9 +122,37 @@ def sync():
             aqi = int(round(ca.get("us_aqi", 45)))
             pm25 = float(ca.get("pm2_5", 12.5))
 
-            hourly_times = [t.split("T")[1] for t in wj.get("hourly", {}).get("time", [])[:7]]
-            hourly_temps = wj.get("hourly", {}).get("temperature_2m", [])[:7]
-            hourly_aqis = aj.get("hourly", {}).get("us_aqi", [])[:7]
+            from datetime import datetime
+            current_idx = 0
+            current_time_str = datetime.now().strftime("%Y-%m-%dT%H:00")
+            times = wj.get("hourly", {}).get("time", [])
+            for i, t in enumerate(times):
+                if t >= current_time_str:
+                    current_idx = i
+                    break
+            
+            hourly_times = []
+            hourly_temps = []
+            hourly_aqis = []
+            hourly_rains = []
+            
+            t_list = wj.get("hourly", {}).get("time", [])
+            temp_list = wj.get("hourly", {}).get("temperature_2m", [])
+            aqi_list = aj.get("hourly", {}).get("us_aqi", [])
+            rain_list = wj.get("hourly", {}).get("rain", [])
+            prob_list = wj.get("hourly", {}).get("precipitation_probability", [])
+            
+            for i in range(24):
+                idx = current_idx + i
+                if idx < len(t_list):
+                    hourly_times.append(t_list[idx].split("T")[1])
+                    hourly_temps.append(temp_list[idx] if idx < len(temp_list) else 0)
+                    hourly_aqis.append(aqi_list[idx] if idx < len(aqi_list) else 0)
+                    hourly_rains.append({
+                        "time": t_list[idx].split("T")[1],
+                        "prob": prob_list[idx] if idx < len(prob_list) else 0,
+                        "rain": rain_list[idx] if idx < len(rain_list) else 0
+                    })
 
             wt = map_wmo_code_to_text(wcode)
 
@@ -144,7 +172,8 @@ def sync():
                 "pm25": round(pm25, 1),
                 "hourly_labels": hourly_times,
                 "hourly_temps": hourly_temps,
-                "hourly_aqis": hourly_aqis
+                "hourly_aqis": hourly_aqis,
+                "hourly_rains": hourly_rains
             }
             all_records.append(record)
 
