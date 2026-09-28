@@ -1623,7 +1623,17 @@
                         weatherText: { th: '☀️ ท้องฟ้าโปร่ง แดดจัด', en: '☀️ Clear Sky & Sunny' },
                         aqi:         42,
                         pm25:        '10.2',
-                        history:     { labels: ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'], temp: [28,29,31,32,30,29,28], aqi: [38,40,45,50,48,44,42] },
+                        history:     { 
+                            labels: ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'], 
+                            temp: [28,29,31,32,30,29,28], 
+                            aqi: [38,40,45,50,48,44,42],
+                            rain: [
+                                {time: '09:00', prob: 10, rain: 0},
+                                {time: '12:00', prob: 25, rain: 0},
+                                {time: '15:00', prob: 60, rain: 2.5},
+                                {time: '18:00', prob: 15, rain: 0}
+                            ]
+                        },
                         fromCache:   false,
                         cachedAt:    null
                     };
@@ -1644,6 +1654,7 @@
             document.getElementById('tempVal').innerText = data.temp;
             document.getElementById('humidityVal').innerText = data.humidity + ' %';
             document.getElementById('pressureVal').innerText = data.wind + ' km/h';
+            document.getElementById('rainVal').innerText = (data.rain || 0) + ' mm';
             
             document.getElementById('aqiVal').innerText = aqi;
             document.getElementById('pollutantText').innerText = (currentLang === 'th' ? 'สารมลพิษหลัก: PM2.5 (' : 'Main Pollutant: PM2.5 (') + data.pm25 + ' µg/m³)';
