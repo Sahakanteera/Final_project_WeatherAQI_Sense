@@ -2054,6 +2054,82 @@
             return Date.now() >= nextHourTime.getTime();
         }
 
+        async function fetchAllCitiesLive() {
+            const lats = PROVINCES.map(p => p.lat).join(',');
+            const lons = PROVINCES.map(p => p.lon).join(',');
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            try {
+                const [weatherRes, aqiRes] = await Promise.all([
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal }),
+                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lons}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
+                ]);
+                clearTimeout(timeoutId);
+
+                if (!weatherRes.ok || !aqiRes.ok) throw new Error("API HTTP Error");
+
+                const weatherJsonArray = await weatherRes.json();
+                const aqiJsonArray = await aqiRes.json();
+
+                for (let i = 0; i < PROVINCES.length; i++) {
+                    const p = PROVINCES[i];
+                    const wData = Array.isArray(weatherJsonArray) ? weatherJsonArray[i] : weatherJsonArray;
+                    const aData = Array.isArray(aqiJsonArray) ? aqiJsonArray[i] : aqiJsonArray;
+
+                    if (!wData || !aData) continue;
+
+                    const temp = wData.current_weather ? wData.current_weather.temperature : 30.0;
+                    const wind = wData.current_weather ? wData.current_weather.windspeed : 10.0;
+                    const weatherCode = wData.current_weather ? wData.current_weather.weathercode : 0;
+                    const humidity = (wData.hourly && wData.hourly.relativehumidity_2m) ? wData.hourly.relativehumidity_2m[12] : 65;
+
+                    const aqi = (aData.current && aData.current.us_aqi !== undefined) ? Math.round(aData.current.us_aqi) : 45;
+                    const pm25 = (aData.current && aData.current.pm2_5 !== undefined) ? aData.current.pm2_5.toFixed(1) : '12.5';
+
+                    let hourlyTimes = ['00:00','04:00','08:00','12:00','16:00','20:00','23:00'];
+                    let hourlyTemps = [26, 25, 29, 33, 31, 28, 27];
+                    let hourlyAqis  = [42, 40, 48, 55, 52, 45, 43];
+
+                    if (wData.hourly && wData.hourly.time && wData.hourly.time.length >= 24) {
+                        const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
+                        hourlyTimes = sampleIndices.map(idx => wData.hourly.time[idx].split('T')[1]);
+                        hourlyTemps = sampleIndices.map(idx => wData.hourly.temperature_2m[idx]);
+                        if (aData.hourly && aData.hourly.us_aqi) {
+                            hourlyAqis = sampleIndices.map(idx => aData.hourly.us_aqi[idx]);
+                        }
+                    }
+
+                    const dataPayload = {
+                        name: { th: p.nameTh, en: p.nameEn },
+                        temp: Number(temp).toFixed(1),
+                        humidity: humidity,
+                        wind: Number(wind).toFixed(1),
+                        weatherText: mapWmoCodeToText(weatherCode),
+                        aqi: aqi,
+                        pm25: pm25,
+                        history: { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis },
+                        fromCache: false,
+                        cachedAt: new Date()
+                    };
+
+                    cachedCityData[p.key] = dataPayload;
+                    saveToSupabase(p.key, cityCoords[p.key], dataPayload, weatherCode);
+                }
+
+                if (cachedCityData[currentCityKey]) {
+                    updateUIWithData(cachedCityData[currentCityKey]);
+                    updateDataBadge(false, null);
+                }
+                renderCityList();
+            } catch (err) {
+                clearTimeout(timeoutId);
+                console.warn('fetchAllCitiesLive error:', err);
+                throw err;
+            }
+        }
+
         async function triggerCycleAutoRefresh(reason = 'cycle_due') {
             if (isAutoRefreshing) return;
             const now = new Date();
@@ -2066,7 +2142,7 @@
             showRefreshNotification(true);
 
             try {
-                await fetchLiveCityData(currentCityKey, true);
+                await fetchAllCitiesLive();
                 showRefreshNotification(false, true);
                 highlightFreshData();
             } catch (err) {
@@ -2082,9 +2158,8 @@
             btn.innerText = currentLang === 'th' ? '🔄 กำลังดึงข้อมูลสดจาก API...' : '🔄 Fetching Live API...';
             btn.disabled = true;
             showRefreshNotification(true);
-            // บังคับดึง API ใหม่โดยล้าง in-memory cache ของ city ปัจจุบัน
-            delete cachedCityData[currentCityKey];
-            fetchLiveCityData(currentCityKey, true).then(() => {
+            
+            fetchAllCitiesLive().then(() => {
                 btn.innerText = i18n[currentLang].refreshBtn;
                 btn.disabled = false;
                 showRefreshNotification(false, true);
@@ -2162,7 +2237,7 @@
 
             // ถ้าไม่มี cache หรือข้ามรอบต้นชั่วโมงใหม่ไปแล้ว (:00 น.) → ยิงดึง Live API อัตโนมัติทันที
             if (!mem || isExpired) {
-                fetchLiveCityData(defaultKey, true);
+                fetchAllCitiesLive();
             }
 
             renderCityList();
