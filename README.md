@@ -14,7 +14,7 @@
 |:---:|:---|:---|:---:|
 | 📦 `Sprint1/` | **Sprint 1: Core OOP & CLI** | OOP Skeleton, CLI Interface, SQLite Store, Defensive Fallbacks, Unit Tests 22/22 Passed | [📄 เปิดโฟลเดอร์ Sprint 1](./Sprint1/README.md) |
 | 📦 `Sprint2/` | **Sprint 2: Back-End & Cloud** | Supabase Cloud, Dual-Axis Chart, AI Advisory, Search/Filter/Sort, CRUD ครบ 4 ตัว, AI Logs | [📄 เปิดโฟลเดอร์ Sprint 2](./Sprint2/README.md) |
-| 📦 `Sprint3/` | **Sprint 3: Web & DevOps** | Web Dashboard Glassmorphism (78 จังหวัด), Bilingual TH/EN, CI/CD Actions, QA 62 Tests | [📄 เปิดโฟลเดอร์ Sprint 3](./Sprint3/README.md) |
+| 📦 `Sprint3/` | **Sprint 3: Web & DevOps** | Web Dashboard Glassmorphism (77 จังหวัด), Bilingual TH/EN, CI/CD Actions, QA 62 Tests | [📄 เปิดโฟลเดอร์ Sprint 3](./Sprint3/README.md) |
 | 📝 `CHANGELOG.md` | **Changelog ราย Sprint** | ประวัติการพัฒนา [v0.1.0] Sprint 1, [v0.2.0] Sprint 2, [v0.3.0] Sprint 3 | [📄 เปิดดู CHANGELOG.md](./CHANGELOG.md) |
 | 📋 `PLAN.md` | **Architecture & Plan** | UML Class Diagram, Data Schema (SQLite + Supabase), Definition of Done (DoD) | [📄 เปิดดู PLAN.md](./PLAN.md) |
 
@@ -38,7 +38,7 @@
 
 | หัวข้อ | น้ำหนัก | คะแนนกลุ่ม (0-10) | เหตุผล |
 |---|:---:|:---:|---|
-| **บรรลุวัตถุประสงค์กลุ่ม** | 30% | **9.5** | ฟีเจอร์ครบสมบูรณ์ตามที่ออกแบบไว้ทั้ง 3 Sprints (CLI 10 เมนู, Supabase Cloud Migration, Dual-Axis Matplotlib Chart, Glassmorphism Web Dashboard 78 จังหวัด 2 ภาษา TH/EN, GitHub Pages Deployment และ Unit Test ผ่าน 62/62 PASSED 100%) |
+| **บรรลุวัตถุประสงค์กลุ่ม** | 30% | **9.5** | ฟีเจอร์ครบสมบูรณ์ตามที่ออกแบบไว้ทั้ง 3 Sprints (CLI 10 เมนู, Supabase Cloud Migration, Dual-Axis Matplotlib Chart, Glassmorphism Web Dashboard 77 จังหวัด 2 ภาษา TH/EN, GitHub Pages Deployment และ Unit Test ผ่าน 62/62 PASSED 100%) |
 | **ความสอดคล้องของเนื้อหาและมาตรฐานของงาน** | 30% | **9.5** | ออกแบบสถาปัตยกรรม OOP โมดูลาร์ 3 ชั้น (Presentation, Business Logic, Data Access Layer) แบ่งเป็น 5 คลาสหลัก ปราศจาก `global` variable มีระบบ Defensive Programming และ Exception Handling ดักจับความผิดพลาดรัดกุม |
 | **ปริมาณ คุณภาพ และธรรมาภิบาลของงาน** | 30% | **9.0** | โค้ดผ่านการตรวจ Linting (`flake8` = 0 errors), มีเอกสาร [LEARNINGLOG.md](cci:7://file:///c:/%E0%B8%9C%E0%B8%B1%E0%B8%81%E0%B8%81%E0%B8%B2%E0%B8%94/Scrip%20Program/Final%20Project/LEARNINGLOG.md:0:0-0:0) บันทึก Responsible AI Prompt Records ตามหลัก Explainable Systems และมีชุดทดสอบ Edge Cases ครอบคลุมถึง 37 เทสเคส |
 | **ภาพรวมงานกลุ่มทั้งหมด** | 10% | **9.5** | ทำงานเสร็จตรงตามกำหนดการทั้ง 3 Sprints ทำงานร่วมกันตามระบบ Agile Kanban Board และมีการหมุนเวียนบทบาทสมาชิก (Role Rotation Matrix) ครบทั้ง 3 หน้าที่ครบทุกคน 100% |
