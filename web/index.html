@@ -747,6 +747,80 @@
         @keyframes spin {
             100% { transform: rotate(360deg); }
         }
+
+        /* Responsive UI Design Adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            header {
+                height: auto !important;
+                max-height: none !important;
+                min-height: auto !important;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+            .brand-title {
+                flex-direction: column;
+                text-align: center;
+            }
+            h1 {
+                white-space: normal;
+            }
+            #hdrSub {
+                white-space: normal;
+                height: auto;
+            }
+            .controls {
+                flex-direction: column;
+                width: 100%;
+                gap: 0.5rem;
+            }
+            #provinceSearchInput, #langSelect, #refreshBtn, .province-search-wrap {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+            }
+            .province-dropdown {
+                min-width: 100%;
+            }
+            .advisory-box {
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+                align-items: flex-start;
+                padding: 1.5rem;
+                gap: 1rem;
+            }
+            .advisory-header-row {
+                flex-direction: column;
+                height: auto;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            .advisory-text {
+                width: 100%;
+            }
+            .metrics-grid .glass-card {
+                height: auto !important;
+                max-height: none !important;
+                min-height: auto !important;
+            }
+            .details-list {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            .analytics-grid .glass-card {
+                height: auto !important;
+                max-height: none !important;
+                min-height: 400px !important;
+            }
+            .footer-info {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -825,6 +899,10 @@
                         <span id="lblPressure">Wind / Pressure</span>
                         <span id="pressureVal">-- km/h</span>
                     </div>
+                    <div class="detail-item">
+                        <span id="lblRain">Rain (1h)</span>
+                        <span id="rainVal">-- mm</span>
+                    </div>
                 </div>
             </div>
 
@@ -880,6 +958,21 @@
                         <p style="font-weight: 600; font-size: 0.88rem; color: #38bdf8; margin-top: 0.15rem;" id="cardLastUpdated">--</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Rain Forecast Trend -->
+        <div class="glass-card" style="margin-bottom: 2rem; border-top: 2px solid rgba(56, 189, 248, 0.5);">
+            <div class="card-header">
+                <span id="lblRainForecastHdr">24-HOUR RAIN FORECAST (พยากรณ์ฝน 24 ชั่วโมง)</span>
+                <span style="color: var(--accent-cyan); font-weight: 600;">PRECIPITATION PROBABILITY</span>
+            </div>
+            <div class="rain-forecast-container" id="rainForecastContainer" style="display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 0; scrollbar-width: thin;">
+                <style>
+                    #rainForecastContainer::-webkit-scrollbar { height: 6px; }
+                    #rainForecastContainer::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 10px; }
+                </style>
+                <!-- dynamic items injected via JS -->
             </div>
         </div>
 
@@ -1234,7 +1327,8 @@
                     history: {
                         labels: (data.hourly_labels && data.hourly_labels.length) ? data.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
                         temp:   (data.hourly_temps && data.hourly_temps.length) ? data.hourly_temps : [28,29,31,32,30,29,28],
-                        aqi:    (data.hourly_aqis && data.hourly_aqis.length) ? data.hourly_aqis : [40,42,48,50,45,43,41]
+                        aqi:    (data.hourly_aqis && data.hourly_aqis.length) ? data.hourly_aqis : [40,42,48,50,45,43,41],
+                        rain:   (data.hourly_rains && data.hourly_rains.length) ? data.hourly_rains : []
                     },
                     fromCache: true,
                     cachedAt: fetchedAt,
@@ -1261,6 +1355,7 @@
                     temperature:    parseFloat(rawPayload.temp),
                     humidity:       rawPayload.humidity,
                     wind_speed:     parseFloat(rawPayload.wind),
+                    rain:           parseFloat(rawPayload.rain || 0),
                     weather_code:   weatherCode,
                     weather_text_th: rawPayload.weatherText.th,
                     weather_text_en: rawPayload.weatherText.en,
@@ -1269,6 +1364,7 @@
                     hourly_labels:  rawPayload.history.labels,
                     hourly_temps:   rawPayload.history.temp,
                     hourly_aqis:    rawPayload.history.aqi,
+                    hourly_rains:   rawPayload.history.rain,
                     fetched_at:     new Date().toISOString()
                 };
 
@@ -1432,7 +1528,7 @@
 
             try {
                 const [weatherRes, aqiRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal }),
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok`, { signal: controller.signal }),
                     fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
                 ]);
                 clearTimeout(timeoutId);
@@ -1448,13 +1544,35 @@
                 const wind = weatherJson.current_weather ? weatherJson.current_weather.windspeed   : 10.0;
                 weatherCode        = weatherJson.current_weather ? weatherJson.current_weather.weathercode : 0;
 
-                const humidity     = (weatherJson.hourly && weatherJson.hourly.relativehumidity_2m) ? weatherJson.hourly.relativehumidity_2m[12] : 65;
+                let currentHourIndex = 12;
+                if (weatherJson.hourly && weatherJson.hourly.time) {
+                    const now = new Date();
+                    currentHourIndex = weatherJson.hourly.time.findIndex(t => new Date(t).getTime() >= now.getTime());
+                    if (currentHourIndex === -1) currentHourIndex = 0;
+                }
+
+                const humidity     = (weatherJson.hourly && weatherJson.hourly.relativehumidity_2m) ? weatherJson.hourly.relativehumidity_2m[currentHourIndex] : 65;
+                const rain         = (weatherJson.hourly && weatherJson.hourly.rain) ? weatherJson.hourly.rain[currentHourIndex] : 0.0;
                 const aqi          = (aqiJson.current && aqiJson.current.us_aqi  !== undefined) ? Math.round(aqiJson.current.us_aqi)      : 45;
                 const pm25         = (aqiJson.current && aqiJson.current.pm2_5   !== undefined) ? aqiJson.current.pm2_5.toFixed(1)        : '12.5';
                 
                 let hourlyTimes = ['00:00','04:00','08:00','12:00','16:00','20:00','23:00'];
                 let hourlyTemps = [26, 25, 29, 33, 31, 28, 27];
                 let hourlyAqis  = [42, 40, 48, 55, 52, 45, 43];
+
+                let rainForecast = [];
+                if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.precipitation_probability) {
+                    for (let i = 0; i < 24; i += 3) {
+                        const idx = currentHourIndex + i;
+                        if (idx < weatherJson.hourly.time.length) {
+                            rainForecast.push({
+                                time: weatherJson.hourly.time[idx].split('T')[1],
+                                prob: weatherJson.hourly.precipitation_probability[idx] || 0,
+                                rain: weatherJson.hourly.rain[idx] || 0
+                            });
+                        }
+                    }
+                }
 
                 if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.time.length >= 24) {
                     const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
@@ -1471,10 +1589,11 @@
                     temp:        Number(temp).toFixed(1),
                     humidity:    humidity,
                     wind:        Number(wind).toFixed(1),
+                    rain:        Number(rain).toFixed(1),
                     weatherText: weatherText,
                     aqi:         aqi,
                     pm25:        pm25,
-                    history:     { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis },
+                    history:     { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis, rain: rainForecast },
                     fromCache:   false,
                     cachedAt:    new Date()
                 };
@@ -1500,6 +1619,7 @@
                         temp:        '30.5',
                         humidity:    62,
                         wind:        '12.0',
+                        rain:        '0.0',
                         weatherText: { th: '☀️ ท้องฟ้าโปร่ง แดดจัด', en: '☀️ Clear Sky & Sunny' },
                         aqi:         42,
                         pm25:        '10.2',
@@ -1596,6 +1716,25 @@
             const elCardLastUpdated = document.getElementById('cardLastUpdated');
             if (elCardLastUpdated) {
                 elCardLastUpdated.innerHTML = `${timeInfo.full} <br><span style="color:#34d399;font-size:0.8rem;">${currentLang === 'th' ? 'รอบอัปเดตถัดไป: ' : 'Next update: '}${timeInfo.next}</span>`;
+            }
+
+            const rainContainer = document.getElementById('rainForecastContainer');
+            if (rainContainer && data.history && data.history.rain) {
+                rainContainer.innerHTML = '';
+                data.history.rain.forEach(item => {
+                    let probColor = item.prob > 50 ? '#38bdf8' : (item.prob > 20 ? '#34d399' : 'var(--text-secondary)');
+                    let iconStr = item.prob > 50 ? '🌧️' : (item.prob > 20 ? '⛅' : '☀️');
+                    let timeFmt = item.time.substring(0, 5); // get HH:MM
+                    let html = `
+                        <div style="flex: 0 0 auto; width: 85px; padding: 1rem 0.5rem; background: rgba(30,41,59,0.6); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); text-align: center; display: flex; flex-direction: column; gap: 0.3rem; transition: transform 0.2s; cursor: default;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            <span style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">${timeFmt}</span>
+                            <span style="font-size: 1.8rem; margin: 0.2rem 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${iconStr}</span>
+                            <span style="font-size: 1.1rem; font-weight: 800; color: ${probColor};">${item.prob}%</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">${item.rain > 0 ? item.rain + 'mm' : '-'}</span>
+                        </div>
+                    `;
+                    rainContainer.innerHTML += html;
+                });
             }
 
             initChart(data.history.labels, data.history.temp, data.history.aqi);
@@ -2054,6 +2193,82 @@
             return Date.now() >= nextHourTime.getTime();
         }
 
+        async function fetchAllCitiesLive() {
+            const lats = PROVINCES.map(p => p.lat).join(',');
+            const lons = PROVINCES.map(p => p.lon).join(',');
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            try {
+                const [weatherRes, aqiRes] = await Promise.all([
+                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal }),
+                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lons}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
+                ]);
+                clearTimeout(timeoutId);
+
+                if (!weatherRes.ok || !aqiRes.ok) throw new Error("API HTTP Error");
+
+                const weatherJsonArray = await weatherRes.json();
+                const aqiJsonArray = await aqiRes.json();
+
+                for (let i = 0; i < PROVINCES.length; i++) {
+                    const p = PROVINCES[i];
+                    const wData = Array.isArray(weatherJsonArray) ? weatherJsonArray[i] : weatherJsonArray;
+                    const aData = Array.isArray(aqiJsonArray) ? aqiJsonArray[i] : aqiJsonArray;
+
+                    if (!wData || !aData) continue;
+
+                    const temp = wData.current_weather ? wData.current_weather.temperature : 30.0;
+                    const wind = wData.current_weather ? wData.current_weather.windspeed : 10.0;
+                    const weatherCode = wData.current_weather ? wData.current_weather.weathercode : 0;
+                    const humidity = (wData.hourly && wData.hourly.relativehumidity_2m) ? wData.hourly.relativehumidity_2m[12] : 65;
+
+                    const aqi = (aData.current && aData.current.us_aqi !== undefined) ? Math.round(aData.current.us_aqi) : 45;
+                    const pm25 = (aData.current && aData.current.pm2_5 !== undefined) ? aData.current.pm2_5.toFixed(1) : '12.5';
+
+                    let hourlyTimes = ['00:00','04:00','08:00','12:00','16:00','20:00','23:00'];
+                    let hourlyTemps = [26, 25, 29, 33, 31, 28, 27];
+                    let hourlyAqis  = [42, 40, 48, 55, 52, 45, 43];
+
+                    if (wData.hourly && wData.hourly.time && wData.hourly.time.length >= 24) {
+                        const sampleIndices = [0, 4, 8, 12, 16, 20, 23];
+                        hourlyTimes = sampleIndices.map(idx => wData.hourly.time[idx].split('T')[1]);
+                        hourlyTemps = sampleIndices.map(idx => wData.hourly.temperature_2m[idx]);
+                        if (aData.hourly && aData.hourly.us_aqi) {
+                            hourlyAqis = sampleIndices.map(idx => aData.hourly.us_aqi[idx]);
+                        }
+                    }
+
+                    const dataPayload = {
+                        name: { th: p.nameTh, en: p.nameEn },
+                        temp: Number(temp).toFixed(1),
+                        humidity: humidity,
+                        wind: Number(wind).toFixed(1),
+                        weatherText: mapWmoCodeToText(weatherCode),
+                        aqi: aqi,
+                        pm25: pm25,
+                        history: { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis },
+                        fromCache: false,
+                        cachedAt: new Date()
+                    };
+
+                    cachedCityData[p.key] = dataPayload;
+                    saveToSupabase(p.key, cityCoords[p.key], dataPayload, weatherCode);
+                }
+
+                if (cachedCityData[currentCityKey]) {
+                    updateUIWithData(cachedCityData[currentCityKey]);
+                    updateDataBadge(false, null);
+                }
+                renderCityList();
+            } catch (err) {
+                clearTimeout(timeoutId);
+                console.warn('fetchAllCitiesLive error:', err);
+                throw err;
+            }
+        }
+
         async function triggerCycleAutoRefresh(reason = 'cycle_due') {
             if (isAutoRefreshing) return;
             const now = new Date();
@@ -2066,7 +2281,7 @@
             showRefreshNotification(true);
 
             try {
-                await fetchLiveCityData(currentCityKey, true);
+                await fetchAllCitiesLive();
                 showRefreshNotification(false, true);
                 highlightFreshData();
             } catch (err) {
@@ -2082,9 +2297,8 @@
             btn.innerText = currentLang === 'th' ? '🔄 กำลังดึงข้อมูลสดจาก API...' : '🔄 Fetching Live API...';
             btn.disabled = true;
             showRefreshNotification(true);
-            // บังคับดึง API ใหม่โดยล้าง in-memory cache ของ city ปัจจุบัน
-            delete cachedCityData[currentCityKey];
-            fetchLiveCityData(currentCityKey, true).then(() => {
+            
+            fetchAllCitiesLive().then(() => {
                 btn.innerText = i18n[currentLang].refreshBtn;
                 btn.disabled = false;
                 showRefreshNotification(false, true);
@@ -2162,7 +2376,7 @@
 
             // ถ้าไม่มี cache หรือข้ามรอบต้นชั่วโมงใหม่ไปแล้ว (:00 น.) → ยิงดึง Live API อัตโนมัติทันที
             if (!mem || isExpired) {
-                fetchLiveCityData(defaultKey, true);
+                fetchAllCitiesLive();
             }
 
             renderCityList();

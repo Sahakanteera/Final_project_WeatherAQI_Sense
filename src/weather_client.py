@@ -58,6 +58,7 @@ class WeatherClient:
                 "temp": float(main.get("temp", 0.0)),
                 "humidity": float(main.get("humidity", 0.0)),
                 "pressure": float(main.get("pressure", 1013.0)),
+                "rain": float(data.get("rain", {}).get("1h", 0.0)),
                 "description": weather_list[0].get("description", "Clear sky") if weather_list else "Clear sky"
             }
         except Exception as e:
@@ -108,6 +109,7 @@ class WeatherClient:
             "temp": weather["temp"],
             "humidity": weather["humidity"],
             "pressure": weather.get("pressure", 1013.0),
+            "rain": weather.get("rain", 0.0),
             "description": weather.get("description", "Clear sky"),
             "aqi": aqi_info["aqi"],
             "main_pollutant": aqi_info.get("main_pollutant", "p2")
@@ -115,14 +117,14 @@ class WeatherClient:
 
     def _mock_weather_data(self, city_clean: str) -> Dict[str, Any]:
         mock_map = {
-            "bangkok": {"temp": 32.5, "humidity": 68.0, "pressure": 1009.0, "description": "Partly cloudy"},
-            "khon kaen": {"temp": 30.2, "humidity": 62.0, "pressure": 1011.0, "description": "Sunny"},
-            "chiang mai": {"temp": 28.0, "humidity": 75.0, "pressure": 1012.0, "description": "Haze"},
-            "phuket": {"temp": 31.0, "humidity": 80.0, "pressure": 1008.0, "description": "Light rain"}
+            "bangkok": {"temp": 32.5, "humidity": 68.0, "pressure": 1009.0, "rain": 0.0, "description": "Partly cloudy"},
+            "khon kaen": {"temp": 30.2, "humidity": 62.0, "pressure": 1011.0, "rain": 0.0, "description": "Sunny"},
+            "chiang mai": {"temp": 28.0, "humidity": 75.0, "pressure": 1012.0, "rain": 0.0, "description": "Haze"},
+            "phuket": {"temp": 31.0, "humidity": 80.0, "pressure": 1008.0, "rain": 2.5, "description": "Light rain"}
         }
         return mock_map.get(
             city_clean,
-            {"temp": 29.5, "humidity": 65.0, "pressure": 1010.0, "description": "Clear sky"}
+            {"temp": 29.5, "humidity": 65.0, "pressure": 1010.0, "rain": 0.0, "description": "Clear sky"}
         )
 
     def _mock_aqi_data(self, city_clean: str) -> Dict[str, Any]:

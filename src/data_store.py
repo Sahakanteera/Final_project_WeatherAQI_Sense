@@ -39,6 +39,7 @@ class DataStore:
                     temp REAL NOT NULL,
                     humidity REAL NOT NULL,
                     pressure REAL,
+                    rain REAL DEFAULT 0.0,
                     description TEXT,
                     aqi INTEGER NOT NULL,
                     main_pollutant TEXT
@@ -54,14 +55,15 @@ class DataStore:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    INSERT INTO metrics (timestamp, city, temp, humidity, pressure, description, aqi, main_pollutant)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO metrics (timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     record.get("timestamp", ""),
                     record.get("city", "Unknown"),
                     float(record.get("temp", 0.0)),
                     float(record.get("humidity", 0.0)),
                     float(record.get("pressure", 1013.0)),
+                    float(record.get("rain", 0.0)),
                     record.get("description", "Clear"),
                     int(record.get("aqi", 0)),
                     record.get("main_pollutant", "p2")
@@ -81,7 +83,7 @@ class DataStore:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT id, timestamp, city, temp, humidity, pressure, description, aqi, main_pollutant
+                    SELECT id, timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant
                     FROM metrics
                     WHERE LOWER(city) = LOWER(?)
                     ORDER BY id ASC
@@ -97,9 +99,10 @@ class DataStore:
                     "temp": r[3],
                     "humidity": r[4],
                     "pressure": r[5],
-                    "description": r[6],
-                    "aqi": r[7],
-                    "main_pollutant": r[8]
+                    "rain": r[6],
+                    "description": r[7],
+                    "aqi": r[8],
+                    "main_pollutant": r[9]
                 }
                 for r in rows
             ]
@@ -115,7 +118,7 @@ class DataStore:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    SELECT id, timestamp, city, temp, humidity, pressure, description, aqi, main_pollutant
+                    SELECT id, timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant
                     FROM metrics
                     ORDER BY id DESC
                     LIMIT ?
@@ -130,9 +133,10 @@ class DataStore:
                     "temp": r[3],
                     "humidity": r[4],
                     "pressure": r[5],
-                    "description": r[6],
-                    "aqi": r[7],
-                    "main_pollutant": r[8]
+                    "rain": r[6],
+                    "description": r[7],
+                    "aqi": r[8],
+                    "main_pollutant": r[9]
                 }
                 for r in rows
             ]
@@ -152,7 +156,7 @@ class DataStore:
                 cursor = conn.cursor()
                 pattern = f"%{keyword}%"
                 cursor.execute("""
-                    SELECT id, timestamp, city, temp, humidity, pressure, description, aqi, main_pollutant
+                    SELECT id, timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant
                     FROM metrics
                     WHERE LOWER(city) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)
                     ORDER BY id DESC
@@ -161,7 +165,7 @@ class DataStore:
                 rows = cursor.fetchall()
             return [
                 {"id": r[0], "timestamp": r[1], "city": r[2], "temp": r[3], "humidity": r[4],
-                 "pressure": r[5], "description": r[6], "aqi": r[7], "main_pollutant": r[8]}
+                 "pressure": r[5], "rain": r[6], "description": r[7], "aqi": r[8], "main_pollutant": r[9]}
                 for r in rows
             ]
         except Exception as e:
@@ -199,7 +203,7 @@ class DataStore:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(f"""
-                    SELECT id, timestamp, city, temp, humidity, pressure, description, aqi, main_pollutant
+                    SELECT id, timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant
                     FROM metrics
                     WHERE {where_clause}
                     ORDER BY id DESC
@@ -208,7 +212,7 @@ class DataStore:
                 rows = cursor.fetchall()
             return [
                 {"id": r[0], "timestamp": r[1], "city": r[2], "temp": r[3], "humidity": r[4],
-                 "pressure": r[5], "description": r[6], "aqi": r[7], "main_pollutant": r[8]}
+                 "pressure": r[5], "rain": r[6], "description": r[7], "aqi": r[8], "main_pollutant": r[9]}
                 for r in rows
             ]
         except Exception as e:
@@ -230,7 +234,7 @@ class DataStore:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(f"""
-                    SELECT id, timestamp, city, temp, humidity, pressure, description, aqi, main_pollutant
+                    SELECT id, timestamp, city, temp, humidity, pressure, rain, description, aqi, main_pollutant
                     FROM metrics
                     ORDER BY {sort_by} {order_sql}
                     LIMIT ?
@@ -238,7 +242,7 @@ class DataStore:
                 rows = cursor.fetchall()
             return [
                 {"id": r[0], "timestamp": r[1], "city": r[2], "temp": r[3], "humidity": r[4],
-                 "pressure": r[5], "description": r[6], "aqi": r[7], "main_pollutant": r[8]}
+                 "pressure": r[5], "rain": r[6], "description": r[7], "aqi": r[8], "main_pollutant": r[9]}
                 for r in rows
             ]
         except Exception as e:
@@ -249,7 +253,7 @@ class DataStore:
         """
         Updates a specific record by ID. Only allowed fields are updated.
         """
-        allowed_fields = {"city", "temp", "humidity", "pressure", "description", "aqi", "main_pollutant"}
+        allowed_fields = {"city", "temp", "humidity", "pressure", "rain", "description", "aqi", "main_pollutant"}
         filtered = {k: v for k, v in updates.items() if k in allowed_fields}
         if not filtered:
             print("[Warning] No valid fields to update.")

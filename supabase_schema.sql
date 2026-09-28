@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.weather_aqi_cache (
     temperature     NUMERIC(5,1),                  -- Celsius
     humidity        INTEGER,                        -- %
     wind_speed      NUMERIC(5,1),                  -- km/h
+    rain            NUMERIC(5,2) DEFAULT 0.0,       -- mm
     weather_code    INTEGER,                        -- WMO weather code
     weather_text_th TEXT,
     weather_text_en TEXT,
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS public.weather_aqi_cache (
     hourly_labels   JSONB DEFAULT '[]'::jsonb,     -- ["09:00","11:00",...]
     hourly_temps    JSONB DEFAULT '[]'::jsonb,     -- [28.5, 29.1, ...]
     hourly_aqis     JSONB DEFAULT '[]'::jsonb,     -- [40, 42, ...]
+    hourly_rains    JSONB DEFAULT '[]'::jsonb,     -- [{"time":"12:00","prob":10,"rain":0},...]
 
     -- Timestamps
     fetched_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
