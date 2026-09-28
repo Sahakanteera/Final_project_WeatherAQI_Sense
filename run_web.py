@@ -11,6 +11,12 @@ import sys
 import threading
 import time
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 PORT = 8000
 
 class CustomHTTPHandler(http.server.SimpleHTTPRequestHandler):
