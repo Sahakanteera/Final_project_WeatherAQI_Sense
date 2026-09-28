@@ -1,18 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  basePath: '/Final_project_WeatherAQI_Sense',
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: [
-    "localhost:3000",
-    "127.0.0.1:3000",
-    "192.168.1.12",
-    "192.168.1.12:3000",
-  ],
+  trailingSlash: true,
 }
 
 export default nextConfig

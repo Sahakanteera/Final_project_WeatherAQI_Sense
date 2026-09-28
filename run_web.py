@@ -20,6 +20,12 @@ if sys.platform == "win32":
 PORT = 8000
 
 class CustomHTTPHandler(http.server.SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        prefix = "/Final_project_WeatherAQI_Sense"
+        if path.startswith(prefix):
+            path = path[len(prefix):] or "/"
+        return super().translate_path(path)
+
     def end_headers(self):
         # Enable CORS and disable aggressive caching for local development
         self.send_header('Access-Control-Allow-Origin', '*')
