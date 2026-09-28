@@ -2750,28 +2750,38 @@
         }
 
         async function fetchAllCitiesLive() {
-            const lats = PROVINCES.map(p => p.lat).join(',');
-            const lons = PROVINCES.map(p => p.lon).join(',');
-            
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-
             try {
-                const [weatherRes, aqiRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok`, { signal: controller.signal }),
-                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lons}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
-                ]);
-                clearTimeout(timeoutId);
-
-                if (!weatherRes.ok || !aqiRes.ok) throw new Error("API HTTP Error");
-
-                const weatherJsonArray = await weatherRes.json();
-                const aqiJsonArray = await aqiRes.json();
-
+                let allWeather = [];
+                let allAqi = [];
+                const CHUNK_SIZE = 20;
+                
+                for (let i = 0; i < PROVINCES.length; i += CHUNK_SIZE) {
+                    const chunk = PROVINCES.slice(i, i + CHUNK_SIZE);
+                    const lats = chunk.map(p => p.lat).join(',');
+                    const lons = chunk.map(p => p.lon).join(',');
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+                    
+                    const [wRes, aRes] = await Promise.all([
+                        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok`, { signal: controller.signal }),
+                        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lons}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=2&timezone=Asia%2FBangkok`, { signal: controller.signal })
+                    ]);
+                    clearTimeout(timeoutId);
+                    
+                    if (!wRes.ok || !aRes.ok) throw new Error("API HTTP Error in chunk");
+                    
+                    const wJson = await wRes.json();
+                    const aJson = await aRes.json();
+                    
+                    allWeather = allWeather.concat(Array.isArray(wJson) ? wJson : [wJson]);
+                    allAqi = allAqi.concat(Array.isArray(aJson) ? aJson : [aJson]);
+                }
+                
                 for (let i = 0; i < PROVINCES.length; i++) {
                     const p = PROVINCES[i];
-                    const wData = Array.isArray(weatherJsonArray) ? weatherJsonArray[i] : weatherJsonArray;
-                    const aData = Array.isArray(aqiJsonArray) ? aqiJsonArray[i] : aqiJsonArray;
+                    const wData = allWeather[i];
+                    const aData = allAqi[i];
 
                     if (!wData || !aData) continue;
 
@@ -2846,6 +2856,7 @@
                     updateDataBadge(false, null);
                 }
                 renderCityList();
+                if (typeof updateMapMarkers === 'function') updateMapMarkers();
             } catch (err) {
                 clearTimeout(timeoutId);
                 console.warn('fetchAllCitiesLive error:', err);
@@ -2966,6 +2977,7 @@
             }
 
             renderCityList();
+            if (typeof updateMapMarkers === 'function') updateMapMarkers();
             highlightCityItem(defaultKey);
         }
 
@@ -3037,6 +3049,7 @@
                             updateDataBadge(true, cachedCityData[currentCityKey].cachedAt);
                         }
                         renderCityList();
+                        if (typeof updateMapMarkers === 'function') updateMapMarkers();
                         highlightFreshData();
                     }
                 }
