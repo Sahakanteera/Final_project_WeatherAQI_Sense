@@ -75,7 +75,7 @@ export default function Page() {
 
   // 2. Fetch active city detailed live metrics whenever selection changes
   useEffect(() => {
-    loadCityData(activeKey, false)
+    loadCityData(activeKey, true)
   }, [activeKey, loadCityData])
 
   // 3. Auto-refresh live data every 5 minutes (300,000 ms)
