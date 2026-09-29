@@ -1,0 +1,302 @@
+[
+  {
+    "id": 2,
+    "city_key": "bangkok",
+    "city_name_th": "กรุงเทพมหานคร (Bangkok)",
+    "city_name_en": "Bangkok",
+    "lat": 13.7563,
+    "lon": 100.5018,
+    "temperature": 25.9,
+    "humidity": 75,
+    "wind_speed": 6.2,
+    "weather_code": 3,
+    "weather_text_th": "⛅ มีเมฆบางส่วนถึงเมฆมาก",
+    "weather_text_en": "⛅ Partly to Highly Cloudy",
+    "aqi": 33,
+    "pm25": 7.6,
+    "hourly_labels": [
+      "07:00",
+      "08:00",
+      "09:00",
+      "10:00",
+      "11:00",
+      "12:00",
+      "13:00",
+      "14:00",
+      "15:00",
+      "16:00",
+      "17:00",
+      "18:00",
+      "19:00",
+      "20:00",
+      "21:00",
+      "22:00",
+      "23:00",
+      "00:00",
+      "01:00",
+      "02:00",
+      "03:00",
+      "04:00",
+      "05:00",
+      "06:00"
+    ],
+    "hourly_temps": [
+      25.9,
+      27.1,
+      28.7,
+      29.6,
+      29.8,
+      29.7,
+      30.2,
+      30.1,
+      30.0,
+      29.3,
+      28.5,
+      27.7,
+      26.7,
+      26.4,
+      26.5,
+      26.0,
+      25.6,
+      25.7,
+      25.7,
+      25.8,
+      25.8,
+      25.8,
+      25.6,
+      25.6
+    ],
+    "hourly_aqis": [
+      33,
+      35,
+      36,
+      37,
+      38,
+      40,
+      42,
+      43,
+      44,
+      46,
+      47,
+      49,
+      50,
+      50,
+      51,
+      51,
+      51,
+      51,
+      52,
+      52,
+      52,
+      53,
+      53,
+      53
+    ],
+    "fetched_at": "2026-09-28T21:43:46.066+00:00",
+    "created_at": "2026-09-16T13:45:01.97648+00:00",
+    "updated_at": "2026-09-29T00:11:38.497215+00:00",
+    "rain": 0.0,
+    "hourly_rains": [
+      {
+        "prob": 20,
+        "rain": 0.0,
+        "time": "07:00"
+      },
+      {
+        "prob": 35,
+        "rain": 0.4,
+        "time": "08:00"
+      },
+      {
+        "prob": 57,
+        "rain": 0.0,
+        "time": "09:00"
+      },
+      {
+        "prob": 73,
+        "rain": 0.0,
+        "time": "10:00"
+      },
+      {
+        "prob": 77,
+        "rain": 0.1,
+        "time": "11:00"
+      },
+      {
+        "prob": 76,
+        "rain": 0.1,
+        "time": "12:00"
+      },
+      {
+        "prob": 71,
+        "rain": 0.1,
+        "time": "13:00"
+      },
+      {
+        "prob": 64,
+        "rain": 0.0,
+        "time": "14:00"
+      },
+      {
+        "prob": 54,
+        "rain": 0.0,
+        "time": "15:00"
+      },
+      {
+        "prob": 43,
+        "rain": 0.0,
+        "time": "16:00"
+      },
+      {
+        "prob": 32,
+        "rain": 0.0,
+        "time": "17:00"
+      },
+      {
+        "prob": 20,
+        "rain": 0.0,
+        "time": "18:00"
+      },
+      {
+        "prob": 12,
+        "rain": 0.3,
+        "time": "19:00"
+      },
+      {
+        "prob": 12,
+        "rain": 0.2,
+        "time": "20:00"
+      },
+      {
+        "prob": 16,
+        "rain": 0.0,
+        "time": "21:00"
+      },
+      {
+        "prob": 18,
+        "rain": 0.4,
+        "time": "22:00"
+      },
+      {
+        "prob": 16,
+        "rain": 0.5,
+        "time": "23:00"
+      },
+      {
+        "prob": 13,
+        "rain": 0.2,
+        "time": "00:00"
+      },
+      {
+        "prob": 10,
+        "rain": 0.1,
+        "time": "01:00"
+      },
+      {
+        "prob": 8,
+        "rain": 0.0,
+        "time": "02:00"
+      },
+      {
+        "prob": 6,
+        "rain": 0.0,
+        "time": "03:00"
+      },
+      {
+        "prob": 4,
+        "rain": 0.0,
+        "time": "04:00"
+      },
+      {
+        "prob": 2,
+        "rain": 0.0,
+        "time": "05:00"
+      },
+      {
+        "prob": 0,
+        "rain": 0.0,
+        "time": "06:00"
+      }
+    ],
+    "daily_forecast": [
+      {
+        "date": "2026-09-29",
+        "rain_sum": 3.4,
+        "temp_max": 30.2,
+        "temp_min": 25.4,
+        "weather_code": 53,
+        "weather_text_en": "🌧️ Light Drizzle",
+        "weather_text_th": "🌧️ มีฝนตกปรอยๆ"
+      },
+      {
+        "date": "2026-09-30",
+        "rain_sum": 2.2,
+        "temp_max": 30.8,
+        "temp_min": 25.6,
+        "weather_code": 95,
+        "weather_text_en": "🌩️ Thunderstorm Warning",
+        "weather_text_th": "🌩️ มีพายุฝนฟ้าคะนอง"
+      },
+      {
+        "date": "2026-10-01",
+        "rain_sum": 5.8,
+        "temp_max": 32.2,
+        "temp_min": 25.3,
+        "weather_code": 95,
+        "weather_text_en": "🌩️ Thunderstorm Warning",
+        "weather_text_th": "🌩️ มีพายุฝนฟ้าคะนอง"
+      },
+      {
+        "date": "2026-10-02",
+        "rain_sum": 3.1,
+        "temp_max": 32.0,
+        "temp_min": 25.6,
+        "weather_code": 95,
+        "weather_text_en": "🌩️ Thunderstorm Warning",
+        "weather_text_th": "🌩️ มีพายุฝนฟ้าคะนอง"
+      },
+      {
+        "date": "2026-10-03",
+        "rain_sum": 9.3,
+        "temp_max": 29.5,
+        "temp_min": 25.1,
+        "weather_code": 95,
+        "weather_text_en": "🌩️ Thunderstorm Warning",
+        "weather_text_th": "🌩️ มีพายุฝนฟ้าคะนอง"
+      },
+      {
+        "date": "2026-10-04",
+        "rain_sum": 5.1,
+        "temp_max": 31.9,
+        "temp_min": 24.7,
+        "weather_code": 95,
+        "weather_text_en": "🌩️ Thunderstorm Warning",
+        "weather_text_th": "🌩️ มีพายุฝนฟ้าคะนอง"
+      },
+      {
+        "date": "2026-10-05",
+        "rain_sum": 9.2,
+        "temp_max": 31.2,
+        "temp_min": 24.5,
+        "weather_code": 95,
+        "weather_text_en": "🌩️ Thunderstorm Warning",
+        "weather_text_th": "🌩️ มีพายุฝนฟ้าคะนอง"
+      }
+    ],
+    "pollutants_data": {
+      "co": 855.0,
+      "o3": 47.0,
+      "no2": 9.9,
+      "so2": 3.5,
+      "pm10": 10.0
+    },
+    "lifestyle_data": {
+      "running": "ดีมาก",
+      "uv_advice": "ควรทาครีมกันแดด",
+      "air_advice": "ทำกิจกรรมกลางแจ้งได้ปกติ"
+    },
+    "uv_index": 8.1,
+    "sunrise_time": "06:07",
+    "sunset_time": "18:09"
+  }
+]

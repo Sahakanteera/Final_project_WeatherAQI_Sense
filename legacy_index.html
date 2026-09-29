@@ -2920,7 +2920,7 @@
                                     labels: (row.hourly_labels && row.hourly_labels.length) ? row.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
                                     temp:   (row.hourly_temps && row.hourly_temps.length) ? row.hourly_temps : [28,29,31,32,30,29,28],
                                     aqi:    (row.hourly_aqis && row.hourly_aqis.length) ? row.hourly_aqis : [40,42,48,50,45,43,41],
-                                    rain:   (row.hourly_rains && row.hourly_rains.length) ? row.hourly_rains : []
+                                    rain:   (row.hourly_rains && (typeof row.hourly_rains === 'string' ? JSON.parse(row.hourly_rains) : row.hourly_rains).length) ? (typeof row.hourly_rains === 'string' ? JSON.parse(row.hourly_rains) : row.hourly_rains) : []
                                 },
                                 fromCache:   true,
                                 cachedAt:    new Date(row.fetched_at)
@@ -3022,7 +3022,7 @@
                                     labels: (row.hourly_labels && row.hourly_labels.length) ? row.hourly_labels : ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'],
                                     temp:   (row.hourly_temps && row.hourly_temps.length) ? row.hourly_temps : [28,29,31,32,30,29,28],
                                     aqi:    (row.hourly_aqis && row.hourly_aqis.length) ? row.hourly_aqis : [40,42,48,50,45,43,41],
-                                    rain:   (row.hourly_rains && row.hourly_rains.length) ? row.hourly_rains : []
+                                    rain:   (row.hourly_rains && (typeof row.hourly_rains === 'string' ? JSON.parse(row.hourly_rains) : row.hourly_rains).length) ? (typeof row.hourly_rains === 'string' ? JSON.parse(row.hourly_rains) : row.hourly_rains) : []
                                 },
                                 fromCache:   true,
                                 cachedAt:    new Date(row.fetched_at)
