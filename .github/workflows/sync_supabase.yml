@@ -2,7 +2,7 @@ name: Sync Weather Data to Supabase
 
 on:
   schedule:
-    - cron: '0 * * * *'  # รันทุกๆ ต้นชั่วโมง (เช่น 09:00, 10:00, 11:00) ตามเวลา UTC
+    - cron: '45 * * * *'  # รันทุกๆ นาทีที่ 45 (เลี่ยงคิวติดขัดของ GitHub ตอนต้นชั่วโมง)
   workflow_dispatch:      # ปุ่มกดรันแบบ Manual ในหน้าเว็บ GitHub
 
 jobs:

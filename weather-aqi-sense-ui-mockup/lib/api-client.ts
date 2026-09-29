@@ -309,9 +309,9 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
           if (hRains[i].wcode !== undefined) {
              hourWeather = mapWmoCodeToKind(hRains[i].wcode);
           } else {
-             if (prob >= 50) hourWeather = "rain";
-             else if (prob >= 20) hourWeather = "cloud";
-             else if (weatherKind === "rain") hourWeather = "cloud";
+             if (prob >= 50) hourWeather = "rain_heavy";
+             else if (prob >= 20) hourWeather = "cloudy";
+             else if (weatherKind === "rain_heavy" || weatherKind === "rain_light" || weatherKind === "thunderstorm") hourWeather = "cloudy";
           }
 
           hourlyPoints.push({
