@@ -33,6 +33,7 @@ jobs:
         run: |
           cd weather-aqi-sense-ui-mockup
           npm install --legacy-peer-deps
+          npm install react-is
           npm run build
           # คัดลอกไฟล์ที่ Build เสร็จ (ในโฟลเดอร์ out) มาวางทับไฟล์ข้างนอกสุด
           cp -r out/* ../
