@@ -173,27 +173,30 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
           >
             <RefreshCw size={17} strokeWidth={1.75} className={refreshing ? "animate-spin" : ""} />
           </button>
-
-          {dataSource && (
-            <span
-              className={`hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold border transition-all ${
-                dataSource === "live"
-                  ? "bg-sky-50 text-sky-700 border-sky-300"
-                  : dataSource === "supabase"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                    : "bg-amber-50 text-amber-700 border-amber-300"
-              }`}
-            >
-              <span className={`h-1.5 w-1.5 rounded-full ${dataSource === "live" ? "bg-sky-500 animate-pulse" : dataSource === "supabase" ? "bg-emerald-500" : "bg-amber-500"}`} />
-              {dataSource === "live"
-                ? (lang === "th" ? "LIVE OPEN-METEO" : "LIVE OPEN-METEO")
-                : dataSource === "supabase"
-                  ? (lang === "th" ? `ดึงข้อมูล API • ${syncStatus}` : `API DATA • ${syncStatus}`)
-                  : (lang === "th" ? "BASELINE DATA" : "BASELINE DATA")}
-            </span>
-          )}
         </div>
       </div>
+
+      {/* Sub-header for Data Source Status */}
+      {dataSource && (
+        <div className="border-t border-[#e8eaed] bg-[#f8f9fa] px-4 py-1.5 sm:px-6 flex justify-center md:justify-end">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold border transition-all ${
+              dataSource === "live"
+                ? "bg-sky-50 text-sky-700 border-sky-300"
+                : dataSource === "supabase"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                  : "bg-amber-50 text-amber-700 border-amber-300"
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${dataSource === "live" ? "bg-sky-500 animate-pulse" : dataSource === "supabase" ? "bg-emerald-500" : "bg-amber-500"}`} />
+            {dataSource === "live"
+              ? (lang === "th" ? "LIVE OPEN-METEO" : "LIVE OPEN-METEO")
+              : dataSource === "supabase"
+                ? (lang === "th" ? `ดึงข้อมูล API • ${syncStatus}` : `API DATA • ${syncStatus}`)
+                : (lang === "th" ? "BASELINE DATA" : "BASELINE DATA")}
+          </span>
+        </div>
+      )}
     </header>
   )
 }

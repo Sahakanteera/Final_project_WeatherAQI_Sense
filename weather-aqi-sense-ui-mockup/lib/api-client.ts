@@ -303,13 +303,20 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
       if (hRains.length > 0) {
         hourlyPoints = [];
         for (let i = 0; i < Math.min(24, hRains.length, hTemps.length, hLabels.length, hAqis.length); i++) {
+          const prob = hRains[i].prob || 0;
+          let hourWeather = weatherKind;
+          
+          if (prob >= 50) hourWeather = "rain";
+          else if (prob >= 20) hourWeather = "cloud";
+          else if (weatherKind === "rain") hourWeather = "cloud"; // fallback if no rain but city is raining
+
           hourlyPoints.push({
             time: hLabels[i],
             temp: hTemps[i],
             aqi: hAqis[i],
-            rainChance: hRains[i].prob || 0,
+            rainChance: prob,
             wind: wind,
-            weather: weatherKind
+            weather: hourWeather
           });
         }
       }
