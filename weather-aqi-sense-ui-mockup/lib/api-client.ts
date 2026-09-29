@@ -458,13 +458,22 @@ export async function fetchAllSupabaseCities(): Promise<Record<string, Partial<C
         if (hRains.length > 0) {
           const hourlyPoints: HourPoint[] = [];
           for (let i = 0; i < Math.min(24, hRains.length, hTemps.length, hLabels.length, hAqis.length); i++) {
+            let hw = map[k].weather || "sunny";
+            if (hRains[i].wcode !== undefined) {
+               hw = mapWmoCodeToKind(hRains[i].wcode);
+            } else {
+               const prob = hRains[i].prob || 0;
+               if (prob >= 50) hw = "rain_heavy";
+               else if (prob >= 20) hw = "cloudy";
+               else if (hw === "rain_heavy" || hw === "rain_light" || hw === "thunderstorm") hw = "cloudy";
+            }
             hourlyPoints.push({
               time: hLabels[i],
               temp: hTemps[i],
               aqi: hAqis[i],
               rainChance: hRains[i].prob || 0,
               wind: map[k].wind || 10,
-              weather: map[k].weather || "sunny"
+              weather: hw
             });
           }
           map[k].hourly = hourlyPoints;
