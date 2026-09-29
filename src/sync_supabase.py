@@ -37,7 +37,7 @@ def map_wmo_code_to_text(code: int):
 
 def get_provinces():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    index_file = os.path.join(root, "index.html")
+    index_file = os.path.join(root, "legacy_index.html")
     with open(index_file, "r", encoding="utf-8") as f:
         html = f.read()
 
@@ -86,11 +86,14 @@ def sync():
 
         weather_url = (
             f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}"
-            "&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok"
+            "&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability"
+            "&daily=weathercode,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,sunrise,sunset"
+            "&forecast_days=7&timezone=Asia%2FBangkok"
         )
         aqi_url = (
             f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lats}&longitude={lons}"
-            "&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=2&timezone=Asia%2FBangkok"
+            "&current=us_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone"
+            "&hourly=us_aqi,pm2_5&forecast_days=7&timezone=Asia%2FBangkok"
         )
 
         req_w = urllib.request.Request(weather_url, headers={"User-Agent": "WeatherAQISense/1.0"})
@@ -156,6 +159,61 @@ def sync():
 
             wt = map_wmo_code_to_text(wcode)
 
+            # --- New Data Extraction (Daily, Pollutants, Lifestyle) ---
+            daily_weather = wj.get("daily", {})
+            daily_times = daily_weather.get("time", [])
+            
+            uv_index = 0.0
+            sunrise_time = ""
+            sunset_time = ""
+            
+            if daily_times:
+                uv_max_list = daily_weather.get("uv_index_max", [])
+                uv_index = uv_max_list[0] if uv_max_list and uv_max_list[0] is not None else 0.0
+                
+                sunrise_list = daily_weather.get("sunrise", [])
+                if sunrise_list and sunrise_list[0]:
+                    sunrise_time = sunrise_list[0].split("T")[1]
+                    
+                sunset_list = daily_weather.get("sunset", [])
+                if sunset_list and sunset_list[0]:
+                    sunset_time = sunset_list[0].split("T")[1]
+
+            daily_forecast = []
+            if daily_times:
+                wcodes = daily_weather.get("weathercode", [])
+                t_max = daily_weather.get("temperature_2m_max", [])
+                t_min = daily_weather.get("temperature_2m_min", [])
+                p_sum = daily_weather.get("precipitation_sum", [])
+                
+                for d_idx, d_time in enumerate(daily_times):
+                    d_wcode = wcodes[d_idx] if d_idx < len(wcodes) else 0
+                    wt_info = map_wmo_code_to_text(d_wcode)
+                    daily_forecast.append({
+                        "date": d_time,
+                        "temp_max": t_max[d_idx] if d_idx < len(t_max) else 0,
+                        "temp_min": t_min[d_idx] if d_idx < len(t_min) else 0,
+                        "rain_sum": p_sum[d_idx] if d_idx < len(p_sum) else 0,
+                        "weather_code": d_wcode,
+                        "weather_text_th": wt_info["th"],
+                        "weather_text_en": wt_info["en"]
+                    })
+
+            pollutants_data = {
+                "pm10": ca.get("pm10", 0),
+                "co": ca.get("carbon_monoxide", 0),
+                "no2": ca.get("nitrogen_dioxide", 0),
+                "so2": ca.get("sulphur_dioxide", 0),
+                "o3": ca.get("ozone", 0)
+            }
+
+            lifestyle_data = {
+                "uv_advice": "ควรทาครีมกันแดด" if uv_index > 5 else "รังสี UV ปกติ",
+                "air_advice": "สวมหน้ากาก N95" if aqi > 100 else "ทำกิจกรรมกลางแจ้งได้ปกติ",
+                "running": "ไม่เหมาะสม" if aqi > 100 else "ดีมาก"
+            }
+            # ------------------------------------------------------------
+
             record = {
                 "city_key": p["key"],
                 "city_name_th": f"{p['nameTh']} ({p['nameEn']})",
@@ -173,7 +231,13 @@ def sync():
                 "hourly_labels": hourly_times,
                 "hourly_temps": hourly_temps,
                 "hourly_aqis": hourly_aqis,
-                "hourly_rains": hourly_rains
+                "hourly_rains": hourly_rains,
+                "daily_forecast": daily_forecast,
+                "pollutants_data": pollutants_data,
+                "lifestyle_data": lifestyle_data,
+                "uv_index": uv_index,
+                "sunrise_time": sunrise_time,
+                "sunset_time": sunset_time
             }
             all_records.append(record)
 
