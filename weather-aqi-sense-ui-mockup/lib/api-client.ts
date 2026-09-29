@@ -306,9 +306,13 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
           const prob = hRains[i].prob || 0;
           let hourWeather = weatherKind;
           
-          if (prob >= 50) hourWeather = "rain";
-          else if (prob >= 20) hourWeather = "cloud";
-          else if (weatherKind === "rain") hourWeather = "cloud"; // fallback if no rain but city is raining
+          if (hRains[i].wcode !== undefined) {
+             hourWeather = mapWmoCodeToKind(hRains[i].wcode);
+          } else {
+             if (prob >= 50) hourWeather = "rain";
+             else if (prob >= 20) hourWeather = "cloud";
+             else if (weatherKind === "rain") hourWeather = "cloud";
+          }
 
           hourlyPoints.push({
             time: hLabels[i],
@@ -322,6 +326,40 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
       }
     }
 
+    let sevenDay: DayForecast[] | undefined = undefined;
+    if (row.daily_forecast) {
+      const dForecast = typeof row.daily_forecast === 'string' ? JSON.parse(row.daily_forecast) : row.daily_forecast;
+      if (Array.isArray(dForecast) && dForecast.length > 0) {
+        const thDays = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"]
+        const enDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        sevenDay = dForecast.map((d: any, index: number) => {
+          const dObj = new Date(d.date)
+          return {
+            dayNameTh: index === 0 ? "วันนี้" : thDays[dObj.getDay()],
+            dayNameEn: index === 0 ? "Today" : enDays[dObj.getDay()],
+            date: `${dObj.getDate()}/${dObj.getMonth() + 1}`,
+            weather: mapWmoCodeToKind(d.weather_code || 0),
+            tempMin: Math.round(d.temp_min || 24),
+            tempMax: Math.round(d.temp_max || 34),
+            rainChance: Math.round((d.rain_sum || 0) > 0 ? 60 : 10),
+          }
+        });
+      }
+    }
+
+    let pollutants = { pm25, pm10: 25, o3: 30, no2: 15, so2: 2, co: 0.2 };
+    if (row.pollutants_data) {
+      const pData = typeof row.pollutants_data === 'string' ? JSON.parse(row.pollutants_data) : row.pollutants_data;
+      pollutants = {
+        pm25,
+        pm10: Math.round(pData.pm10 || 25),
+        o3: Math.round(pData.o3 || 30),
+        no2: Math.round(pData.no2 || 15),
+        so2: Math.round(pData.so2 || 2),
+        co: Math.round(pData.co || 0.2),
+      };
+    }
+
     return {
       temp,
       aqi,
@@ -330,10 +368,12 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
       wind,
       weather: weatherKind,
       feelsLike: Math.round(temp + 1),
-      tempMin: Math.round(temp - 3),
-      tempMax: Math.round(temp + 3),
+      tempMin: sevenDay ? sevenDay[0].tempMin : Math.round(temp - 3),
+      tempMax: sevenDay ? sevenDay[0].tempMax : Math.round(temp + 3),
       lifestyle: calculateLifestyle(temp, aqi, 20),
       hourly: hourlyPoints,
+      sevenDayForecast: sevenDay,
+      pollutants,
     }
   } catch (err) {
     console.warn("[Supabase] Cache fetch error:", err)

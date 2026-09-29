@@ -38,7 +38,25 @@ export function Forecast7Day({ city, lang }: { city: City; lang: Lang }) {
                 <span className={`block font-medium ${idx === 0 ? "text-[#1a73e8]" : "text-[#202124]"}`}>
                   {dayTitle}
                 </span>
-                <span className="text-[11px] text-[#80868b]">{d.date}</span>
+                <span className="text-[11px] text-[#80868b]">
+                  {(() => {
+                    // d.date is either '24/9' from api or '24 ก.ย.' from mock
+                    let day = "", month = "";
+                    if (d.date.includes("/")) {
+                      const parts = d.date.split("/");
+                      day = parts[0];
+                      const mIndex = parseInt(parts[1]) - 1;
+                      const thM = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                      const enM = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                      month = lang === "th" ? thM[mIndex] : enM[mIndex];
+                    } else {
+                      // fallback for mock string '24 ก.ย.'
+                      day = d.date.split(" ")[0];
+                      month = lang === "th" ? d.date.split(" ")[1] : "Sep";
+                    }
+                    return `${day} ${month}`;
+                  })()}
+                </span>
               </div>
 
               {/* Weather icon & rain probability */}

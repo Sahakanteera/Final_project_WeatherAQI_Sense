@@ -144,6 +144,7 @@ def sync():
             aqi_list = aj.get("hourly", {}).get("us_aqi", [])
             rain_list = wj.get("hourly", {}).get("rain", [])
             prob_list = wj.get("hourly", {}).get("precipitation_probability", [])
+            wcode_list = wj.get("hourly", {}).get("weathercode", [])
             
             for i in range(24):
                 idx = current_idx + i
@@ -154,7 +155,8 @@ def sync():
                     hourly_rains.append({
                         "time": t_list[idx].split("T")[1],
                         "prob": prob_list[idx] if idx < len(prob_list) else 0,
-                        "rain": rain_list[idx] if idx < len(rain_list) else 0
+                        "rain": rain_list[idx] if idx < len(rain_list) else 0,
+                        "wcode": wcode_list[idx] if idx < len(wcode_list) else 0
                     })
 
             wt = map_wmo_code_to_text(wcode)

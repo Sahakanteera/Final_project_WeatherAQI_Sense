@@ -1049,28 +1049,36 @@ export function ThailandInteractiveMap({
               <div className="flex flex-col gap-0.5 font-medium">
                 <div className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: AQI_COLORS.good }} />
-                  <span className="text-[#5f6368]">0–50 ดีมาก (Good)</span>
+                  <span className="text-[#5f6368]">
+                    0–50 {lang === "th" ? "คุณภาพอากาศดี" : "Good"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ background: AQI_COLORS.moderate }}
                   />
-                  <span className="text-[#5f6368]">51–100 ปานกลาง (Moderate)</span>
+                  <span className="text-[#5f6368]">
+                    51–100 {lang === "th" ? "ปานกลาง" : "Moderate"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ background: AQI_COLORS.unhealthySensitive }}
                   />
-                  <span className="text-[#5f6368]">101–150 เริ่มมีผลกระทบ</span>
+                  <span className="text-[#5f6368]">
+                    101–150 {lang === "th" ? "เริ่มมีผลกระทบ" : "Unhealthy for Sensitive"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ background: AQI_COLORS.unhealthy }}
                   />
-                  <span className="text-[#5f6368]">&gt;150 มีผลกระทบต่อสุขภาพ</span>
+                  <span className="text-[#5f6368]">
+                    &gt;150 {lang === "th" ? "มีผลกระทบต่อสุขภาพ" : "Unhealthy"}
+                  </span>
                 </div>
               </div>
             ) : (
