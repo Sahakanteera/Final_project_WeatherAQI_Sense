@@ -1988,17 +1988,28 @@
 
             const timeInfo = formatLastUpdated(cachedAt, currentLang);
 
+            // คำนวณเวลาที่จะดึงข้อมูลใหม่รอบถัดไป (ต้นชั่วโมงถัดไป)
+            const now = new Date();
+            const nextSync = new Date(now);
+            nextSync.setHours(nextSync.getHours() + 1, 0, 0, 0);
+            let diffMins = Math.ceil((nextSync - now) / 60000);
+            if (diffMins <= 0) diffMins = 60;
+
+            const nextSyncText = currentLang === 'th' 
+                ? `(อีก ${diffMins} นาทีจะดึงข้อมูลใหม่)` 
+                : `(Next fetch in ${diffMins} min)`;
+
             if (fromCache && cachedAt) {
                 badge.style.background  = 'rgba(52,211,153,0.15)';
                 badge.style.color       = '#34d399';
                 badge.style.borderColor = '#34d399';
-                badge.innerHTML = `● CACHE • 🕒 ${timeInfo.short}`;
+                badge.innerHTML = `● SUPABASE DATABASE • 🕒 ล่าสุด: ${timeInfo.short} ${nextSyncText}`;
                 badge.title = timeInfo.full;
             } else {
                 badge.style.background  = 'rgba(56,189,248,0.15)';
                 badge.style.color       = '#38bdf8';
                 badge.style.borderColor = '#38bdf8';
-                badge.innerHTML = `⚡ LIVE API • 🕒 ${timeInfo.short}`;
+                badge.innerHTML = `⚡ LIVE API • 🕒 ล่าสุด: ${timeInfo.short} ${nextSyncText}`;
                 badge.title = timeInfo.full;
             }
         }
@@ -2023,7 +2034,7 @@
 
             document.getElementById('currentCityTag').innerText = (cityObj.name[currentLang] || cityObj.name.en).toUpperCase();
 
-            // 1) ถ้ามี cache อยู่ใน memory และยังไม่ข้ามชั่วโมง (:00 น.) และไม่ได้กด forceRefresh → แสดงผลทันที
+            // 1) ตรวจสอบ cache ใน memory (ถ้าไม่ได้สั่ง forceRefresh)
             if (!forceRefresh && cachedCityData[currentCityKey]) {
                 const mem = cachedCityData[currentCityKey];
                 const memDate = new Date(mem.cachedAt || Date.now());
@@ -2032,20 +2043,8 @@
                 nextHourTime.setHours(nextHourTime.getHours() + 1);
                 if (Date.now() < nextHourTime.getTime() && memDate.getTime() <= Date.now() + 60000) {
                     updateUIWithData(mem);
-                    updateDataBadge(mem.fromCache, mem.cachedAt);
+                    updateDataBadge(true, mem.cachedAt);
                     return;
-                }
-            }
-
-            // 2) ถ้ายังไม่มีใน memory ตรวจสอบ Supabase cache
-            if (!forceRefresh) {
-                const supabaseData = await loadFromSupabase(currentCityKey);
-                if (supabaseData) {
-                    cachedCityData[currentCityKey] = supabaseData;
-                    updateUIWithData(supabaseData);
-                    updateDataBadge(true, supabaseData.cachedAt);
-                    renderCityList();
-                    if (!supabaseData.isExpired) return;
                 }
             }
 
@@ -2055,131 +2054,55 @@
                 document.getElementById('aqiVal').innerText  = '...';
             }
 
-            // 3) ดึง Live API จาก Open-Meteo (ระบุ timezone=Asia/Bangkok ตรงเวลาไทยจริง) พร้อม Timeout 6 วินาที
-            let weatherCode = 0;
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 6000);
-
+            // 2) ดึงข้อมูลจาก Supabase เสมอ แม้จะเป็น Refresh (ตามคำขอ)
             try {
-                const [weatherRes, aqiRes] = await Promise.all([
-                    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,rain,precipitation_probability&forecast_days=2&timezone=Asia%2FBangkok`, { signal: controller.signal }),
-                    fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&hourly=us_aqi,pm2_5&forecast_days=1&timezone=Asia%2FBangkok`, { signal: controller.signal })
-                ]);
-                clearTimeout(timeoutId);
-
-                if (!weatherRes.ok || !aqiRes.ok) {
-                    throw new Error(`API HTTP Error: weather=${weatherRes.status}, aqi=${aqiRes.status}`);
+                const supabaseData = await loadFromSupabase(currentCityKey);
+                if (supabaseData) {
+                    cachedCityData[currentCityKey] = supabaseData;
+                    updateUIWithData(supabaseData);
+                    updateDataBadge(true, supabaseData.cachedAt);
+                    renderCityList();
+                    // เราไม่ต้อง fetch จาก Live API แล้ว เพราะการดึงข้อมูลรายชั่วโมงจะเป็นหน้าที่ของ sync_supabase.py
+                    return; 
                 }
+            } catch (err) {
+                console.warn('[fetchLiveCityData] Failed to fetch from Supabase:', err);
+            }
 
-                const weatherJson = await weatherRes.json();
-                const aqiJson     = await aqiRes.json();
-
-                const temp = weatherJson.current_weather ? weatherJson.current_weather.temperature : 30.0;
-                const wind = weatherJson.current_weather ? weatherJson.current_weather.windspeed   : 10.0;
-                weatherCode        = weatherJson.current_weather ? weatherJson.current_weather.weathercode : 0;
-
-                let currentHourIndex = 12;
-                if (weatherJson.hourly && weatherJson.hourly.time) {
-                    const now = new Date();
-                    currentHourIndex = weatherJson.hourly.time.findIndex(t => new Date(t).getTime() >= now.getTime());
-                    if (currentHourIndex === -1) currentHourIndex = 0;
-                }
-
-                const humidity     = (weatherJson.hourly && weatherJson.hourly.relativehumidity_2m) ? weatherJson.hourly.relativehumidity_2m[currentHourIndex] : 65;
-                const rain         = (weatherJson.hourly && weatherJson.hourly.rain) ? weatherJson.hourly.rain[currentHourIndex] : 0.0;
-                const aqi          = (aqiJson.current && aqiJson.current.us_aqi  !== undefined) ? Math.round(aqiJson.current.us_aqi)      : 45;
-                const pm25         = (aqiJson.current && aqiJson.current.pm2_5   !== undefined) ? aqiJson.current.pm2_5.toFixed(1)        : '12.5';
-                
-                let hourlyTimes = ['00:00','04:00','08:00','12:00','16:00','20:00','23:00'];
-                let hourlyTemps = [26, 25, 29, 33, 31, 28, 27];
-                let hourlyAqis  = [42, 40, 48, 55, 52, 45, 43];
-
-                let rainForecast = [];
-                if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.precipitation_probability) {
-                    for (let i = 0; i < 24; i++) {
-                        const idx = currentHourIndex + i;
-                        if (idx < weatherJson.hourly.time.length) {
-                            rainForecast.push({
-                                time: weatherJson.hourly.time[idx].split('T')[1],
-                                prob: weatherJson.hourly.precipitation_probability[idx] || 0,
-                                rain: weatherJson.hourly.rain[idx] || 0
-                            });
-                        }
-                    }
-                }
-
-                if (weatherJson.hourly && weatherJson.hourly.time && weatherJson.hourly.time.length >= 24) {
-                    const sampleIndices = [];
-                    for (let i = 0; i < 24; i++) {
-                        const idx = currentHourIndex + i;
-                        if (idx < weatherJson.hourly.time.length) sampleIndices.push(idx);
-                    }
-                    hourlyTimes = sampleIndices.map(i => weatherJson.hourly.time[i].split('T')[1]);
-                    hourlyTemps = sampleIndices.map(i => weatherJson.hourly.temperature_2m[i]);
-                    if (aqiJson.hourly && aqiJson.hourly.us_aqi) {
-                        hourlyAqis = sampleIndices.map(i => aqiJson.hourly.us_aqi[i]);
-                    }
-                }
-                const weatherText  = mapWmoCodeToText(weatherCode);
-
-                const dataPayload = {
+            // 3) ถ้า Supabase พัง หรือไม่มีข้อมูลจริงๆ ให้ Fallback เป็นข้อมูลจำลอง
+            console.warn('Supabase fetch failed or no data, using cached/fallback.');
+            if (cachedCityData[currentCityKey]) {
+                updateUIWithData(cachedCityData[currentCityKey]);
+                updateDataBadge(true, cachedCityData[currentCityKey].cachedAt);
+            } else {
+                const fallbackPayload = {
                     name:        cityObj.name,
-                    temp:        Number(temp).toFixed(1),
-                    humidity:    humidity,
-                    wind:        Number(wind).toFixed(1),
-                    rain:        Number(rain).toFixed(1),
-                    weatherText: weatherText,
-                    aqi:         aqi,
-                    pm25:        pm25,
-                    history:     { labels: hourlyTimes, temp: hourlyTemps, aqi: hourlyAqis, rain: rainForecast },
+                    temp:        '30.5',
+                    humidity:    62,
+                    wind:        '12.0',
+                    rain:        '0.0',
+                    weatherText: { th: '☀️ ท้องฟ้าโปร่ง แดดจัด', en: '☀️ Clear Sky & Sunny' },
+                    aqi:         42,
+                    pm25:        '10.2',
+                    history:     { 
+                        labels: ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'], 
+                        temp: [28,29,31,32,30,29,28], 
+                        aqi: [38,40,45,50,48,44,42],
+                        rain: [
+                            {time: '09:00', prob: 10, rain: 0},
+                            {time: '12:00', prob: 25, rain: 0},
+                            {time: '15:00', prob: 5, rain: 0},
+                            {time: '18:00', prob: 0, rain: 0},
+                            {time: '21:00', prob: 0, rain: 0}
+                        ]
+                    },
                     fromCache:   false,
                     cachedAt:    new Date()
                 };
-
-                cachedCityData[currentCityKey] = dataPayload;
-                updateUIWithData(dataPayload);
+                cachedCityData[currentCityKey] = fallbackPayload;
+                updateUIWithData(fallbackPayload);
                 updateDataBadge(false, null);
                 renderCityList();
-
-                // บันทึกลง Supabase (async)
-                saveToSupabase(currentCityKey, cityObj, dataPayload, weatherCode);
-
-            } catch (err) {
-                clearTimeout(timeoutId);
-                console.warn('API Fetch failed or timed out, using cached/fallback:', err);
-                // ถ้ามีข้อมูลเดิมใน cache ให้ใช้ข้อมูลเดิม
-                if (cachedCityData[currentCityKey]) {
-                    updateUIWithData(cachedCityData[currentCityKey]);
-                    updateDataBadge(true, cachedCityData[currentCityKey].cachedAt);
-                } else {
-                    const fallbackPayload = {
-                        name:        cityObj.name,
-                        temp:        '30.5',
-                        humidity:    62,
-                        wind:        '12.0',
-                        rain:        '0.0',
-                        weatherText: { th: '☀️ ท้องฟ้าโปร่ง แดดจัด', en: '☀️ Clear Sky & Sunny' },
-                        aqi:         42,
-                        pm25:        '10.2',
-                        history:     { 
-                            labels: ['09:00','11:00','13:00','15:00','17:00','19:00','21:00'], 
-                            temp: [28,29,31,32,30,29,28], 
-                            aqi: [38,40,45,50,48,44,42],
-                            rain: [
-                                {time: '09:00', prob: 10, rain: 0},
-                                {time: '12:00', prob: 25, rain: 0},
-                                {time: '15:00', prob: 60, rain: 2.5},
-                                {time: '18:00', prob: 15, rain: 0}
-                            ]
-                        },
-                        fromCache:   false,
-                        cachedAt:    null
-                    };
-                    cachedCityData[currentCityKey] = fallbackPayload;
-                    updateUIWithData(fallbackPayload);
-                    updateDataBadge(false, null);
-                    renderCityList();
-                }
             }
         }
 

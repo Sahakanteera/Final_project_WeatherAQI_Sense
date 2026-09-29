@@ -49,7 +49,8 @@ function ChartTooltip({
 }
 
 export function HourlyChart({ city, lang }: { city: City; lang: Lang }) {
-  let hourlyData = buildHourly(city)
+  // Use real hourly data if available (at least 24 hours), otherwise fallback to generated
+  let hourlyData = (city.hourly && city.hourly.length >= 24) ? city.hourly : buildHourly(city)
 
   // Rotate to start at the current hour
   const currentHour = new Date().getHours()

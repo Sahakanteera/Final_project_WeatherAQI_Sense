@@ -293,6 +293,28 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
     const wind = Number(row.wind_speed) || 10.0
     const weatherKind = mapWmoCodeToKind(row.weather_code || 0)
 
+    let hourlyPoints: HourPoint[] | undefined = undefined;
+    if (row.hourly_rains && row.hourly_temps && row.hourly_labels && row.hourly_aqis) {
+      const hRains = typeof row.hourly_rains === 'string' ? JSON.parse(row.hourly_rains) : row.hourly_rains;
+      const hTemps = typeof row.hourly_temps === 'string' ? JSON.parse(row.hourly_temps) : row.hourly_temps;
+      const hLabels = typeof row.hourly_labels === 'string' ? JSON.parse(row.hourly_labels) : row.hourly_labels;
+      const hAqis = typeof row.hourly_aqis === 'string' ? JSON.parse(row.hourly_aqis) : row.hourly_aqis;
+
+      if (hRains.length > 0) {
+        hourlyPoints = [];
+        for (let i = 0; i < Math.min(24, hRains.length, hTemps.length, hLabels.length, hAqis.length); i++) {
+          hourlyPoints.push({
+            time: hLabels[i],
+            temp: hTemps[i],
+            aqi: hAqis[i],
+            rainChance: hRains[i].prob || 0,
+            wind: wind,
+            weather: weatherKind
+          });
+        }
+      }
+    }
+
     return {
       temp,
       aqi,
@@ -304,6 +326,7 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
       tempMin: Math.round(temp - 3),
       tempMax: Math.round(temp + 3),
       lifestyle: calculateLifestyle(temp, aqi, 20),
+      hourly: hourlyPoints,
     }
   } catch (err) {
     console.warn("[Supabase] Cache fetch error:", err)
@@ -351,7 +374,7 @@ export async function saveSupabaseData(cityKey: string, city: City, raw: Partial
  */
 export async function fetchAllSupabaseCities(): Promise<Record<string, Partial<City>>> {
   try {
-    const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?select=city_key,temperature,aqi,pm25,humidity,wind_speed,weather_code`
+    const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?select=city_key,temperature,aqi,pm25,humidity,wind_speed,weather_code,hourly_labels,hourly_temps,hourly_aqis,hourly_rains`
     const res = await fetch(url, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
@@ -377,6 +400,28 @@ export async function fetchAllSupabaseCities(): Promise<Record<string, Partial<C
         feelsLike: Math.round(temp + 1),
         tempMin: Math.round(temp - 3),
         tempMax: Math.round(temp + 3),
+      }
+
+      if (r.hourly_rains && r.hourly_temps && r.hourly_labels && r.hourly_aqis) {
+        const hRains = typeof r.hourly_rains === 'string' ? JSON.parse(r.hourly_rains) : r.hourly_rains;
+        const hTemps = typeof r.hourly_temps === 'string' ? JSON.parse(r.hourly_temps) : r.hourly_temps;
+        const hLabels = typeof r.hourly_labels === 'string' ? JSON.parse(r.hourly_labels) : r.hourly_labels;
+        const hAqis = typeof r.hourly_aqis === 'string' ? JSON.parse(r.hourly_aqis) : r.hourly_aqis;
+
+        if (hRains.length > 0) {
+          const hourlyPoints: HourPoint[] = [];
+          for (let i = 0; i < Math.min(24, hRains.length, hTemps.length, hLabels.length, hAqis.length); i++) {
+            hourlyPoints.push({
+              time: hLabels[i],
+              temp: hTemps[i],
+              aqi: hAqis[i],
+              rainChance: hRains[i].prob || 0,
+              wind: map[k].wind || 10,
+              weather: map[k].weather || "sunny"
+            });
+          }
+          map[k].hourly = hourlyPoints;
+        }
       }
     }
     return map
