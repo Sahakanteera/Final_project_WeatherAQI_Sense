@@ -386,15 +386,11 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
  */
 export async function saveSupabaseData(cityKey: string, city: City, raw: Partial<City>): Promise<void> {
   try {
-    const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?on_conflict=city_key`
+    const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?city_key=eq.${cityKey}`
     const payload = {
-      city_key: cityKey,
-      city_name_th: city.th,
-      city_name_en: city.en,
       temperature: raw.temp ?? city.temp,
       humidity: raw.humidity ?? city.humidity,
       wind_speed: raw.wind ?? city.wind,
-      weather_code: 0,
       aqi: raw.aqi ?? city.aqi,
       pm25: raw.pm25 ?? city.pm25,
       fetched_at: new Date().toISOString(),
@@ -402,17 +398,16 @@ export async function saveSupabaseData(cityKey: string, city: City, raw: Partial
     }
 
     await fetch(url, {
-      method: "POST",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        Prefer: "resolution=merge-duplicates",
       },
       body: JSON.stringify(payload),
     })
   } catch (err) {
-    console.warn("[Supabase] Upsert error:", err)
+    console.warn("[Supabase] Patch error:", err)
   }
 }
 
@@ -497,6 +492,20 @@ export async function getCityDataWithFallback(
   city: City,
   forceLive: boolean = false
 ): Promise<{ data: Partial<City>; source: "live" | "supabase" | "cache" | "demo" }> {
+  
+  if (forceLive) {
+    try {
+      const liveData = await fetchOpenMeteoLive(city.lat, city.lon);
+      if (liveData) {
+        // Trigger a background PATCH update to Supabase so others see the new temp/aqi
+        saveSupabaseData(city.key, city, liveData).catch(e => console.warn(e));
+        return { data: liveData, source: "live" };
+      }
+    } catch (e) {
+      console.warn("Live fetch failed, falling back to Supabase", e);
+    }
+  }
+
   // Always fetch from Supabase (Backend Sync handles Open-Meteo data)
   const cached = await fetchSupabaseData(city.key)
   if (cached) {
