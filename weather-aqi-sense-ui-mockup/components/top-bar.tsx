@@ -188,7 +188,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
               {dataSource === "live"
                 ? (lang === "th" ? "LIVE OPEN-METEO" : "LIVE OPEN-METEO")
                 : dataSource === "supabase"
-                  ? (lang === "th" ? `SUPABASE DATABASE • ${syncStatus}` : `SUPABASE DATABASE • ${syncStatus}`)
+                  ? (lang === "th" ? `ดึงข้อมูล API • ${syncStatus}` : `API DATA • ${syncStatus}`)
                   : (lang === "th" ? "BASELINE DATA" : "BASELINE DATA")}
             </span>
           )}
