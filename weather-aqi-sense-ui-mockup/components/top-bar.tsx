@@ -38,26 +38,18 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
   const [syncStatus, setSyncStatus] = useState("")
   
   useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date()
-      const nextHour = new Date(now)
-      nextHour.setHours(now.getHours() + 1, 0, 0, 0)
-      const diffMs = nextHour.getTime() - now.getTime()
-      const minutesLeft = Math.floor(diffMs / 60000)
-      
-      const lastSyncHour = now.getHours().toString().padStart(2, '0')
-      
+    if (dataSource === "live") {
+      setSyncStatus(lang === 'th' ? "🟢 ข้อมูล API ล่าสุด (Real-time)" : "🟢 Live API Data (Real-time)");
+    } else {
+      const now = new Date();
+      const lastSyncHour = now.getHours().toString().padStart(2, '0');
       if (lang === 'th') {
-        setSyncStatus(`🕒 ล่าสุด: ${lastSyncHour}:00 น. (อีก ${minutesLeft} นาทีจะดึงข้อมูลใหม่)`)
+        setSyncStatus(`🕒 ฐานข้อมูล (อัปเดตล่าสุด: ${lastSyncHour}:00 น.)`);
       } else {
-        setSyncStatus(`🕒 Last sync: ${lastSyncHour}:00 (Next in ${minutesLeft}m)`)
+        setSyncStatus(`🕒 Database (Last sync: ${lastSyncHour}:00)`);
       }
     }
-    
-    updateCountdown()
-    const timer = setInterval(updateCountdown, 60000)
-    return () => clearInterval(timer)
-  }, [lang])
+  }, [lang, dataSource])
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
