@@ -61,7 +61,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:items-center md:gap-6 md:py-4">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:flex-wrap md:items-center md:gap-4 lg:gap-6 md:py-4">
         {/* Brand */}
         <div className="flex shrink-0 items-center gap-2.5">
           <span
@@ -78,7 +78,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
         </div>
 
         {/* Search */}
-        <div className="relative flex-1 md:mx-2">
+        <div className="relative flex-1 min-w-[250px] md:mx-2">
           <div className="flex items-center gap-2 rounded-full border border-[#e0e0e0] bg-[#f8f9fa] px-4 py-2 transition-colors focus-within:border-[#1a73e8] focus-within:bg-white">
             <Search size={18} strokeWidth={1.75} className="text-[#5f6368]" aria-hidden="true" />
             <input
