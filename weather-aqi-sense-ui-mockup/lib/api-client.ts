@@ -441,21 +441,12 @@ export async function getCityDataWithFallback(
   city: City,
   forceLive: boolean = false
 ): Promise<{ data: Partial<City>; source: "live" | "supabase" | "cache" | "demo" }> {
-  // If not forcing live, try Supabase cache
-  if (!forceLive) {
-    const cached = await fetchSupabaseData(city.key)
-    if (cached) {
-      return { data: cached, source: "supabase" }
-    }
+  // Always fetch from Supabase (Backend Sync handles Open-Meteo data)
+  const cached = await fetchSupabaseData(city.key)
+  if (cached) {
+    return { data: cached, source: "supabase" }
   }
 
-  // Fetch live Open-Meteo
-  const live = await fetchOpenMeteoLive(city.lat, city.lon)
-  if (live) {
-    // Background save to Supabase
-    saveSupabaseData(city.key, city, live).catch(() => {})
-    return { data: live, source: "live" }
-  }
-
+  // If Supabase fails, use demo baseline
   return { data: {}, source: "demo" }
 }

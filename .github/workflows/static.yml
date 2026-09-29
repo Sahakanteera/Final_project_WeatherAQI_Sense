@@ -23,6 +23,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install and Build Next.js
+        run: |
+          cd weather-aqi-sense-ui-mockup
+          npm install --legacy-peer-deps
+          npm run build
+          # คัดลอกไฟล์ที่ Build เสร็จ (ในโฟลเดอร์ out) มาวางทับไฟล์ข้างนอกสุด
+          cp -r out/* ../
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

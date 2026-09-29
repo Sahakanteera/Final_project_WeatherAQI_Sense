@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState, useEffect } from "react"
 import { Search, RefreshCw } from "lucide-react"
 import type { City, Lang } from "@/lib/weather-data"
 import { DEMO_CITIES } from "@/lib/weather-data"
@@ -34,6 +34,30 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
     setQuery("")
     setOpen(false)
   }
+
+  const [syncStatus, setSyncStatus] = useState("")
+  
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date()
+      const nextHour = new Date(now)
+      nextHour.setHours(now.getHours() + 1, 0, 0, 0)
+      const diffMs = nextHour.getTime() - now.getTime()
+      const minutesLeft = Math.floor(diffMs / 60000)
+      
+      const lastSyncHour = now.getHours().toString().padStart(2, '0')
+      
+      if (lang === 'th') {
+        setSyncStatus(`🕒 ล่าสุด: ${lastSyncHour}:00 น. (อีก ${minutesLeft} นาทีจะดึงข้อมูลใหม่)`)
+      } else {
+        setSyncStatus(`🕒 Last sync: ${lastSyncHour}:00 (Next in ${minutesLeft}m)`)
+      }
+    }
+    
+    updateCountdown()
+    const timer = setInterval(updateCountdown, 60000)
+    return () => clearInterval(timer)
+  }, [lang])
 
   return (
     <header className="sticky top-0 z-20 border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
@@ -164,7 +188,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
               {dataSource === "live"
                 ? (lang === "th" ? "LIVE OPEN-METEO" : "LIVE OPEN-METEO")
                 : dataSource === "supabase"
-                  ? (lang === "th" ? "SUPABASE CACHE" : "SUPABASE CACHE")
+                  ? (lang === "th" ? `SUPABASE DATABASE • ${syncStatus}` : `SUPABASE DATABASE • ${syncStatus}`)
                   : (lang === "th" ? "BASELINE DATA" : "BASELINE DATA")}
             </span>
           )}
