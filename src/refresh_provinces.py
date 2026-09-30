@@ -167,7 +167,10 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
         temp = float(cw.get("temperature", 30.0))
         wind = float(cw.get("windspeed", 10.0))
         wcode = int(cw.get("weathercode", 0))
-        humidity = (weather.get("hourly", {}).get("relativehumidity_2m") or [65])[12]
+        
+        humidity_list = weather.get("hourly", {}).get("relativehumidity_2m") or []
+        humidity = humidity_list[12] if len(humidity_list) > 12 else 65
+        
         aqi_val = round((aqi.get("current", {}).get("us_aqi") or 45))
         pm25_val = round(float((aqi.get("current", {}).get("pm2_5") or 12.5)), 1)
 
@@ -181,14 +184,16 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
 
         # ดึงข้อมูลพยากรณ์ฝน 24 ชั่วโมง (ข้ามทีละ 3 ชั่วโมง)
         hourly_rains = []
-        now = datetime.now(timezone.utc) # ใช้เวลาคร่าวๆ เพราะเดี๋ยวเช็กจาก array
         times = weather.get("hourly", {}).get("time") or []
         probs = weather.get("hourly", {}).get("precipitation_probability") or []
         rains = weather.get("hourly", {}).get("rain") or []
         
-        # หา currentHourIndex แบบเดียวกับ JS
+        # หา currentHourIndex ให้ตรงกับเวลาไทย (UTC+7)
+        import datetime as dt
+        bangkok_tz = dt.timezone(dt.timedelta(hours=7))
         current_idx = 0
-        current_time_str = datetime.now().strftime("%Y-%m-%dT%H:00")
+        current_time_str = dt.datetime.now(bangkok_tz).strftime("%Y-%m-%dT%H:00")
+        
         for i, t in enumerate(times):
             if t >= current_time_str:
                 current_idx = i
@@ -239,7 +244,7 @@ def upsert_to_supabase(records: list[dict]) -> int:
     import urllib.request
     import urllib.error
 
-    url = f"{SUPABASE_URL}/rest/v1/weather_aqi_cache"
+    url = f"{SUPABASE_URL}/rest/v1/weather_aqi_cache?on_conflict=city_key"
     headers = {
         "apikey":          SUPABASE_ANON_KEY,
         "Authorization":   f"Bearer {SUPABASE_ANON_KEY}",

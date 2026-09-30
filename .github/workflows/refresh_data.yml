@@ -1,10 +1,9 @@
-﻿# ============================================================
+# ============================================================
 #  refresh_data.yml
 #  GitHub Actions — Auto-refresh ข้อมูลสภาพอากาศ 78 จังหวัด
 #
 #  Schedule (ICT = UTC+7):
-#    - 00:00 ICT  →  17:00 UTC  (เที่ยงคืน)
-#    - 12:00 ICT  →  05:00 UTC  (เที่ยงวัน)
+#    - ทำงานทุกๆ ต้นชั่วโมง (0 * * * *)
 #
 #  Secrets ที่ต้องตั้งใน GitHub:
 #    GitHub → Settings → Secrets and variables → Actions → New secret
@@ -16,8 +15,7 @@ name: 🌤️ Refresh Province Weather Data
 
 on:
   schedule:
-    - cron: '0 17 * * *'   # เที่ยงคืน ICT (00:00 +07:00)
-    - cron: '0 5 * * *'    # เที่ยงวัน  ICT (12:00 +07:00)
+    - cron: '0 * * * *'    # รันทุกชั่วโมงตรงเวลา (เช่น 00:00, 01:00, 02:00 ...)
   workflow_dispatch:         # กด Run manually ได้ใน GitHub UI
 
 jobs:
