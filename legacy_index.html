@@ -68,8 +68,9 @@
 
         /* Top Navigation Header */
         header {
-            position: relative;
-            z-index: 1000;
+            position: sticky;
+            top: 1rem;
+            z-index: 9999;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -2868,6 +2869,18 @@
             try { savedKey = localStorage.getItem('weatheraqi_selected_city'); } catch(e){}
             const defaultKey = (savedKey && cityCoords[savedKey]) ? savedKey : 'bangkok';
             currentCityKey = defaultKey;
+            
+            // อัปเดตชื่อจังหวัดที่ Header และ Search Input ให้ตรงกับที่โหลดมา
+            const p = PROVINCES.find(x => x.key === currentCityKey);
+            if (p) {
+                const elCityName = document.getElementById('advCityName');
+                const elCitySub = document.getElementById('advCitySub');
+                if (elCityName) elCityName.innerText = currentLang === 'th' ? `📍 จังหวัด${p.nameTh}` : p.nameEn;
+                if (elCitySub)  elCitySub.innerText  = currentLang === 'th' ? `(${p.nameEn})` : `(${p.nameTh})`;
+                
+                const searchInput = document.getElementById('provinceSearchInput');
+                if (searchInput) searchInput.value = currentLang === 'th' ? p.nameTh : p.nameEn;
+            }
 
             const mem = cachedCityData[defaultKey];
             let isExpired = true;
