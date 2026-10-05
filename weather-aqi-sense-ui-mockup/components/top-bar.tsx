@@ -52,7 +52,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
   }, [lang, dataSource])
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
+    <header className="sticky top-0 z-[100] border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:flex-wrap md:items-center md:gap-4 lg:gap-6 md:py-4">
         {/* Brand */}
         <div className="flex shrink-0 items-center gap-2.5">
@@ -107,7 +107,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
 
           {open && (
             <ul
-              className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 max-h-72 overflow-auto rounded-2xl border border-[#e8eaed] bg-white py-1.5"
+              className="absolute left-0 right-0 top-[calc(100%+6px)] z-[110] max-h-72 overflow-auto rounded-2xl border border-[#e8eaed] bg-white py-1.5"
               style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}
               role="listbox"
             >

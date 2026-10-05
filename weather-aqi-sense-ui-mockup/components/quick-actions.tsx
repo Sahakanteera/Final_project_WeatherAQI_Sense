@@ -42,7 +42,7 @@ export function QuickActions({ city, lang }: { city: City; lang: Lang }) {
 
       {active && response && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(32,33,36,0.4)" }}
           onClick={() => setActive(null)}
           role="dialog"

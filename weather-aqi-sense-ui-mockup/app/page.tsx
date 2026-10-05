@@ -55,36 +55,38 @@ export default function Page() {
   }, [])
 
   // 1. Initial Load: Fetch all 77 provinces from Supabase cache for rankings/map pins
+  const loadAllProvinces = useCallback(async () => {
+    try {
+      const allCached = await fetchAllSupabaseCities()
+      if (Object.keys(allCached).length > 0) {
+        setOverrides((prev) => ({ ...allCached, ...prev }))
+      }
+    } catch (e) {
+      console.warn("Supabase init error:", e)
+    }
+  }, []);
+
   useEffect(() => {
     let mounted = true
-    async function initAllProvinces() {
-      try {
-        const allCached = await fetchAllSupabaseCities()
-        if (mounted && Object.keys(allCached).length > 0) {
-          setOverrides((prev) => ({ ...allCached, ...prev }))
-        }
-      } catch (e) {
-        console.warn("Supabase init error:", e)
-      }
-    }
-    initAllProvinces()
+    if (mounted) loadAllProvinces()
     return () => {
       mounted = false
     }
-  }, [])
+  }, [loadAllProvinces])
 
-  // 2. Fetch active city detailed live metrics whenever selection changes
+  // 2. Fetch active city detailed metrics whenever selection changes (from Supabase by default)
   useEffect(() => {
-    loadCityData(activeKey, true)
+    loadCityData(activeKey, false)
   }, [activeKey, loadCityData])
 
-  // 3. Auto-refresh live data every 5 minutes (300,000 ms)
+  // 3. Auto-refresh data every 30 seconds to keep in sync with Supabase
   useEffect(() => {
     const interval = setInterval(() => {
-      loadCityData(activeKey, true)
-    }, 300000)
+      loadCityData(activeKey, false) // pull active city from supabase
+      loadAllProvinces() // pull all other cities from supabase to update map/rankings
+    }, 30000)
     return () => clearInterval(interval)
-  }, [activeKey, loadCityData])
+  }, [activeKey, loadCityData, loadAllProvinces])
 
   // Manual Refresh Handler: Force fresh live API fetch
   const handleRefresh = useCallback(() => {
