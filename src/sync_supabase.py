@@ -7,13 +7,17 @@ import json
 import urllib.request
 import re
 import os
+from datetime import datetime, timezone
 
-SUPABASE_URL = "https://gufpmcpwqdgrtgincffa.supabase.co"
-SUPABASE_ANON_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiw"
-    "icm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0."
-    "XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU"
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gufpmcpwqdgrtgincffa.supabase.co")
+SUPABASE_ANON_KEY = os.getenv(
+    "SUPABASE_ANON_KEY",
+    (
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+        "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiw"
+        "icm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0."
+        "XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU"
+    ),
 )
 
 
@@ -125,7 +129,6 @@ def sync():
             aqi = int(round(ca.get("us_aqi", 45)))
             pm25 = float(ca.get("pm2_5", 12.5))
 
-            from datetime import datetime
             current_idx = 0
             current_time_str = datetime.now().strftime("%Y-%m-%dT%H:00")
             times = wj.get("hourly", {}).get("time", [])
@@ -239,7 +242,9 @@ def sync():
                 "lifestyle_data": lifestyle_data,
                 "uv_index": uv_index,
                 "sunrise_time": sunrise_time,
-                "sunset_time": sunset_time
+                "sunset_time": sunset_time,
+                "fetched_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
             all_records.append(record)
 
