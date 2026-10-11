@@ -374,7 +374,8 @@ export async function fetchSupabaseData(cityKey: string): Promise<Partial<City> 
       hourly: hourlyPoints,
       sevenDayForecast: sevenDay,
       pollutants,
-    }
+      updatedAt: row.updated_at || row.fetched_at || undefined,
+    } as Partial<City> & { updatedAt?: string }
   } catch (err) {
     console.warn("[Supabase] Cache fetch error:", err)
     return null
@@ -492,13 +493,12 @@ export async function getCityDataWithFallback(
   city: City,
   forceLive: boolean = false
 ): Promise<{ data: Partial<City>; source: "live" | "supabase" | "cache" | "demo" }> {
-  
+  // 1. If user explicitly clicked refresh, fetch live immediately
   if (forceLive) {
     try {
       const liveData = await fetchOpenMeteoLive(city.lat, city.lon);
       if (liveData) {
-        // Trigger a background PATCH update to Supabase so others see the new temp/aqi
-        saveSupabaseData(city.key, city, liveData).catch(e => console.warn(e));
+        saveSupabaseData(city.key, city, liveData).catch((e) => console.warn(e));
         return { data: liveData, source: "live" };
       }
     } catch (e) {
@@ -506,12 +506,40 @@ export async function getCityDataWithFallback(
     }
   }
 
-  // Always fetch from Supabase (Backend Sync handles Open-Meteo data)
-  const cached = await fetchSupabaseData(city.key)
-  if (cached) {
-    return { data: cached, source: "supabase" }
+  // 2. Query Supabase cache
+  const cached = await fetchSupabaseData(city.key);
+  
+  // 3. Smart staleness check: Is cache fresh (less than 20 minutes old)?
+  let isFresh = false;
+  if (cached && (cached as any).updatedAt) {
+    const ageMs = Date.now() - new Date((cached as any).updatedAt).getTime();
+    if (ageMs >= 0 && ageMs < 20 * 60 * 1000) {
+      isFresh = true;
+    }
   }
 
-  // If Supabase fails, use demo baseline
-  return { data: {}, source: "demo" }
+  // If cache is fresh and not forced, return cached data immediately
+  if (cached && isFresh) {
+    return { data: cached, source: "supabase" };
+  }
+
+  // 4. Cache is stale (> 20 mins) or missing: Auto-fetch live Open-Meteo in real-time!
+  try {
+    const liveData = await fetchOpenMeteoLive(city.lat, city.lon);
+    if (liveData) {
+      // Sync fresh data back to Supabase so others see the latest update
+      saveSupabaseData(city.key, city, liveData).catch((e) => console.warn(e));
+      return { data: liveData, source: "live" };
+    }
+  } catch (e) {
+    console.warn("Auto live-fetch failed, falling back to cached", e);
+  }
+
+  // If live fetch fails (e.g. offline), fall back to cached data even if stale
+  if (cached) {
+    return { data: cached, source: "supabase" };
+  }
+
+  // 5. If everything fails, use demo baseline
+  return { data: {}, source: "demo" };
 }

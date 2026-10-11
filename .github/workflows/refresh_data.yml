@@ -15,7 +15,7 @@ name: 🌤️ Refresh Province Weather Data
 
 on:
   schedule:
-    - cron: '0 * * * *'    # รันทุกชั่วโมงตรงเวลา (เช่น 00:00, 01:00, 02:00 ...)
+    - cron: '15 * * * *'    # รันทุกชั่วโมงที่นาทีที่ 15 (เลี่ยงคิวติดขัดของ GitHub Actions ตอนต้นชั่วโมง :00)
   workflow_dispatch:         # กด Run manually ได้ใน GitHub UI
 
 jobs:

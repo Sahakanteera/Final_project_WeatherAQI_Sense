@@ -233,6 +233,7 @@ async def fetch_province(session: aiohttp.ClientSession, province: dict) -> dict
             "hourly_aqis":    h_aqis,
             "hourly_rains":   hourly_rains,
             "fetched_at":     datetime.now(timezone.utc).isoformat(),
+            "updated_at":     datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         print(f"  [WARN] {province['name_en']} ({province['key']}): {e}")
