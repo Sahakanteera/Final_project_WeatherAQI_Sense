@@ -133,19 +133,19 @@ def sync():
                 if t >= current_time_str:
                     current_idx = i
                     break
-            
+
             hourly_times = []
             hourly_temps = []
             hourly_aqis = []
             hourly_rains = []
-            
+
             t_list = wj.get("hourly", {}).get("time", [])
             temp_list = wj.get("hourly", {}).get("temperature_2m", [])
             aqi_list = aj.get("hourly", {}).get("us_aqi", [])
             rain_list = wj.get("hourly", {}).get("rain", [])
             prob_list = wj.get("hourly", {}).get("precipitation_probability", [])
             wcode_list = wj.get("hourly", {}).get("weathercode", [])
-            
+
             for i in range(24):
                 idx = current_idx + i
                 if idx < len(t_list):
@@ -164,19 +164,19 @@ def sync():
             # --- New Data Extraction (Daily, Pollutants, Lifestyle) ---
             daily_weather = wj.get("daily", {})
             daily_times = daily_weather.get("time", [])
-            
+
             uv_index = 0.0
             sunrise_time = ""
             sunset_time = ""
-            
+
             if daily_times:
                 uv_max_list = daily_weather.get("uv_index_max", [])
                 uv_index = uv_max_list[0] if uv_max_list and uv_max_list[0] is not None else 0.0
-                
+
                 sunrise_list = daily_weather.get("sunrise", [])
                 if sunrise_list and sunrise_list[0]:
                     sunrise_time = sunrise_list[0].split("T")[1]
-                    
+
                 sunset_list = daily_weather.get("sunset", [])
                 if sunset_list and sunset_list[0]:
                     sunset_time = sunset_list[0].split("T")[1]
@@ -187,7 +187,7 @@ def sync():
                 t_max = daily_weather.get("temperature_2m_max", [])
                 t_min = daily_weather.get("temperature_2m_min", [])
                 p_sum = daily_weather.get("precipitation_sum", [])
-                
+
                 for d_idx, d_time in enumerate(daily_times):
                     d_wcode = wcodes[d_idx] if d_idx < len(wcodes) else 0
                     wt_info = map_wmo_code_to_text(d_wcode)
