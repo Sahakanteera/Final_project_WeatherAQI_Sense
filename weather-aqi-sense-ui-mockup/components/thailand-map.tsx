@@ -270,9 +270,9 @@ export function ThailandInteractiveMap({
       map.removeLayer(tileLayerRef.current)
     }
 
-    // Clean: CartoDB Positron (High-contrast, elegant, visible coastlines & borders)
-    let url = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    let options: any = { maxZoom: 14, subdomains: "abcd" }
+    // Clean: Esri World Light Gray Base (Clean, high-contrast, zero watermark, 100% free)
+    let url = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+    let options: any = { maxZoom: 14 }
 
     if (layerType === "satellite") {
       url =
