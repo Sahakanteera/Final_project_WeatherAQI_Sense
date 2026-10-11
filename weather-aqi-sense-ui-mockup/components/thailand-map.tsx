@@ -658,7 +658,7 @@ export function ThailandInteractiveMap({
   })
 
   return (
-    <section className={`${cardClass} overflow-hidden`}>
+    <section className={`${cardClass} overflow-hidden isolate`}>
       <style jsx global>{`
         .custom-weather-marker {
           background: transparent !important;

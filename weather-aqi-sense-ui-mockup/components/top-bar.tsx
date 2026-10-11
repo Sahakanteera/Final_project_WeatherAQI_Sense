@@ -52,7 +52,7 @@ export function TopBar({ lang, onLangChange, onSelectCity, onRefresh, refreshing
   }, [lang, dataSource])
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
+    <header className="sticky top-0 z-[2000] border-b border-[#e8eaed] bg-white/95 backdrop-blur-[2px]">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:flex-wrap md:items-center md:gap-4 lg:gap-6 md:py-4">
         {/* Brand */}
         <div className="flex shrink-0 items-center gap-2.5">
