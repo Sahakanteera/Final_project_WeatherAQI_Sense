@@ -315,7 +315,7 @@ export function ThailandInteractiveMap({
       opacity: radarOpacity,
       zIndex: 350,
       maxZoom: 14,
-      maxNativeZoom: 8,
+      maxNativeZoom: 7,
       tileSize: 256,
       errorTileUrl: BLANK_TILE,
     }).addTo(map)
