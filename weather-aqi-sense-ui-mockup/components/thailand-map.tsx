@@ -843,22 +843,12 @@ export function ThailandInteractiveMap({
             {lang === "th" ? "แหล่งข้อมูล API ทางการ:" : "Official Live APIs:"}
           </span>
           <a
-            href="https://openweathermap.org/api"
+            href="https://open-meteo.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-medium text-[#1a73e8] hover:underline"
           >
-            <span>OpenWeatherMap</span>
-            <ExternalLink size={11} />
-          </a>
-          <span className="text-[#dadce0]">|</span>
-          <a
-            href="https://api-docs.iqair.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-medium text-[#1a73e8] hover:underline"
-          >
-            <span>IQAir AirVisual</span>
+            <span>Open-Meteo</span>
             <ExternalLink size={11} />
           </a>
           <span className="text-[#dadce0]">|</span>
@@ -868,7 +858,7 @@ export function ThailandInteractiveMap({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 font-medium text-blue-700 hover:underline"
           >
-            <span>RainViewer Doppler Radar (TMD Thailand)</span>
+            <span>RainViewer</span>
             <ExternalLink size={11} />
           </a>
         </div>
