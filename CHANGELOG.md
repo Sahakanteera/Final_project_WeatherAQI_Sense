@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Web Dashboard:** Glassmorphism UI covering all 78 Thai provinces with live weather & AQI data (`index.html`).
 - **Bilingual UI:** Thai/English language toggle with complete translation support.
 - **Live API Integration:** Real-time data from Open-Meteo Weather & Air Quality APIs on browser.
-- **Supabase Cache Layer:** Province data cached in cloud with auto-refresh every 12 hours via GitHub Actions.
+- **Supabase Cache Layer:** Province data cached in cloud with auto-refresh every hour via GitHub Actions.
 - **GitHub Pages Deployment:** Automated static site deployment (`.github/workflows/static.yml`).
 - **CI/CD Pipeline:** Automated linting (flake8) and testing (pytest) on push/PR (`.github/workflows/ci.yml`).
 - **Auto Data Refresh:** Scheduled GitHub Actions cron job for province data updates (`.github/workflows/refresh_data.yml`).
