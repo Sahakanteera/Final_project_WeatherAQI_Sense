@@ -5,7 +5,7 @@
 ---
 
 ## 📂 เอกสารบันทึก Test Cases ฉบับเต็ม
-ดูตารางเคสการทดสอบฉบับเต็มได้ที่โฟลเดอร์: [test_cases/TEST_CASES.md](file:///c:/%E0%B8%9C%E0%B8%B1%E0%B8%81%E0%B8%81%E0%B8%B2%E0%B8%94/Scrip%20Program/Final%20Project/test_cases/TEST_CASES.md)
+ดูตารางเคสการทดสอบฉบับเต็มได้ที่โฟลเดอร์: [test_cases/TEST_CASES.md](test_cases/TEST_CASES.md)
 
 ---
 
