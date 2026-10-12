@@ -40,7 +40,7 @@
 |---|:---:|:---:|---|
 | **บรรลุวัตถุประสงค์กลุ่ม** | 30% | **9.5** | ฟีเจอร์ครบสมบูรณ์ตามที่ออกแบบไว้ทั้ง 3 Sprints (CLI 10 เมนู, Supabase Cloud Migration, Dual-Axis Matplotlib Chart, Glassmorphism Web Dashboard 77 จังหวัด 2 ภาษา TH/EN, GitHub Pages Deployment และ Unit Test ผ่าน 62/62 PASSED 100%) |
 | **ความสอดคล้องของเนื้อหาและมาตรฐานของงาน** | 30% | **9.5** | ออกแบบสถาปัตยกรรม OOP โมดูลาร์ 3 ชั้น (Presentation, Business Logic, Data Access Layer) แบ่งเป็น 5 คลาสหลัก ปราศจาก `global` variable มีระบบ Defensive Programming และ Exception Handling ดักจับความผิดพลาดรัดกุม |
-| **ปริมาณ คุณภาพ และธรรมาภิบาลของงาน** | 30% | **9.0** | โค้ดผ่านการตรวจ Linting (`flake8` = 0 errors), มีเอกสาร [LEARNINGLOG.md](cci:7://file:///c:/%E0%B8%9C%E0%B8%B1%E0%B8%81%E0%B8%81%E0%B8%B2%E0%B8%94/Scrip%20Program/Final%20Project/LEARNINGLOG.md:0:0-0:0) บันทึก Responsible AI Prompt Records ตามหลัก Explainable Systems และมีชุดทดสอบ Edge Cases ครอบคลุมถึง 37 เทสเคส |
+| **ปริมาณ คุณภาพ และธรรมาภิบาลของงาน** | 30% | **9.0** | โค้ดผ่านการตรวจ Linting (`flake8` = 0 errors), มีเอกสาร [LEARNINGLOG.md](LEARNINGLOG.md) บันทึก Responsible AI Prompt Records ตามหลัก Explainable Systems และมีชุดทดสอบ Edge Cases ครอบคลุมถึง 37 เทสเคส |
 | **ภาพรวมงานกลุ่มทั้งหมด** | 10% | **9.5** | ทำงานเสร็จตรงตามกำหนดการทั้ง 3 Sprints ทำงานร่วมกันตามระบบ Agile Kanban Board และมีการหมุนเวียนบทบาทสมาชิก (Role Rotation Matrix) ครบทั้ง 3 หน้าที่ครบทุกคน 100% |
 | **รวม (ถ่วงน้ำหนัก)** | 100% | **≈ 9.35 / 10** | **ผลงานเสร็จสมบูรณ์ระดับ Full-Stack พร้อมระบบ CI/CD Pipeline อัตโนมัติ** |
 
@@ -106,7 +106,7 @@
 - 🌐 **Bilingual UI Support**: สลับภาษาในการแสดงผลหน้าเว็บได้ 2 ภาษา (ไทย/อังกฤษ - TH/EN Toggle)
 - 🚀 **GitHub Pages Deployment**: ระบบ CI/CD จัดส่งหน้าเว็บอัตโนมัติไปยัง GitHub Pages (`.github/workflows/static.yml`)
 - 🧪 **CI/CD Pipeline**: ระบบ Linting (flake8) และ Unit Test (pytest) อัตโนมัติ (`.github/workflows/ci.yml`)
-- 🔄 **Auto Data Refresh**: ดึงข้อมูลสดทุก 12 ชม. ผ่าน GitHub Actions Cron (`.github/workflows/refresh_data.yml`)
+- 🔄 **Auto Data Refresh**: ดึงข้อมูลสดทุกชั่วโมง ผ่าน GitHub Actions Cron (`.github/workflows/refresh_data.yml`)
 - 🧪 **Edge Case Testing**: ชุดทดสอบ 44 เคส ครอบคลุม boundary, CRUD, Search/Filter/Sort
 
 ---
