@@ -7,18 +7,14 @@ import json
 import urllib.request
 import re
 import os
+import sys
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gufpmcpwqdgrtgincffa.supabase.co")
-SUPABASE_ANON_KEY = os.getenv(
-    "SUPABASE_ANON_KEY",
-    (
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-        "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1ZnBtY3B3cWRncnRnaW5jZmZhIiw"
-        "icm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTgwNjgsImV4cCI6MjEwNTEzNDA2OH0."
-        "XvGEp-3WoXUJzc0Zqkmf3Mz9GX9OGKf17c1Cb1C-RuU"
-    ),
-)
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "").strip()
 
 
 def map_wmo_code_to_text(code: int):
@@ -74,6 +70,10 @@ def get_provinces():
 
 
 def sync():
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        print("[ERROR] กรุณาตั้งค่า SUPABASE_URL และ SUPABASE_ANON_KEY ใน .env หรือ GitHub Repository Secrets")
+        sys.exit(1)
+
     provinces = get_provinces()
     print(f"Loaded {len(provinces)} provinces from index.html.")
 

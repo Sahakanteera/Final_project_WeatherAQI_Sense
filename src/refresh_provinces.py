@@ -16,15 +16,15 @@ import asyncio
 import aiohttp
 import os
 import json
-import time
+import sys
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ─── Supabase Config ──────────────────────────────────────────────────────────
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip()
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "").strip()
 BATCH_SIZE = 10          # จำนวนจังหวัดที่ดึงพร้อมกันในแต่ละรอบ
 BATCH_DELAY_SEC = 1.5    # หน่วงเวลาระหว่าง batch (วินาที)
 
@@ -270,8 +270,8 @@ def upsert_to_supabase(records: list[dict]) -> int:
 async def run():
     """Main runner: ดึง API ทุก 78 จังหวัด แบบ batch แล้ว upsert Supabase"""
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-        print("[ERROR] กรุณาตั้งค่า SUPABASE_URL และ SUPABASE_ANON_KEY ใน .env")
-        return
+        print("[ERROR] กรุณาตั้งค่า SUPABASE_URL และ SUPABASE_ANON_KEY ใน .env หรือ GitHub Repository Secrets")
+        sys.exit(1)
 
     total = len(PROVINCES)
     print(f"[START] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} — ดึงข้อมูล {total} จังหวัด")
