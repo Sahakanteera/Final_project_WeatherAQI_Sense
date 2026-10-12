@@ -7,7 +7,7 @@
  * 4. Fallback system ensuring 100% uptime with rich offline province baseline data
  */
 
-import type { City, DayForecast, HourPoint, LifestyleIndex, Pollutants, WeatherKind } from "./weather-data"
+import { DEMO_CITIES, type City, type DayForecast, type HourPoint, type LifestyleIndex, type Pollutants, type WeatherKind } from "./weather-data"
 
 export const SUPABASE_URL = "https://gufpmcpwqdgrtgincffa.supabase.co"
 export const SUPABASE_ANON_KEY =
@@ -413,73 +413,190 @@ export async function saveSupabaseData(cityKey: string, city: City, raw: Partial
 }
 
 /**
- * Fetch all 77 provinces at once from Supabase Cloud cache
+ * Fetch all 77 provinces live in 2 batch multi-coordinate Open-Meteo requests
  */
-export async function fetchAllSupabaseCities(): Promise<Record<string, Partial<City>>> {
+export async function fetchLiveAllProvinces(): Promise<Record<string, Partial<City>>> {
   try {
-    const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?select=city_key,temperature,aqi,pm25,humidity,wind_speed,weather_code,hourly_labels,hourly_temps,hourly_aqis,hourly_rains`
+    const chunkSize = 39;
+    const map: Record<string, Partial<City>> = {};
+    const upsertRecords: any[] = [];
+    const nowIso = new Date().toISOString();
+
+    for (let i = 0; i < DEMO_CITIES.length; i += chunkSize) {
+      const chunk = DEMO_CITIES.slice(i, i + chunkSize);
+      const lats = chunk.map((c) => c.lat).join(",");
+      const lons = chunk.map((c) => c.lon).join(",");
+
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Asia%2FBangkok`;
+      const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lats}&longitude=${lons}&current=us_aqi,pm2_5&timezone=Asia%2FBangkok`;
+
+      const [wRes, aRes] = await Promise.all([
+        fetch(weatherUrl, { headers: { Accept: "application/json" } }),
+        fetch(aqiUrl, { headers: { Accept: "application/json" } }),
+      ]);
+
+      if (!wRes.ok || !aRes.ok) continue;
+
+      let wData = await wRes.json();
+      let aData = await aRes.json();
+      if (!Array.isArray(wData)) wData = [wData];
+      if (!Array.isArray(aData)) aData = [aData];
+
+      chunk.forEach((c, idx) => {
+        const cw = wData[idx]?.current || {};
+        const ca = aData[idx]?.current || {};
+        const temp = Math.round((cw.temperature_2m ?? c.temp) * 10) / 10;
+        const humidity = Math.round(cw.relative_humidity_2m ?? c.humidity);
+        const wind = Math.round((cw.wind_speed_10m ?? c.wind) * 10) / 10;
+        const wcode = cw.weather_code ?? 0;
+        const aqi = Math.round(ca.us_aqi ?? c.aqi);
+        const pm25 = Math.round((ca.pm2_5 ?? c.pm25) * 10) / 10;
+
+        map[c.key] = {
+          temp,
+          humidity,
+          wind,
+          weather: mapWmoCodeToKind(wcode),
+          aqi,
+          pm25,
+          feelsLike: Math.round(temp + 1),
+          tempMin: Math.round(temp - 3),
+          tempMax: Math.round(temp + 3),
+        };
+
+        upsertRecords.push({
+          city_key: c.key,
+          city_name_th: c.th,
+          city_name_en: c.en,
+          temperature: temp,
+          humidity,
+          wind_speed: wind,
+          weather_code: wcode,
+          aqi,
+          pm25,
+          fetched_at: nowIso,
+          updated_at: nowIso,
+        });
+      });
+    }
+
+    // Background batch upsert back to Supabase so everything stays in sync
+    if (upsertRecords.length > 0) {
+      const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?on_conflict=city_key`;
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify(upsertRecords),
+      }).catch((e) => console.warn("[Supabase] Batch upsert error:", e));
+    }
+
+    return map;
+  } catch (err) {
+    console.warn("Live batch fetch all error:", err);
+    return {};
+  }
+}
+
+/**
+ * Fetch all 77 provinces at once (checks Supabase cache freshness; auto-fetches live if stale)
+ */
+export async function fetchAllSupabaseCities(forceLive: boolean = false): Promise<Record<string, Partial<City>>> {
+  if (forceLive) {
+    const liveMap = await fetchLiveAllProvinces();
+    if (Object.keys(liveMap).length > 0) return liveMap;
+  }
+
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/weather_aqi_cache?select=city_key,temperature,aqi,pm25,humidity,wind_speed,weather_code,hourly_labels,hourly_temps,hourly_aqis,hourly_rains,updated_at`;
     const res = await fetch(url, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
-    })
-    if (!res.ok) return {}
-    const rows = await res.json()
-    const map: Record<string, Partial<City>> = {}
-    for (const r of rows) {
-      if (!r.city_key) continue
-      const k = String(r.city_key).toLowerCase().trim()
-      const temp = Number(r.temperature) || 30.0
-      const aqi = Number(r.aqi) || 40
-      const pm25 = Number(r.pm25) || 12.0
-      map[k] = {
-        temp,
-        aqi,
-        pm25,
-        humidity: Number(r.humidity) || 65,
-        wind: Number(r.wind_speed) || 10,
-        weather: mapWmoCodeToKind(r.weather_code || 0),
-        feelsLike: Math.round(temp + 1),
-        tempMin: Math.round(temp - 3),
-        tempMax: Math.round(temp + 3),
+    });
+
+    let isStale = false;
+    const map: Record<string, Partial<City>> = {};
+
+    if (res.ok) {
+      const rows = await res.json();
+      let latestTime = 0;
+      for (const r of rows) {
+        if (!r.city_key) continue;
+        const k = String(r.city_key).toLowerCase().trim();
+        const temp = Number(r.temperature) || 30.0;
+        const aqi = Number(r.aqi) || 40;
+        const pm25 = Number(r.pm25) || 12.0;
+        map[k] = {
+          temp,
+          aqi,
+          pm25,
+          humidity: Number(r.humidity) || 65,
+          wind: Number(r.wind_speed) || 10,
+          weather: mapWmoCodeToKind(r.weather_code || 0),
+          feelsLike: Math.round(temp + 1),
+          tempMin: Math.round(temp - 3),
+          tempMax: Math.round(temp + 3),
+        };
+
+        if (r.hourly_rains && r.hourly_temps && r.hourly_labels && r.hourly_aqis) {
+          const hRains = typeof r.hourly_rains === "string" ? JSON.parse(r.hourly_rains) : r.hourly_rains;
+          const hTemps = typeof r.hourly_temps === "string" ? JSON.parse(r.hourly_temps) : r.hourly_temps;
+          const hLabels = typeof r.hourly_labels === "string" ? JSON.parse(r.hourly_labels) : r.hourly_labels;
+          const hAqis = typeof r.hourly_aqis === "string" ? JSON.parse(r.hourly_aqis) : r.hourly_aqis;
+
+          if (hRains.length > 0) {
+            const hourlyPoints: HourPoint[] = [];
+            for (let i = 0; i < Math.min(24, hRains.length, hTemps.length, hLabels.length, hAqis.length); i++) {
+              let hw = map[k].weather || "sunny";
+              if (hRains[i].wcode !== undefined) {
+                hw = mapWmoCodeToKind(hRains[i].wcode);
+              } else {
+                const prob = hRains[i].prob || 0;
+                if (prob >= 50) hw = "rain_heavy";
+                else if (prob >= 20) hw = "cloudy";
+                else if (hw === "rain_heavy" || hw === "rain_light" || hw === "thunderstorm") hw = "cloudy";
+              }
+              hourlyPoints.push({
+                time: hLabels[i],
+                temp: hTemps[i],
+                aqi: hAqis[i],
+                rainChance: hRains[i].prob || 0,
+                wind: map[k].wind || 10,
+                weather: hw,
+              });
+            }
+            map[k].hourly = hourlyPoints;
+          }
+        }
+
+        const u = r.updated_at ? new Date(r.updated_at).getTime() : 0;
+        if (u > latestTime) latestTime = u;
       }
 
-      if (r.hourly_rains && r.hourly_temps && r.hourly_labels && r.hourly_aqis) {
-        const hRains = typeof r.hourly_rains === 'string' ? JSON.parse(r.hourly_rains) : r.hourly_rains;
-        const hTemps = typeof r.hourly_temps === 'string' ? JSON.parse(r.hourly_temps) : r.hourly_temps;
-        const hLabels = typeof r.hourly_labels === 'string' ? JSON.parse(r.hourly_labels) : r.hourly_labels;
-        const hAqis = typeof r.hourly_aqis === 'string' ? JSON.parse(r.hourly_aqis) : r.hourly_aqis;
+      if (rows.length < 50 || !latestTime || Date.now() - latestTime > 25 * 60 * 1000) {
+        isStale = true;
+      }
+    } else {
+      isStale = true;
+    }
 
-        if (hRains.length > 0) {
-          const hourlyPoints: HourPoint[] = [];
-          for (let i = 0; i < Math.min(24, hRains.length, hTemps.length, hLabels.length, hAqis.length); i++) {
-            let hw = map[k].weather || "sunny";
-            if (hRains[i].wcode !== undefined) {
-               hw = mapWmoCodeToKind(hRains[i].wcode);
-            } else {
-               const prob = hRains[i].prob || 0;
-               if (prob >= 50) hw = "rain_heavy";
-               else if (prob >= 20) hw = "cloudy";
-               else if (hw === "rain_heavy" || hw === "rain_light" || hw === "thunderstorm") hw = "cloudy";
-            }
-            hourlyPoints.push({
-              time: hLabels[i],
-              temp: hTemps[i],
-              aqi: hAqis[i],
-              rainChance: hRains[i].prob || 0,
-              wind: map[k].wind || 10,
-              weather: hw
-            });
-          }
-          map[k].hourly = hourlyPoints;
-        }
+    if (isStale) {
+      const liveMap = await fetchLiveAllProvinces();
+      if (Object.keys(liveMap).length > 0) {
+        return { ...map, ...liveMap };
       }
     }
-    return map
+
+    return map;
   } catch (err) {
-    console.warn("[Supabase] Bulk fetch error:", err)
-    return {}
+    console.warn("[Supabase] Bulk fetch error:", err);
+    return fetchLiveAllProvinces();
   }
 }
 

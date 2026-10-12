@@ -100,13 +100,24 @@ def sync():
             "&hourly=us_aqi,pm2_5&forecast_days=7&timezone=Asia%2FBangkok"
         )
 
-        req_w = urllib.request.Request(weather_url, headers={"User-Agent": "WeatherAQISense/1.0"})
-        req_a = urllib.request.Request(aqi_url, headers={"User-Agent": "WeatherAQISense/1.0"})
-
-        with urllib.request.urlopen(req_w, timeout=15) as res_w:
-            w_data = json.loads(res_w.read().decode("utf-8"))
-        with urllib.request.urlopen(req_a, timeout=15) as res_a:
-            a_data = json.loads(res_a.read().decode("utf-8"))
+        w_data = None
+        a_data = None
+        for attempt in range(1, 4):
+            try:
+                req_w = urllib.request.Request(weather_url, headers={"User-Agent": "WeatherAQISense/1.0"})
+                req_a = urllib.request.Request(aqi_url, headers={"User-Agent": "WeatherAQISense/1.0"})
+                with urllib.request.urlopen(req_w, timeout=35) as res_w:
+                    w_data = json.loads(res_w.read().decode("utf-8"))
+                with urllib.request.urlopen(req_a, timeout=35) as res_a:
+                    a_data = json.loads(res_a.read().decode("utf-8"))
+                break
+            except Exception as ex:
+                print(f"  [Attempt {attempt}/3] Open-Meteo fetch error: {ex}")
+                if attempt < 3:
+                    import time
+                    time.sleep(2.0)
+                else:
+                    raise
 
         if not isinstance(w_data, list):
             w_data = [w_data]
@@ -262,9 +273,19 @@ def sync():
     for b in range(0, len(all_records), 20):
         batch = all_records[b:b + 20]
         payload = json.dumps(batch).encode("utf-8")
-        req = urllib.request.Request(upsert_url, data=payload, headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=15) as res:
-            print(f"Upserted records {b+1} to {min(b+20, len(all_records))} (Status {res.status})")
+        for attempt in range(1, 4):
+            try:
+                req = urllib.request.Request(upsert_url, data=payload, headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=30) as res:
+                    print(f"Upserted records {b+1} to {min(b+20, len(all_records))} (Status {res.status})")
+                break
+            except Exception as ex:
+                print(f"  [Attempt {attempt}/3] Supabase upsert error: {ex}")
+                if attempt < 3:
+                    import time
+                    time.sleep(2.0)
+                else:
+                    raise
 
     print("\n[SUCCESS] All provinces successfully synced to Supabase!\n")
 

@@ -54,45 +54,46 @@ export default function Page() {
     }
   }, [])
 
-  // 1. Initial Load: Fetch all 77 provinces from Supabase cache for rankings/map pins
-  const loadAllProvinces = useCallback(async () => {
+  // 1. Initial Load & Sync: Fetch all 77 provinces (Supabase or Live batch)
+  const loadAllProvinces = useCallback(async (forceLive: boolean = false) => {
     try {
-      const allCached = await fetchAllSupabaseCities()
+      const allCached = await fetchAllSupabaseCities(forceLive)
       if (Object.keys(allCached).length > 0) {
-        setOverrides((prev) => ({ ...allCached, ...prev }))
+        setOverrides((prev) => ({ ...prev, ...allCached }))
       }
     } catch (e) {
-      console.warn("Supabase init error:", e)
+      console.warn("loadAllProvinces error:", e)
     }
   }, []);
 
   useEffect(() => {
     let mounted = true
-    if (mounted) loadAllProvinces()
+    if (mounted) loadAllProvinces(false)
     return () => {
       mounted = false
     }
   }, [loadAllProvinces])
 
-  // 2. Fetch active city detailed metrics whenever selection changes (from Supabase by default)
+  // 2. Fetch active city detailed metrics whenever selection changes
   useEffect(() => {
     loadCityData(activeKey, false)
   }, [activeKey, loadCityData])
 
-  // 3. Auto-refresh data every 30 seconds to keep in sync with Supabase
+  // 3. Auto-refresh data every 30 seconds (Auto-detects staleness and live-fetches all 77 provinces)
   useEffect(() => {
     const interval = setInterval(() => {
-      loadCityData(activeKey, false) // pull active city from supabase
-      loadAllProvinces() // pull all other cities from supabase to update map/rankings
+      loadCityData(activeKey, false)
+      loadAllProvinces(false)
     }, 30000)
     return () => clearInterval(interval)
   }, [activeKey, loadCityData, loadAllProvinces])
 
-  // Manual Refresh Handler: Force fresh live API fetch
+  // Manual Refresh Handler: Force fresh live API fetch for BOTH active city and all 77 provinces!
   const handleRefresh = useCallback(() => {
     if (refreshing) return
     loadCityData(activeKey, true)
-  }, [activeKey, loadCityData, refreshing])
+    loadAllProvinces(true)
+  }, [activeKey, loadCityData, loadAllProvinces, refreshing])
 
   return (
     <div className="min-h-screen text-[#202124]" style={{ backgroundColor: "#f8f9fa" }}>
